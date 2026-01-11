@@ -1,0 +1,218 @@
+---
+title: Enums
+description: "Reference for enumerated values used across the Signalbase APIs"
+---
+
+## Overview
+
+This page lists all enumeration values used across the Signalbase APIs. Use it to validate API responses and power consistent UI labels.
+
+## Job Change Signals Enums
+
+### Positions
+
+Filter job changes by specific positions:
+
+```json copy
+[
+  "ceo",
+  "cto",
+  "cfo",
+  "coo",
+  "vp of engineering",
+  "vp of sales",
+  "vp of marketing",
+  "head of product",
+  "head of growth",
+  "head of engineering",
+  "engineering manager",
+  "product manager",
+  "sales manager",
+  "marketing manager",
+  "founder",
+  "co-founder"
+]
+```
+
+### Departments
+
+Filter by department:
+
+```json copy
+[
+  "marketing",
+  "sales",
+  "engineering",
+  "product",
+  "design",
+  "operations",
+  "finance",
+  "people",
+  "data",
+  "customer_success",
+  "growth",
+  "legal"
+]
+```
+
+### Seniorities
+
+Filter by seniority level:
+
+```json copy
+[
+  "founder",
+  "c_level",
+  "vp",
+  "director",
+  "head",
+  "lead",
+  "manager"
+]
+```
+
+## Funding Signals Enums
+
+### Funding Round Types
+
+```json copy
+[
+  "Pre-Seed",
+  "Seed",
+  "Series A",
+  "Series B",
+  "Series C",
+  "Series D",
+  "Series E",
+  "Series F+",
+  "Bridge",
+  "Debt Financing",
+  "Grant",
+  "Convertible Note",
+  "Equity Crowdfunding",
+  "ICO",
+  "IPO",
+  "Private Equity",
+  "Venture",
+  "Angel",
+  "Corporate",
+  "Other"
+]
+```
+
+## Investors Enums
+
+### Investor Types
+
+```json copy
+[
+  "vc",
+  "angel",
+  "pe",
+  "corporate",
+  "accelerator",
+  "family_office",
+  "fund",
+  "government",
+  "other"
+]
+```
+
+### Investor Ticket Sizes
+
+```json copy
+[
+  "1k-50k",
+  "50k-250k",
+  "250k-500k",
+  "500k-1m",
+  "1m-5m",
+  "5m-20m",
+  "20m-50m",
+  "50m+"
+]
+```
+
+## Countries (All APIs)
+
+Both country categories and country names can be used to filter results via the `countries` parameter.
+
+### Country Categories
+
+```json copy
+[
+  "CEE",
+  "WE",
+  "NORDICS",
+  "NA",
+  "LATAM"
+]
+```
+
+### Country Codes (ISO 3166-1 alpha-2)
+
+```json copy
+[
+  "US", "CN", "JP", "DE", "GB", "IN", "FR", "CA", "IT", "KR",
+  "AU", "BR", "ES", "MX", "ID", "NL", "SA", "TR", "CH", "TW",
+  "PL", "SE", "BE", "TH", "AR", "NG", "AT", "IR", "NO", "AE",
+  "IE", "IL", "ZA", "DK", "SG", "MY", "PH", "HK", "CO", "BD",
+  "EG", "FI", "CL", "VN", "CZ", "RO", "NZ", "PT", "GR", "IQ",
+  "QA", "PE", "HU", "KW", "UA", "MA", "SK", "PR", "EC", "OM",
+  "KE", "LU", "CU", "LK", "UZ", "BG", "HR", "CI", "BY", "UY",
+  "PA", "SI", "TM", "LT", "LB", "TZ", "JO", "BH", "RS", "CM",
+  "BO", "PY", "GH", "EE", "UG", "ZM", "AF", "BA", "MZ", "AM",
+  "GE", "HN", "AL", "MG", "NA", "SN", "MT", "TD", "NE", "ML",
+  "KG", "MW", "RW", "BI", "KM", "LS", "TJ", "SR", "ME", "SZ",
+  "SL", "GM", "GY", "TL", "MR", "BF", "LR", "CV", "MU", "BT",
+  "BJ", "CF", "TG", "GN", "GA", "ST", "GQ", "AG", "BZ", "BB",
+  "KN", "VU", "SB", "VC", "FJ", "WS", "TO", "DM", "RU"
+]
+```
+
+## Company Categories
+
+Filter by company category using these values:
+
+```json copy
+[
+  "ai",
+  "saas",
+  "cybersecurity",
+  "web3",
+  "devtools",
+  "analytics",
+  "fintech",
+  "ecommerce",
+  "marketing",
+  "sales",
+  "hr tech",
+  "legal",
+  "insurance",
+  "vc & investment",
+  "healthcare",
+  "biotechnology",
+  "education",
+  "real estate",
+  "energy",
+  "logistics",
+  "manufacturing",
+  "retail",
+  "agriculture",
+  "aerospace & defense",
+  "robotics",
+  "telecommunications",
+  "travel",
+  "sports",
+  "media",
+  "construction",
+  "environmental services",
+  "battery technology",
+  "arts",
+  "architecture",
+  "cosmetics",
+  "science",
+  "non-profit"
+]
+```
+

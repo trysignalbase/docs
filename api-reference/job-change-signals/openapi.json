@@ -1,0 +1,366 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Job Change Signals API",
+    "description": "Access real-time job change signals with filtering for positions, departments, seniority levels, LinkedIn targeting, pagination, and search.",
+    "license": {
+      "name": "MIT"
+    },
+    "version": "2.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://www.trysignalbase.com/api/v2"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/signals/job-changes": {
+      "get": {
+        "summary": "Get Job Change Signals",
+        "description": "Fetch job change signals with filtering, pagination, and search. Supports role-aware position filters, department and seniority filters, plus LinkedIn targeting.",
+        "operationId": "getJobChangeSignals",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number for pagination",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "example": 1
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of results per page (maximum 50)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            },
+            "example": 20
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Search by company or person keywords",
+            "schema": {
+              "type": "string"
+            },
+            "example": "engineering leadership"
+          },
+          {
+            "name": "personLinkedinUrl",
+            "in": "query",
+            "description": "Exact LinkedIn profile URL of the person",
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "example": "https://www.linkedin.com/in/example"
+          },
+          {
+            "name": "companyLinkedinUrl",
+            "in": "query",
+            "description": "Exact LinkedIn company page URL",
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "example": "https://www.linkedin.com/company/example"
+          },
+          {
+            "name": "positions",
+            "in": "query",
+            "description": "Comma-separated list of positions to filter by. Allowed values include ceo, cto, cfo, coo, vp of engineering, vp of sales, vp of marketing, head of product, head of growth, head of engineering, engineering manager, product manager, sales manager, marketing manager, founder, co-founder.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "cto,head of engineering"
+          },
+          {
+            "name": "departments",
+            "in": "query",
+            "description": "Comma-separated list of departments to filter by. Allowed values include marketing, sales, engineering, product, design, operations, finance, people, data, customer_success, growth, legal.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "engineering,product"
+          },
+          {
+            "name": "seniorities",
+            "in": "query",
+            "description": "Comma-separated list of seniority levels to filter by. Allowed values include founder, c_level, vp, director, head, lead, manager.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "c_level,vp,head"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response with job change signals",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobChangeSignalsResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": [
+                    {
+                      "signalId": "550e8400-e29b-41d4-a716-446655440000",
+                      "personName": "Alex Johnson",
+                      "personLinkedinUrl": "https://www.linkedin.com/in/alexjohnson",
+                      "signalType": "job_change",
+                      "occurredAt": "2024-11-01T00:00:00Z",
+                      "discoveredAt": "2024-11-02T12:00:00Z",
+                      "companyName": "NextGen Software",
+                      "companyLinkedinUrl": "https://www.linkedin.com/company/nextgensoftware",
+                      "newRole": "Chief Technology Officer"
+                    },
+                    {
+                      "signalId": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+                      "personName": "Priya Singh",
+                      "personLinkedinUrl": "https://www.linkedin.com/in/priyasingh",
+                      "signalType": "job_change",
+                      "occurredAt": "2024-10-20T00:00:00Z",
+                      "discoveredAt": "2024-10-21T08:00:00Z",
+                      "companyName": "HealthTech Solutions",
+                      "companyLinkedinUrl": "https://www.linkedin.com/company/healthtechsolutions",
+                      "newRole": "Head of Product"
+                    }
+                  ],
+                  "pagination": {
+                    "currentPage": 1,
+                    "totalPages": 12,
+                    "totalCount": 240,
+                    "hasNextPage": true,
+                    "hasPreviousPage": false
+                  },
+                  "meta": {
+                    "endpoint": "signals.job-changes",
+                    "creditsUsed": 1
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Invalid API key"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Rate limit exceeded. Please try again later."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "An unknown error occurred"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "JobChangeSignalsResponse": {
+        "type": "object",
+        "required": ["success", "data", "pagination", "meta"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indicates if the request was successful",
+            "example": true
+          },
+          "data": {
+            "type": "array",
+            "description": "Array of job change signal records",
+            "items": {
+              "$ref": "#/components/schemas/JobChangeSignal"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        }
+      },
+      "JobChangeSignal": {
+        "type": "object",
+        "required": ["signalId", "signalType", "occurredAt", "personName", "companyName", "newRole"],
+        "properties": {
+          "signalId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the job change signal",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "signalType": {
+            "type": "string",
+            "description": "Type of signal (job_change)",
+            "example": "job_change"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the job change occurred",
+            "example": "2024-11-01T00:00:00Z"
+          },
+          "discoveredAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "When the signal was discovered",
+            "example": "2024-11-02T12:00:00Z"
+          },
+          "personName": {
+            "type": "string",
+            "description": "Full name of the person",
+            "example": "Alex Johnson"
+          },
+          "personLinkedinUrl": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "LinkedIn profile URL of the person",
+            "example": "https://www.linkedin.com/in/alexjohnson"
+          },
+          "companyName": {
+            "type": "string",
+            "description": "Name of the company",
+            "example": "NextGen Software"
+          },
+          "companyLinkedinUrl": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "LinkedIn company page URL",
+            "example": "https://www.linkedin.com/company/nextgensoftware"
+          },
+          "newRole": {
+            "type": "string",
+            "description": "New role/title for the person",
+            "example": "Chief Technology Officer"
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "required": ["currentPage", "totalPages", "totalCount", "hasNextPage", "hasPreviousPage"],
+        "properties": {
+          "currentPage": {
+            "type": "integer",
+            "description": "Current page number",
+            "minimum": 1,
+            "example": 1
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "Total number of pages available",
+            "minimum": 0,
+            "example": 12
+          },
+          "totalCount": {
+            "type": "integer",
+            "description": "Total number of records matching the query",
+            "minimum": 0,
+            "example": 240
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a next page",
+            "example": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a previous page",
+            "example": false
+          }
+        }
+      },
+      "Meta": {
+        "type": "object",
+        "required": ["endpoint", "creditsUsed"],
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "description": "The endpoint that was called",
+            "example": "signals.job-changes"
+          },
+          "creditsUsed": {
+            "type": "number",
+            "description": "Number of API credits consumed by this request",
+            "minimum": 0,
+            "example": 1
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["success", "error"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indicates if the request was successful (always false for errors)",
+            "example": false
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message describing what went wrong",
+            "example": "Invalid API key"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "API key for Job Change Signals API authentication. Include as Bearer token in Authorization header."
+      }
+    }
+  }
+}
+

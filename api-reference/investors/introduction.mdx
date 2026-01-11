@@ -1,0 +1,144 @@
+---
+title: 'Introduction'
+description: 'Access comprehensive VC and investor data with advanced filtering and search'
+---
+
+## Welcome to the Investors API
+
+The Investors API provides access to comprehensive venture capital and investor data aggregated from across the web. Our platform continuously monitors and collects information on VCs, angel investors, private equity firms, and corporate investors, giving you up-to-date intelligence on the investment landscape.
+
+<Card
+  title="Investors Endpoint"
+  icon="hand-holding-dollar"
+  href="/api-reference/investors/endpoint/get"
+>
+  View the complete OpenAPI specification
+</Card>
+
+## Key Features
+
+- **Comprehensive Coverage**: Access data on VCs, angel investors, PE firms, and corporate investors
+- **Advanced Filtering**: Filter by countries, investor types, and search by name
+- **Pagination Support**: Efficiently retrieve large datasets with customizable pagination
+- **Rich Investor Data**: Detailed information on investment focus, portfolio, and contact details
+- **Credit-based Usage**: Transparent credit consumption per API call
+
+## Service Level
+
+- **Rate Limit**: Based on your subscription tier
+- **Uptime**: 99% guaranteed uptime
+- **Data Freshness**: Continuously updated investor information
+- **Maximum Results**: Up to 50 results per page
+
+## Authentication
+
+All API endpoints require authentication using a Bearer token passed in the Authorization header.
+
+The API key should be included as a Bearer token:
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/investors?page=1&limit=20&categories=vc" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+## Query Parameters
+
+- **page**: Page number (default: 1)
+- **limit**: Results per page (default: 20, max: 50)
+- **countries**: Comma-separated country codes (e.g., US,GB,CA)
+- **categories**: Comma-separated investor types (vc, angel, pe, corporate)
+- **search**: Search by investor name or type
+
+## Investor Categories
+
+The API supports filtering by various investor types:
+
+- **vc**: Venture Capital firms
+- **angel**: Angel investors and angel groups
+- **pe**: Private Equity firms
+- **corporate**: Corporate venture arms and strategic investors
+- **accelerator**: Startup accelerators and incubators
+- **family_office**: Family offices
+- **fund**: Investment funds
+- **government**: Government-backed investment entities
+
+## Response Structure
+
+All successful responses follow this structure:
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid-here",
+      "name": "Sequoia Capital",
+      "investorType": "vc",
+      "country": "United States",
+      "description": "Leading venture capital firm...",
+      "website": "https://www.sequoiacap.com",
+      ...
+    }
+  ],
+  "pagination": {
+    "currentPage": 1,
+    "totalPages": 10,
+    "totalCount": 200,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  },
+  "meta": {
+    "endpoint": "signals.investors",
+    "creditsUsed": 1
+  }
+}
+```
+
+## Error Handling
+
+The API returns standard HTTP status codes:
+
+- **200**: Success
+- **401**: Unauthorized - Invalid or missing API key
+- **429**: Rate limit exceeded
+- **500**: Internal server error
+
+Error responses include:
+
+```json
+{
+  "success": false,
+  "error": "Error message description"
+}
+```
+
+## Example Usage
+
+### Filter by Investor Type
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/investors?categories=vc,angel" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Filter by Country
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/investors?countries=US,GB" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Search for Specific Investors
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/investors?search=sequoia" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Combined Filters
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/investors?search=capital&countries=US&categories=vc&limit=10" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+

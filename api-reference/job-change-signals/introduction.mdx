@@ -1,0 +1,125 @@
+---
+title: 'Introduction'
+description: 'Access real-time job change signals with role, department, and seniority filters'
+---
+
+## Welcome to the Job Change Signals API
+
+The Job Change Signals API provides timely insights on job changes across the web. Track role transitions and new hires with precise filters for positions, departments, and seniority levels, plus company and person-level LinkedIn targeting.
+
+<Card
+  title="Job Change Signals Endpoint"
+  icon="briefcase"
+  href="/api-reference/job-change-signals/endpoint/get"
+>
+  View the complete OpenAPI specification
+</Card>
+
+## Key Features
+
+- Real-time job change signals
+- Role-aware filters (positions, departments, seniorities)
+- Search plus pagination
+- Clear, credit-based usage
+
+## Service Level
+
+- **Rate Limit**: Based on your subscription tier
+- **Uptime**: 99% guaranteed uptime
+- **Data Freshness**: Real-time aggregation ensures up-to-date signals
+- **Maximum Results**: Up to 50 results per page
+
+## Authentication
+
+All API endpoints require a Bearer token in the `Authorization` header.
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/job-changes?page=1&limit=20" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+## Query Parameters
+
+- **page**: Page number (default: 1)
+- **limit**: Results per page (default: 20, max: 50)
+- **search**: Search by company or person keywords
+- **positions**: Comma-separated positions (see enums)
+- **departments**: Comma-separated departments (see enums)
+- **seniorities**: Comma-separated seniority levels (see enums)
+
+## Enum Values
+
+**Positions**
+```
+"ceo", "cto", "cfo", "coo", "vp of engineering", "vp of sales", "vp of marketing",
+"head of product", "head of growth", "head of engineering", "engineering manager",
+"product manager", "sales manager", "marketing manager", "founder", "co-founder"
+```
+
+**Departments**
+```
+"marketing", "sales", "engineering", "product", "design", "operations", "finance", "people",
+"data", "customer_success", "growth", "legal"
+```
+
+**Seniorities**
+```
+"founder", "c_level", "vp", "director", "head", "lead", "manager"
+```
+
+## Response Structure
+
+All successful responses follow this structure:
+
+```json
+{
+  "success": true,
+  "data": [...],
+  "pagination": {
+    "currentPage": 1,
+    "totalPages": 10,
+    "totalCount": 200,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  },
+  "meta": {
+    "endpoint": "signals.job-changes",
+    "creditsUsed": 1
+  }
+}
+```
+
+## Error Handling
+
+The API returns standard HTTP status codes:
+
+- **200**: Success
+- **401**: Unauthorized - Invalid or missing API key
+- **429**: Rate limit exceeded
+- **500**: Internal server error
+
+Error responses include:
+
+```json
+{
+  "success": false,
+  "error": "Error message description"
+}
+```
+
+## Example Usage
+
+### Filter by Position and Department
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/job-changes?positions=cto,head%20of%20product&departments=engineering,product&search=fintech" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Target by LinkedIn URLs
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/job-changes?personLinkedinUrl=https://www.linkedin.com/in/example&companyLinkedinUrl=https://www.linkedin.com/company/example" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+

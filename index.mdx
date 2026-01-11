@@ -1,97 +1,78 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: Signalbase API
+description: "Real-time Funding, Acquisition, Job Change Signals & Investor Data API"
 ---
 
-## Setting up
+## Welcome to Signalbase
 
-Get your documentation site up and running in minutes.
+Signalbase API provides real-time access to funding signals, acquisition signals, job change signals, and comprehensive investor data. Our platform continuously monitors and aggregates intelligence from across the web, giving you up-to-date information to power your sales, marketing, and research workflows.
+
+<CardGroup cols={2}>
+  <Card
+    title="Funding Signals"
+    icon="chart-line-up"
+    href="/api-reference/funding-signals/introduction"
+  >
+    Track real-time funding rounds, amounts, and investor participation across companies worldwide.
+  </Card>
+  <Card
+    title="Acquisition Signals"
+    icon="bullseye-arrow"
+    href="/api-reference/acquisition-signals/introduction"
+  >
+    Identify companies showing acquisition indicators and potential M&A targets.
+  </Card>
+  <Card
+    title="Job Change Signals"
+    icon="briefcase"
+    href="/api-reference/job-change-signals/introduction"
+  >
+    Monitor leadership changes and key hires with role, department, and seniority filters.
+  </Card>
+  <Card
+    title="Investors Database"
+    icon="hand-holding-dollar"
+    href="/api-reference/investors/introduction"
+  >
+    Access comprehensive data on VCs, angels, PE firms, and corporate investors.
+  </Card>
+</CardGroup>
+
+## Getting Started
+
+Get your API key from the Signalbase dashboard at [trysignalbase.com/profile](https://www.trysignalbase.com/profile)
+
+### Authentication
+
+All API endpoints require a Bearer token in the `Authorization` header:
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/funding?page=1&limit=20" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Base URL
+
+All V2 API endpoints use the following base URL:
+
+```
+https://www.trysignalbase.com/api/v2
+```
+
+## Key Features
+
+- **Real-time Data**: Signals aggregated continuously from web sources
+- **Advanced Filtering**: Filter by countries, categories, date ranges, and more
+- **Pagination Support**: Efficiently retrieve large datasets
+- **Credit-based Usage**: Transparent credit consumption per API call
+- **99% Uptime**: Enterprise-grade reliability
+
+## Quick Reference
 
 <Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
+  title="Available Filters & Enums"
+  icon="filter"
+  href="/enums"
 >
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
-  </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
-  </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
-
-## Create beautiful pages
-
-Everything you need to create world-class documentation.
-
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
-
-## Need inspiration?
-
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
+  View all available filter values, country codes, categories, and enum references.
 </Card>

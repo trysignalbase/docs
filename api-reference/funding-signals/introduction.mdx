@@ -1,0 +1,141 @@
+---
+title: 'Introduction'
+description: 'Access real-time funding signals with advanced filtering and pagination'
+---
+
+## Welcome to the Funding Signals API
+
+The Funding Signals API provides access to comprehensive, real-time funding signals aggregated from across the web. Our platform continuously monitors and collects funding activity, giving you up-to-date information on companies raising capital, funding rounds, investors, and market trends.
+
+<Card
+  title="Funding Signals Endpoint"
+  icon="chart-line-up"
+  href="/api-reference/funding-signals/endpoint/get"
+>
+  View the complete OpenAPI specification
+</Card>
+
+## Key Features
+
+- **Real-time Signals**: Funding signals are aggregated continuously from web sources
+- **Advanced Filtering**: Filter by countries, categories, funding rounds, date ranges, and search terms
+- **Funding Round Types**: Filter by Seed, Series A, Series B, and other funding stages
+- **Pagination Support**: Efficiently retrieve large datasets with customizable pagination
+- **Rich Response Data**: Detailed company information, funding amounts, and investor data
+- **Credit-based Usage**: Transparent credit consumption per API call
+
+## Service Level
+
+- **Rate Limit**: Based on your subscription tier
+- **Uptime**: 99% guaranteed uptime
+- **Data Freshness**: Real-time aggregation ensures up-to-date signals
+- **Maximum Results**: Up to 50 results per page
+
+## Authentication
+
+All API endpoints require authentication using a Bearer token passed in the Authorization header.
+
+The API key should be included as a Bearer token:
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/funding?page=1&limit=20&round=Series%20A" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+## Query Parameters
+
+- **page**: Page number (default: 1)
+- **limit**: Results per page (default: 20, max: 50)
+- **dateFrom**: Filter by date from (ISO 8601 format: YYYY-MM-DD)
+- **dateTo**: Filter by date to (ISO 8601 format: YYYY-MM-DD)
+- **countries**: Comma-separated country codes (e.g., US,GB,CA)
+- **categories**: Comma-separated company categories
+- **round**: Comma-separated funding round types (e.g., Seed,Series A,Series B)
+- **search**: Search by company name or industry
+
+## Funding Round Types
+
+The API supports filtering by various funding round stages:
+
+- **Seed**: Early-stage funding
+- **Series A**: First significant round of venture capital
+- **Series B**: Second round of funding for scaling
+- **Series C+**: Later-stage funding rounds
+- **Pre-Seed**: Very early stage funding
+- **Bridge**: Short-term financing between major rounds
+- **Debt Financing**: Non-equity funding
+- **Grant**: Non-dilutive funding
+- **And more**: Including ICO, IPO, Acquired, and other types
+
+## Response Structure
+
+All successful responses follow this structure:
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "signalId": "uuid-here",
+      "companyName": "TechStartup Inc",
+      "roundType": "Series A",
+      "fundingAmount": 10000000,
+      "investorNames": ["VC Fund 1", "Angel Investor 2"],
+      ...
+    }
+  ],
+  "pagination": {
+    "currentPage": 1,
+    "totalPages": 10,
+    "totalCount": 200,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  },
+  "meta": {
+    "endpoint": "signals.funding",
+    "creditsUsed": 1
+  }
+}
+```
+
+## Error Handling
+
+The API returns standard HTTP status codes:
+
+- **200**: Success
+- **401**: Unauthorized - Invalid or missing API key
+- **429**: Rate limit exceeded
+- **500**: Internal server error
+
+Error responses include:
+
+```json
+{
+  "success": false,
+  "error": "Error message description"
+}
+```
+
+## Example Usage
+
+### Filter by Funding Round
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/funding?round=Seed,Series%20A" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Filter by Country and Date Range
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/funding?countries=US,GB&dateFrom=2024-01-01&dateTo=2024-12-31" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Search and Filter Combined
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/funding?search=fintech&countries=US&round=Series%20A&limit=10" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+

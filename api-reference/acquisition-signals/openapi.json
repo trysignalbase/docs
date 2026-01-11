@@ -1,0 +1,414 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Acquisition Signals API",
+    "description": "Access real-time acquisition signals with advanced filtering, pagination, and search capabilities. This API provides comprehensive acquisition intelligence aggregated from web sources.",
+    "license": {
+      "name": "MIT"
+    },
+    "version": "2.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://www.trysignalbase.com/api/v2"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/signals/acquisitions": {
+      "get": {
+        "summary": "Get Acquisition Signals",
+        "description": "Fetch acquisition signals with filtering, pagination, and search capabilities. Returns a list of companies showing acquisition indicators.",
+        "operationId": "getAcquisitionSignals",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number for pagination",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "example": 1
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of results per page (maximum 50)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            },
+            "example": 20
+          },
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "description": "Filter signals from this date (ISO 8601 format: YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2024-01-01"
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "description": "Filter signals up to this date (ISO 8601 format: YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2024-12-31"
+          },
+          {
+            "name": "countries",
+            "in": "query",
+            "description": "Comma-separated list of country codes to filter by",
+            "schema": {
+              "type": "string"
+            },
+            "example": "US,GB,CA"
+          },
+          {
+            "name": "categories",
+            "in": "query",
+            "description": "Comma-separated list of company categories to filter by",
+            "schema": {
+              "type": "string"
+            },
+            "example": "Technology,Healthcare"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Search by company name or industry keywords",
+            "schema": {
+              "type": "string"
+            },
+            "example": "tech"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response with acquisition signals",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcquisitionSignalsResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": [
+                    {
+                      "id": "550e8400-e29b-41d4-a716-446655440000",
+                      "companyName": "TechVentures Inc",
+                      "industry": "Software Development",
+                      "country": "United States",
+                      "category": "Technology",
+                      "website": "https://www.techventures.com",
+                      "linkedinUrl": "https://www.linkedin.com/company/techventures",
+                      "employeeCount": 150,
+                      "revenue": "10M-50M",
+                      "foundedYear": 2018,
+                      "description": "Leading provider of enterprise software solutions for modern businesses.",
+                      "acquisitionSignalScore": 85,
+                      "signalIndicators": [
+                        "Recent funding round",
+                        "Leadership changes",
+                        "Market consolidation"
+                      ],
+                      "lastUpdated": "2024-11-15T10:30:00Z"
+                    },
+                    {
+                      "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+                      "companyName": "HealthTech Solutions",
+                      "industry": "Healthcare Technology",
+                      "country": "United Kingdom",
+                      "category": "Healthcare",
+                      "website": "https://www.healthtechsolutions.co.uk",
+                      "linkedinUrl": "https://www.linkedin.com/company/healthtechsolutions",
+                      "employeeCount": 85,
+                      "revenue": "5M-10M",
+                      "foundedYear": 2019,
+                      "description": "Innovative healthcare technology company focused on patient care solutions.",
+                      "acquisitionSignalScore": 78,
+                      "signalIndicators": [
+                        "Strategic partnerships",
+                        "Rapid growth",
+                        "Market expansion"
+                      ],
+                      "lastUpdated": "2024-11-14T15:45:00Z"
+                    }
+                  ],
+                  "pagination": {
+                    "currentPage": 1,
+                    "totalPages": 25,
+                    "totalCount": 500,
+                    "hasNextPage": true,
+                    "hasPreviousPage": false
+                  },
+                  "meta": {
+                    "endpoint": "signals.acquisitions",
+                    "creditsUsed": 1
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Invalid API key"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Rate limit exceeded. Please try again later."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "An unknown error occurred"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AcquisitionSignalsResponse": {
+        "type": "object",
+        "required": ["success", "data", "pagination", "meta"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indicates if the request was successful",
+            "example": true
+          },
+          "data": {
+            "type": "array",
+            "description": "Array of acquisition signal records",
+            "items": {
+              "$ref": "#/components/schemas/AcquisitionSignal"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        }
+      },
+      "AcquisitionSignal": {
+        "type": "object",
+        "required": ["id", "companyName"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the acquisition signal",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "companyName": {
+            "type": "string",
+            "description": "Name of the company",
+            "example": "TechVentures Inc"
+          },
+          "industry": {
+            "type": "string",
+            "nullable": true,
+            "description": "Industry sector of the company",
+            "example": "Software Development"
+          },
+          "country": {
+            "type": "string",
+            "nullable": true,
+            "description": "Country where the company is headquartered",
+            "example": "United States"
+          },
+          "category": {
+            "type": "string",
+            "nullable": true,
+            "description": "Primary business category",
+            "example": "Technology"
+          },
+          "website": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "Company website URL",
+            "example": "https://www.techventures.com"
+          },
+          "linkedinUrl": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "LinkedIn company page URL",
+            "example": "https://www.linkedin.com/company/techventures"
+          },
+          "employeeCount": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Number of employees",
+            "example": 150
+          },
+          "revenue": {
+            "type": "string",
+            "nullable": true,
+            "description": "Revenue range",
+            "example": "10M-50M"
+          },
+          "foundedYear": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Year the company was founded",
+            "example": 2018
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Company description",
+            "example": "Leading provider of enterprise software solutions for modern businesses."
+          },
+          "acquisitionSignalScore": {
+            "type": "number",
+            "format": "float",
+            "nullable": true,
+            "description": "Score indicating likelihood of acquisition (0-100)",
+            "minimum": 0,
+            "maximum": 100,
+            "example": 85
+          },
+          "signalIndicators": {
+            "type": "array",
+            "nullable": true,
+            "description": "List of indicators suggesting acquisition potential",
+            "items": {
+              "type": "string"
+            },
+            "example": ["Recent funding round", "Leadership changes", "Market consolidation"]
+          },
+          "lastUpdated": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Timestamp when the signal was last updated",
+            "example": "2024-11-15T10:30:00Z"
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "required": ["currentPage", "totalPages", "totalCount", "hasNextPage", "hasPreviousPage"],
+        "properties": {
+          "currentPage": {
+            "type": "integer",
+            "description": "Current page number",
+            "minimum": 1,
+            "example": 1
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "Total number of pages available",
+            "minimum": 0,
+            "example": 25
+          },
+          "totalCount": {
+            "type": "integer",
+            "description": "Total number of records matching the query",
+            "minimum": 0,
+            "example": 500
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a next page",
+            "example": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a previous page",
+            "example": false
+          }
+        }
+      },
+      "Meta": {
+        "type": "object",
+        "required": ["endpoint", "creditsUsed"],
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "description": "The endpoint that was called",
+            "example": "signals.acquisitions"
+          },
+          "creditsUsed": {
+            "type": "number",
+            "description": "Number of API credits consumed by this request",
+            "minimum": 0,
+            "example": 1
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["success", "error"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indicates if the request was successful (always false for errors)",
+            "example": false
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message describing what went wrong",
+            "example": "Invalid API key"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "API key for Acquisition Signals API authentication. Include as Bearer token in Authorization header."
+      }
+    }
+  }
+}
+

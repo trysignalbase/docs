@@ -1,0 +1,490 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Funding Signals API",
+    "description": "Access real-time funding signals with advanced filtering, pagination, and search capabilities. This API provides comprehensive funding intelligence aggregated from web sources, including funding rounds, amounts, and investor information.",
+    "license": {
+      "name": "MIT"
+    },
+    "version": "2.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://www.trysignalbase.com/api/v2"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/signals/funding": {
+      "get": {
+        "summary": "Get Funding Signals",
+        "description": "Fetch funding signals with filtering, pagination, and search capabilities. Returns a list of companies with funding activity including round types, amounts, and investor information.",
+        "operationId": "getFundingSignals",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number for pagination",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "example": 1
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of results per page (maximum 50)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            },
+            "example": 20
+          },
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "description": "Filter signals from this date (ISO 8601 format: YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2024-01-01"
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "description": "Filter signals up to this date (ISO 8601 format: YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2024-12-31"
+          },
+          {
+            "name": "countries",
+            "in": "query",
+            "description": "Comma-separated list of country codes to filter by",
+            "schema": {
+              "type": "string"
+            },
+            "example": "US,GB,CA"
+          },
+          {
+            "name": "categories",
+            "in": "query",
+            "description": "Comma-separated list of company categories to filter by",
+            "schema": {
+              "type": "string"
+            },
+            "example": "Technology,Healthcare"
+          },
+          {
+            "name": "round",
+            "in": "query",
+            "description": "Comma-separated list of funding round types to filter by (e.g., Seed, Series A, Series B)",
+            "schema": {
+              "type": "string"
+            },
+            "example": "Seed,Series A"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Search by company name or industry keywords",
+            "schema": {
+              "type": "string"
+            },
+            "example": "fintech"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response with funding signals",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FundingSignalsResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": [
+                    {
+                      "signalId": "550e8400-e29b-41d4-a716-446655440000",
+                      "companyName": "FinTech Innovations",
+                      "roundType": "Series A",
+                      "fundingAmount": 15000000,
+                      "fundingCurrency": "USD",
+                      "announcedDate": "2024-10-15",
+                      "industry": "Financial Technology",
+                      "country": "United States",
+                      "category": "Technology",
+                      "website": "https://www.fintechinnovations.com",
+                      "linkedinUrl": "https://www.linkedin.com/company/fintechinnovations",
+                      "employeeCount": 85,
+                      "foundedYear": 2020,
+                      "description": "Revolutionary fintech platform transforming digital payments for businesses.",
+                      "investorNames": [
+                        "Sequoia Capital",
+                        "Andreessen Horowitz",
+                        "FirstMark Capital"
+                      ],
+                      "leadInvestor": "Sequoia Capital",
+                      "totalFundingToDate": 25000000,
+                      "valuation": 75000000,
+                      "useOfFunds": "Product development and market expansion",
+                      "lastUpdated": "2024-11-15T10:30:00Z"
+                    },
+                    {
+                      "signalId": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+                      "companyName": "HealthTech Solutions",
+                      "roundType": "Seed",
+                      "fundingAmount": 3000000,
+                      "fundingCurrency": "USD",
+                      "announcedDate": "2024-09-20",
+                      "industry": "Healthcare Technology",
+                      "country": "United Kingdom",
+                      "category": "Healthcare",
+                      "website": "https://www.healthtechsolutions.co.uk",
+                      "linkedinUrl": "https://www.linkedin.com/company/healthtechsolutions",
+                      "employeeCount": 25,
+                      "foundedYear": 2022,
+                      "description": "AI-powered healthcare diagnostics platform for early disease detection.",
+                      "investorNames": [
+                        "Y Combinator",
+                        "Khosla Ventures",
+                        "Digital Health Ventures"
+                      ],
+                      "leadInvestor": "Y Combinator",
+                      "totalFundingToDate": 3000000,
+                      "valuation": 15000000,
+                      "useOfFunds": "R&D and clinical trials",
+                      "lastUpdated": "2024-11-14T15:45:00Z"
+                    }
+                  ],
+                  "pagination": {
+                    "currentPage": 1,
+                    "totalPages": 15,
+                    "totalCount": 300,
+                    "hasNextPage": true,
+                    "hasPreviousPage": false
+                  },
+                  "meta": {
+                    "endpoint": "signals.funding",
+                    "creditsUsed": 1
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Invalid API key"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Rate limit exceeded. Please try again later."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "An unknown error occurred"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "FundingSignalsResponse": {
+        "type": "object",
+        "required": ["success", "data", "pagination", "meta"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indicates if the request was successful",
+            "example": true
+          },
+          "data": {
+            "type": "array",
+            "description": "Array of funding signal records",
+            "items": {
+              "$ref": "#/components/schemas/FundingSignal"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        }
+      },
+      "FundingSignal": {
+        "type": "object",
+        "required": ["signalId", "companyName", "roundType"],
+        "properties": {
+          "signalId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the funding signal",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "companyName": {
+            "type": "string",
+            "description": "Name of the company that received funding",
+            "example": "FinTech Innovations"
+          },
+          "roundType": {
+            "type": "string",
+            "description": "Type of funding round (e.g., Seed, Series A, Series B)",
+            "enum": [
+              "Pre-Seed",
+              "Seed",
+              "Series A",
+              "Series B",
+              "Series C",
+              "Series D",
+              "Series E",
+              "Series F+",
+              "Bridge",
+              "Debt Financing",
+              "Grant",
+              "Convertible Note",
+              "Equity Crowdfunding",
+              "ICO",
+              "IPO",
+              "Private Equity",
+              "Venture",
+              "Angel",
+              "Corporate",
+              "Other"
+            ],
+            "example": "Series A"
+          },
+          "fundingAmount": {
+            "type": "number",
+            "nullable": true,
+            "description": "Amount of funding raised",
+            "example": 15000000
+          },
+          "fundingCurrency": {
+            "type": "string",
+            "nullable": true,
+            "description": "Currency of the funding amount (ISO 4217 code)",
+            "example": "USD"
+          },
+          "announcedDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "description": "Date when the funding was announced",
+            "example": "2024-10-15"
+          },
+          "industry": {
+            "type": "string",
+            "nullable": true,
+            "description": "Industry sector of the company",
+            "example": "Financial Technology"
+          },
+          "country": {
+            "type": "string",
+            "nullable": true,
+            "description": "Country where the company is headquartered",
+            "example": "United States"
+          },
+          "category": {
+            "type": "string",
+            "nullable": true,
+            "description": "Primary business category",
+            "example": "Technology"
+          },
+          "website": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "Company website URL",
+            "example": "https://www.fintechinnovations.com"
+          },
+          "linkedinUrl": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "LinkedIn company page URL",
+            "example": "https://www.linkedin.com/company/fintechinnovations"
+          },
+          "employeeCount": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Number of employees",
+            "example": 85
+          },
+          "foundedYear": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Year the company was founded",
+            "example": 2020
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Company description",
+            "example": "Revolutionary fintech platform transforming digital payments for businesses."
+          },
+          "investorNames": {
+            "type": "array",
+            "nullable": true,
+            "description": "List of investors participating in this round",
+            "items": {
+              "type": "string"
+            },
+            "example": ["Sequoia Capital", "Andreessen Horowitz", "FirstMark Capital"]
+          },
+          "leadInvestor": {
+            "type": "string",
+            "nullable": true,
+            "description": "Name of the lead investor",
+            "example": "Sequoia Capital"
+          },
+          "totalFundingToDate": {
+            "type": "number",
+            "nullable": true,
+            "description": "Total funding raised by the company to date",
+            "example": 25000000
+          },
+          "valuation": {
+            "type": "number",
+            "nullable": true,
+            "description": "Post-money valuation",
+            "example": 75000000
+          },
+          "useOfFunds": {
+            "type": "string",
+            "nullable": true,
+            "description": "Stated use of the raised funds",
+            "example": "Product development and market expansion"
+          },
+          "lastUpdated": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Timestamp when the signal was last updated",
+            "example": "2024-11-15T10:30:00Z"
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "required": ["currentPage", "totalPages", "totalCount", "hasNextPage", "hasPreviousPage"],
+        "properties": {
+          "currentPage": {
+            "type": "integer",
+            "description": "Current page number",
+            "minimum": 1,
+            "example": 1
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "Total number of pages available",
+            "minimum": 0,
+            "example": 15
+          },
+          "totalCount": {
+            "type": "integer",
+            "description": "Total number of records matching the query",
+            "minimum": 0,
+            "example": 300
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a next page",
+            "example": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a previous page",
+            "example": false
+          }
+        }
+      },
+      "Meta": {
+        "type": "object",
+        "required": ["endpoint", "creditsUsed"],
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "description": "The endpoint that was called",
+            "example": "signals.funding"
+          },
+          "creditsUsed": {
+            "type": "number",
+            "description": "Number of API credits consumed by this request",
+            "minimum": 0,
+            "example": 1
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["success", "error"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indicates if the request was successful (always false for errors)",
+            "example": false
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message describing what went wrong",
+            "example": "Invalid API key"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "API key for Funding Signals API authentication. Include as Bearer token in Authorization header."
+      }
+    }
+  }
+}
+

@@ -1,0 +1,508 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Investors API",
+    "description": "Access comprehensive venture capital and investor data with advanced filtering, pagination, and search capabilities. This API provides detailed information on VCs, angel investors, private equity firms, and corporate investors.",
+    "license": {
+      "name": "MIT"
+    },
+    "version": "2.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://www.trysignalbase.com/api/v2"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/signals/investors": {
+      "get": {
+        "summary": "Get Investor Data",
+        "description": "Fetch investor data with filtering, pagination, and search capabilities. Returns a list of venture capital firms, angel investors, private equity firms, and other investor types.",
+        "operationId": "getInvestors",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number for pagination",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "example": 1
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of results per page (maximum 50)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            },
+            "example": 20
+          },
+          {
+            "name": "countries",
+            "in": "query",
+            "description": "Comma-separated list of country codes to filter by",
+            "schema": {
+              "type": "string"
+            },
+            "example": "US,GB,CA"
+          },
+          {
+            "name": "categories",
+            "in": "query",
+            "description": "Comma-separated list of investor types to filter by (vc, angel, pe, corporate, accelerator, family_office, fund, government)",
+            "schema": {
+              "type": "string"
+            },
+            "example": "vc,angel"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Search by investor name or description",
+            "schema": {
+              "type": "string"
+            },
+            "example": "sequoia"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response with investor data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestorsResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": [
+                    {
+                      "id": "550e8400-e29b-41d4-a716-446655440000",
+                      "name": "Sequoia Capital",
+                      "investorType": "vc",
+                      "country": "United States",
+                      "city": "Menlo Park",
+                      "state": "California",
+                      "description": "Leading venture capital firm that has backed some of the world's most successful companies including Apple, Google, and Airbnb.",
+                      "website": "https://www.sequoiacap.com",
+                      "linkedinUrl": "https://www.linkedin.com/company/sequoia-capital",
+                      "twitterUrl": "https://twitter.com/sequoia",
+                      "foundedYear": 1972,
+                      "teamSize": 85,
+                      "aum": 85000000000,
+                      "investmentFocus": [
+                        "Technology",
+                        "Healthcare",
+                        "Financial Services",
+                        "Consumer"
+                      ],
+                      "investmentStage": [
+                        "Seed",
+                        "Series A",
+                        "Series B",
+                        "Series C",
+                        "Growth"
+                      ],
+                      "typicalCheckSize": {
+                        "min": 1000000,
+                        "max": 100000000
+                      },
+                      "portfolioCompaniesCount": 250,
+                      "notableInvestments": [
+                        "Apple",
+                        "Google",
+                        "Airbnb",
+                        "Stripe",
+                        "Instagram"
+                      ],
+                      "activelyInvesting": true,
+                      "lastInvestmentDate": "2024-11-10",
+                      "lastUpdated": "2024-11-15T10:30:00Z"
+                    },
+                    {
+                      "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+                      "name": "Y Combinator",
+                      "investorType": "accelerator",
+                      "country": "United States",
+                      "city": "Mountain View",
+                      "state": "California",
+                      "description": "World's most successful startup accelerator, having funded over 4,000 companies including Airbnb, Dropbox, Stripe, and Reddit.",
+                      "website": "https://www.ycombinator.com",
+                      "linkedinUrl": "https://www.linkedin.com/company/y-combinator",
+                      "twitterUrl": "https://twitter.com/ycombinator",
+                      "foundedYear": 2005,
+                      "teamSize": 45,
+                      "aum": 3000000000,
+                      "investmentFocus": [
+                        "Technology",
+                        "SaaS",
+                        "Consumer",
+                        "Enterprise",
+                        "Healthcare",
+                        "Fintech"
+                      ],
+                      "investmentStage": [
+                        "Pre-Seed",
+                        "Seed"
+                      ],
+                      "typicalCheckSize": {
+                        "min": 125000,
+                        "max": 500000
+                      },
+                      "portfolioCompaniesCount": 4000,
+                      "notableInvestments": [
+                        "Airbnb",
+                        "Dropbox",
+                        "Stripe",
+                        "Reddit",
+                        "Coinbase"
+                      ],
+                      "activelyInvesting": true,
+                      "lastInvestmentDate": "2024-11-12",
+                      "lastUpdated": "2024-11-14T15:45:00Z"
+                    }
+                  ],
+                  "pagination": {
+                    "currentPage": 1,
+                    "totalPages": 50,
+                    "totalCount": 1000,
+                    "hasNextPage": true,
+                    "hasPreviousPage": false
+                  },
+                  "meta": {
+                    "endpoint": "signals.investors",
+                    "creditsUsed": 1
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Invalid API key"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Rate limit exceeded. Please try again later."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "An unknown error occurred"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "InvestorsResponse": {
+        "type": "object",
+        "required": ["success", "data", "pagination", "meta"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indicates if the request was successful",
+            "example": true
+          },
+          "data": {
+            "type": "array",
+            "description": "Array of investor records",
+            "items": {
+              "$ref": "#/components/schemas/Investor"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        }
+      },
+      "Investor": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the investor",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the investor or firm",
+            "example": "Sequoia Capital"
+          },
+          "investorType": {
+            "type": "string",
+            "nullable": true,
+            "description": "Type of investor",
+            "enum": [
+              "vc",
+              "angel",
+              "pe",
+              "corporate",
+              "accelerator",
+              "family_office",
+              "fund",
+              "government",
+              "other"
+            ],
+            "example": "vc"
+          },
+          "country": {
+            "type": "string",
+            "nullable": true,
+            "description": "Country where the investor is based",
+            "example": "United States"
+          },
+          "city": {
+            "type": "string",
+            "nullable": true,
+            "description": "City where the investor is based",
+            "example": "Menlo Park"
+          },
+          "state": {
+            "type": "string",
+            "nullable": true,
+            "description": "State or region where the investor is based",
+            "example": "California"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Description of the investor and their investment focus",
+            "example": "Leading venture capital firm that has backed some of the world's most successful companies."
+          },
+          "website": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "Investor's website URL",
+            "example": "https://www.sequoiacap.com"
+          },
+          "linkedinUrl": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "LinkedIn company page URL",
+            "example": "https://www.linkedin.com/company/sequoia-capital"
+          },
+          "twitterUrl": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "Twitter/X profile URL",
+            "example": "https://twitter.com/sequoia"
+          },
+          "foundedYear": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Year the investor firm was founded",
+            "example": 1972
+          },
+          "teamSize": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Number of team members at the firm",
+            "example": 85
+          },
+          "aum": {
+            "type": "number",
+            "nullable": true,
+            "description": "Assets under management (AUM) in USD",
+            "example": 85000000000
+          },
+          "investmentFocus": {
+            "type": "array",
+            "nullable": true,
+            "description": "Industries or sectors the investor focuses on",
+            "items": {
+              "type": "string"
+            },
+            "example": ["Technology", "Healthcare", "Financial Services"]
+          },
+          "investmentStage": {
+            "type": "array",
+            "nullable": true,
+            "description": "Investment stages the investor typically participates in",
+            "items": {
+              "type": "string"
+            },
+            "example": ["Seed", "Series A", "Series B"]
+          },
+          "typicalCheckSize": {
+            "type": "object",
+            "nullable": true,
+            "description": "Typical investment check size range",
+            "properties": {
+              "min": {
+                "type": "number",
+                "description": "Minimum check size in USD",
+                "example": 1000000
+              },
+              "max": {
+                "type": "number",
+                "description": "Maximum check size in USD",
+                "example": 100000000
+              }
+            }
+          },
+          "portfolioCompaniesCount": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Number of portfolio companies",
+            "example": 250
+          },
+          "notableInvestments": {
+            "type": "array",
+            "nullable": true,
+            "description": "List of notable portfolio companies",
+            "items": {
+              "type": "string"
+            },
+            "example": ["Apple", "Google", "Airbnb", "Stripe"]
+          },
+          "activelyInvesting": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Whether the investor is actively making new investments",
+            "example": true
+          },
+          "lastInvestmentDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "description": "Date of the most recent investment",
+            "example": "2024-11-10"
+          },
+          "lastUpdated": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Timestamp when the investor data was last updated",
+            "example": "2024-11-15T10:30:00Z"
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "required": ["currentPage", "totalPages", "totalCount", "hasNextPage", "hasPreviousPage"],
+        "properties": {
+          "currentPage": {
+            "type": "integer",
+            "description": "Current page number",
+            "minimum": 1,
+            "example": 1
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "Total number of pages available",
+            "minimum": 0,
+            "example": 50
+          },
+          "totalCount": {
+            "type": "integer",
+            "description": "Total number of records matching the query",
+            "minimum": 0,
+            "example": 1000
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a next page",
+            "example": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a previous page",
+            "example": false
+          }
+        }
+      },
+      "Meta": {
+        "type": "object",
+        "required": ["endpoint", "creditsUsed"],
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "description": "The endpoint that was called",
+            "example": "signals.investors"
+          },
+          "creditsUsed": {
+            "type": "number",
+            "description": "Number of API credits consumed by this request",
+            "minimum": 0,
+            "example": 1
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["success", "error"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indicates if the request was successful (always false for errors)",
+            "example": false
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message describing what went wrong",
+            "example": "Invalid API key"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "API key for Investors API authentication. Include as Bearer token in Authorization header."
+      }
+    }
+  }
+}
+

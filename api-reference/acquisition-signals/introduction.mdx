@@ -1,0 +1,93 @@
+---
+title: 'Introduction'
+description: 'Access real-time acquisition signals with advanced filtering and pagination'
+---
+
+## Welcome to the Acquisition Signals API
+
+The Acquisition Signals API provides access to comprehensive, real-time acquisition signals aggregated from across the web. Our platform continuously monitors and collects acquisition activity, giving you up-to-date information on potential acquisition targets, acquirers, and market trends.
+
+<Card
+  title="Acquisition Signals Endpoint"
+  icon="bullseye-arrow"
+  href="/api-reference/acquisition-signals/endpoint/get"
+>
+  View the complete OpenAPI specification
+</Card>
+
+## Key Features
+
+- **Real-time Signals**: Acquisition signals are aggregated continuously from web sources
+- **Advanced Filtering**: Filter by countries, categories, date ranges, and search terms
+- **Pagination Support**: Efficiently retrieve large datasets with customizable pagination
+- **Rich Response Data**: Detailed company information and acquisition indicators
+- **Credit-based Usage**: Transparent credit consumption per API call
+
+## Service Level
+
+- **Rate Limit**: Based on your subscription tier
+- **Uptime**: 99% guaranteed uptime
+- **Data Freshness**: Real-time aggregation ensures up-to-date signals
+- **Maximum Results**: Up to 50 results per page
+
+## Authentication
+
+All API endpoints require authentication using a Bearer token passed in the Authorization header.
+
+The API key should be included as a Bearer token:
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/acquisitions?page=1&limit=20" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+## Query Parameters
+
+- **page**: Page number (default: 1)
+- **limit**: Results per page (default: 20, max: 50)
+- **dateFrom**: Filter by date from (ISO 8601 format: YYYY-MM-DD)
+- **dateTo**: Filter by date to (ISO 8601 format: YYYY-MM-DD)
+- **countries**: Comma-separated country codes (e.g., US,GB,CA)
+- **categories**: Comma-separated company categories
+- **search**: Search by company name or industry
+
+## Response Structure
+
+All successful responses follow this structure:
+
+```json
+{
+  "success": true,
+  "data": [...],
+  "pagination": {
+    "currentPage": 1,
+    "totalPages": 10,
+    "totalCount": 200,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  },
+  "meta": {
+    "endpoint": "signals.acquisitions",
+    "creditsUsed": 1
+  }
+}
+```
+
+## Error Handling
+
+The API returns standard HTTP status codes:
+
+- **200**: Success
+- **401**: Unauthorized - Invalid or missing API key
+- **429**: Rate limit exceeded
+- **500**: Internal server error
+
+Error responses include:
+
+```json
+{
+  "success": false,
+  "error": "Error message description"
+}
+```
+

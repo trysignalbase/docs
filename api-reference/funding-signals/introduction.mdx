@@ -15,6 +15,37 @@ The Funding Signals API provides access to comprehensive, real-time funding sign
   View the complete OpenAPI specification
 </Card>
 
+## Count Mode
+
+You can get the total number of results matching any filter combination **without consuming credits** by adding `count=true` to your request. This returns an empty `data` array with full pagination metadata, including `totalCount`.
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/funding?count=true&countries=US&round=Seed" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": [],
+  "pagination": {
+    "currentPage": 1,
+    "totalPages": 15,
+    "totalCount": 287,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  },
+  "meta": {
+    "endpoint": "signals.funding",
+    "creditsUsed": 0
+  }
+}
+```
+
+<Tip>Use count mode to preview how many results match your filters before fetching actual data. This is useful for building filter UIs, showing result counts, or validating queries — all at zero credit cost.</Tip>
+
 ## Key Features
 
 - **Real-time Signals**: Funding signals are aggregated continuously from web sources

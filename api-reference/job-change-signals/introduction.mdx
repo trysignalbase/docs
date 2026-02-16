@@ -17,17 +17,20 @@ The Job Change Signals API provides timely insights on job changes across the we
 
 ## Key Features
 
-- Real-time job change signals
-- Role-aware filters (positions, departments, seniorities)
-- Search plus pagination
-- Clear, credit-based usage
+- **Real-time Signals**: Job change signals aggregated continuously from web sources
+- **Role-aware Filters**: Filter by positions, departments, and seniority levels
+- **LinkedIn Targeting**: Exact-match filters on person and company LinkedIn URLs
+- **Field-specific Search**: Search by person name, company name, new role, or keyword
+- **Flexible Sorting**: Sort by date, person name, or company name
+- **Pagination Support**: Efficiently retrieve large datasets with up to 100 results per page
+- **Credit-based Usage**: Transparent credit consumption per API call
 
 ## Service Level
 
 - **Rate Limit**: Based on your subscription tier
 - **Uptime**: 99% guaranteed uptime
 - **Data Freshness**: Real-time aggregation ensures up-to-date signals
-- **Maximum Results**: Up to 50 results per page
+- **Maximum Results**: Up to 100 results per page
 
 ## Authentication
 
@@ -40,16 +43,63 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/job-changes?page=1&lim
 
 ## Query Parameters
 
-- **page**: Page number (default: 1)
-- **limit**: Results per page (default: 20, max: 50)
-- **search**: Search by company or person keywords
-- **positions**: Comma-separated positions (see enums)
-- **departments**: Comma-separated departments (see enums)
-- **seniorities**: Comma-separated seniority levels (see enums)
+### Pagination
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `page` | integer | 1 | Page number |
+| `limit` | integer | 20 | Results per page (max: 100) |
+
+### Date Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `dateFrom` | string | Filter by date from (ISO-8601 string) |
+| `dateTo` | string | Filter by date to (ISO-8601 string) |
+| `date_preset` | string | Relative date shorthand — takes precedence over `dateFrom`/`dateTo`. See [Date Presets](/enums#date-presets) |
+
+### Text Search
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `search` | string | Free-text search across company name, industry, person name, and role |
+
+### Exact Match Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `personLinkedinUrl` | string | Exact LinkedIn URL for a person |
+| `companyLinkedinUrl` | string | Exact LinkedIn URL for a company |
+| `source` | string | Exact match on source: `linkedin`, `press_release`, `other` |
+
+### Field-specific Search (partial match)
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `person_name` | string | Search by person name |
+| `company_name` | string | Search by company name |
+| `new_role` | string | Search by new role / job title |
+| `keyword` | string | Search by keyword tag |
+
+### Role Category Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `positions` | string | Comma-separated position IDs (e.g., `CEO,CTO,CFO`). See [Positions](/enums#positions) |
+| `departments` | string | Comma-separated department IDs (e.g., `marketing,engineering`). See [Departments](/enums#departments) |
+| `seniorities` | string | Comma-separated seniority IDs (e.g., `c_level,vp,director`). See [Seniorities](/enums#seniorities) |
+
+### Sorting
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `sort_by` | string | `occurred_at` | Sort field: `occurred_at`, `discovered_at`, `person_name`, `company_name` |
+| `sort_order` | string | `desc` | Sort direction: `asc` or `desc` |
 
 ## Enum Values
 
 **Positions**
+
 ```
 "ceo", "cto", "cfo", "coo", "vp of engineering", "vp of sales", "vp of marketing",
 "head of product", "head of growth", "head of engineering", "engineering manager",
@@ -57,12 +107,14 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/job-changes?page=1&lim
 ```
 
 **Departments**
+
 ```
 "marketing", "sales", "engineering", "product", "design", "operations", "finance", "people",
 "data", "customer_success", "growth", "legal"
 ```
 
 **Seniorities**
+
 ```
 "founder", "c_level", "vp", "director", "head", "lead", "manager"
 ```
@@ -109,10 +161,24 @@ Error responses include:
 
 ## Example Usage
 
-### Filter by Position and Department
+### Filter by Position and Date Preset
 
 ```bash
-curl -X GET "https://www.trysignalbase.com/api/v2/signals/job-changes?positions=cto,head%20of%20product&departments=engineering,product&search=fintech" \
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/job-changes?date_preset=last_30d&positions=CEO,CTO" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Filter by Company and Seniority
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/job-changes?company_name=Google&seniorities=c_level" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Search by New Role with Sorting
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/job-changes?new_role=VP%20Engineering&sort_by=occurred_at&sort_order=desc" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
@@ -122,4 +188,3 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/job-changes?positions=
 curl -X GET "https://www.trysignalbase.com/api/v2/signals/job-changes?personLinkedinUrl=https://www.linkedin.com/in/example&companyLinkedinUrl=https://www.linkedin.com/company/example" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
-

@@ -1,6 +1,6 @@
 ---
 title: 'Introduction'
-description: 'Access real-time funding signals with advanced filtering and pagination'
+description: 'Access real-time funding signals with advanced filtering, sorting, and pagination'
 ---
 
 ## Welcome to the Funding Signals API
@@ -18,10 +18,13 @@ The Funding Signals API provides access to comprehensive, real-time funding sign
 ## Key Features
 
 - **Real-time Signals**: Funding signals are aggregated continuously from web sources
-- **Advanced Filtering**: Filter by countries, categories, funding rounds, date ranges, and search terms
-- **Funding Round Types**: Filter by Seed, Series A, Series B, and other funding stages
-- **Pagination Support**: Efficiently retrieve large datasets with customizable pagination
-- **Rich Response Data**: Detailed company information, funding amounts, and investor data
+- **Advanced Filtering**: Filter by countries, categories, subcategories, funding rounds, date ranges, and search terms
+- **Funding Round Types**: Filter by Pre-Seed, Seed, Series A through G, Growth, Debt, Grant, IPO, and more
+- **Round Flavors**: Distinguish between bridge, extension, and secondary rounds
+- **Numeric Range Filters**: Filter by amount, employee count, and founded year
+- **Flexible Sorting**: Sort by date, amount, employee count, or founded year
+- **Verification Status**: Filter signals by verified, unverified, or pending status
+- **Pagination Support**: Efficiently retrieve large datasets with up to 100 results per page
 - **Credit-based Usage**: Transparent credit consumption per API call
 
 ## Service Level
@@ -29,13 +32,11 @@ The Funding Signals API provides access to comprehensive, real-time funding sign
 - **Rate Limit**: Based on your subscription tier
 - **Uptime**: 99% guaranteed uptime
 - **Data Freshness**: Real-time aggregation ensures up-to-date signals
-- **Maximum Results**: Up to 50 results per page
+- **Maximum Results**: Up to 100 results per page
 
 ## Authentication
 
 All API endpoints require authentication using a Bearer token passed in the Authorization header.
-
-The API key should be included as a Bearer token:
 
 ```bash
 curl -X GET "https://www.trysignalbase.com/api/v2/signals/funding?page=1&limit=20&round=Series%20A" \
@@ -44,28 +45,74 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/funding?page=1&limit=2
 
 ## Query Parameters
 
-- **page**: Page number (default: 1)
-- **limit**: Results per page (default: 20, max: 50)
-- **dateFrom**: Filter by date from (ISO 8601 format: YYYY-MM-DD)
-- **dateTo**: Filter by date to (ISO 8601 format: YYYY-MM-DD)
-- **countries**: Comma-separated country codes (e.g., US,GB,CA)
-- **categories**: Comma-separated company categories
-- **round**: Comma-separated funding round types (e.g., Seed,Series A,Series B)
-- **search**: Search by company name or industry
+### Pagination
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `page` | integer | 1 | Page number |
+| `limit` | integer | 20 | Results per page (max: 100) |
+
+### Date Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `dateFrom` | string | Filter by date from (ISO-8601 string) |
+| `dateTo` | string | Filter by date to (ISO-8601 string) |
+| `date_preset` | string | Relative date shorthand — takes precedence over `dateFrom`/`dateTo`. See [Date Presets](/enums#date-presets) |
+
+### Company Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `countries` | string | Comma-separated country codes (e.g., `US,GB,DE`) |
+| `categories` | string | Pipe-separated company categories / industries |
+| `subcategories` | string | Comma-separated subcategory IDs (e.g., `ai,fintech,saas`) |
+| `industry` | string | Comma-separated exact industry names |
+| `company_name` | string | Search by company name (partial match) |
+| `search` | string | Free-text search across company name & industry |
+
+### Numeric Range Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `amount_min` | integer | Minimum funding amount in USD cents |
+| `amount_max` | integer | Maximum funding amount in USD cents |
+| `employee_count_min` | integer | Minimum company employee count |
+| `employee_count_max` | integer | Maximum company employee count |
+| `founded_year_min` | integer | Minimum company founded year |
+| `founded_year_max` | integer | Maximum company founded year |
+
+### Funding-specific Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `round` | string | Comma-separated round types. See [Round Types](/enums#funding-round-types) |
+| `round_flavor` | string | Comma-separated round flavors: `bridge`, `extension`, `secondary` |
+| `currency` | string | Currency symbol filter (e.g., `$`, `€`, `£`) |
+| `verification_status` | string | Comma-separated statuses: `verified`, `unverified`, `pending` |
+| `investor_name` | string | Search by investor name (partial match) |
+
+### Sorting
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `sort_by` | string | `occurred_at` | Sort field: `occurred_at`, `discovered_at`, `amount`, `employee_count`, `founded_year` |
+| `sort_order` | string | `desc` | Sort direction: `asc` or `desc` |
 
 ## Funding Round Types
 
-The API supports filtering by various funding round stages:
+The API supports filtering by these funding round stages:
 
+- **Pre-Seed**: Very early stage funding
 - **Seed**: Early-stage funding
 - **Series A**: First significant round of venture capital
 - **Series B**: Second round of funding for scaling
-- **Series C+**: Later-stage funding rounds
-- **Pre-Seed**: Very early stage funding
-- **Bridge**: Short-term financing between major rounds
-- **Debt Financing**: Non-equity funding
+- **Series C – G**: Later-stage funding rounds
+- **Growth**: Growth-stage capital
+- **Debt**: Non-equity debt financing
 - **Grant**: Non-dilutive funding
-- **And more**: Including ICO, IPO, Acquired, and other types
+- **IPO**: Initial Public Offering
+- **Undisclosed**: Funding round with undisclosed details
 
 ## Response Structure
 
@@ -118,24 +165,30 @@ Error responses include:
 
 ## Example Usage
 
-### Filter by Funding Round
+### Filter by Date Preset and Round Type
 
 ```bash
-curl -X GET "https://www.trysignalbase.com/api/v2/signals/funding?round=Seed,Series%20A" \
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/funding?date_preset=last_30d&countries=US&round=Seed,Series%20A" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
-### Filter by Country and Date Range
+### Filter by Amount and Employee Count
 
 ```bash
-curl -X GET "https://www.trysignalbase.com/api/v2/signals/funding?countries=US,GB&dateFrom=2024-01-01&dateTo=2024-12-31" \
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/funding?amount_min=1000000&employee_count_max=50&sort_by=amount&sort_order=desc" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
-### Search and Filter Combined
+### Filter by Subcategory and Verification Status
 
 ```bash
-curl -X GET "https://www.trysignalbase.com/api/v2/signals/funding?search=fintech&countries=US&round=Series%20A&limit=10" \
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/funding?subcategories=ai,fintech&verification_status=verified" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
+### Search with Multiple Filters
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/funding?search=fintech&countries=US&round=Series%20A&sort_by=amount&sort_order=desc&limit=50" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```

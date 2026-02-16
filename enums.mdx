@@ -1,11 +1,109 @@
 ---
-title: Enums
-description: "Reference for enumerated values used across the Signalbase APIs"
+title: Enums & Constants
+description: "Reference for enumerated values used across the Signalbase V2 APIs"
 ---
 
 ## Overview
 
-This page lists all enumeration values used across the Signalbase APIs. Use it to validate API responses and power consistent UI labels.
+This page lists all enumeration values and constants used across the Signalbase V2 APIs. Use it to validate filter parameters, build UIs, and understand available options for each endpoint.
+
+## Signal Types
+
+The three signal types available in the API:
+
+```json copy
+["funding_round", "acquisition", "job_change"]
+```
+
+## Date Presets
+
+Industry-standard relative date filters supported across all endpoints. When provided, `date_preset` takes precedence over `dateFrom` / `dateTo`.
+
+```json copy
+[
+  "today",
+  "yesterday",
+  "last_7d",
+  "last_14d",
+  "last_30d",
+  "last_60d",
+  "last_90d",
+  "last_6m",
+  "last_1y",
+  "last_2y",
+  "this_week",
+  "this_month",
+  "this_quarter",
+  "this_year",
+  "last_week",
+  "last_month",
+  "last_quarter",
+  "last_year"
+]
+```
+
+## Funding Signals Enums
+
+### Funding Round Types
+
+```json copy
+[
+  "Pre-Seed",
+  "Seed",
+  "Series A",
+  "Series B",
+  "Series C",
+  "Series D",
+  "Series E",
+  "Series F",
+  "Series G",
+  "Growth",
+  "Debt",
+  "Grant",
+  "IPO",
+  "Undisclosed"
+]
+```
+
+### Round Flavors
+
+Optional modifiers that can be applied to a funding round:
+
+```json copy
+["bridge", "extension", "secondary"]
+```
+
+### Verification Statuses
+
+Filter signals by their verification status:
+
+```json copy
+["verified", "unverified", "pending"]
+```
+
+### Currencies
+
+Supported currency symbols for filtering funding and acquisition amounts:
+
+```json copy
+["$", "€", "£", "¥", "₹", "A$", "C$", "CHF", "SEK", "NOK", "DKK", "SGD", "HKD", "BRL", "KRW"]
+```
+
+### Funding Sort Fields
+
+Available sort fields for the funding endpoint:
+
+```json copy
+["occurred_at", "discovered_at", "amount", "employee_count", "founded_year"]
+```
+
+### Acquisition Sort Fields
+
+Available sort fields for the acquisitions endpoint:
+
+```json copy
+["occurred_at", "discovered_at", "amount", "employee_count"]
+```
 
 ## Job Change Signals Enums
 
@@ -60,43 +158,36 @@ Filter by department:
 Filter by seniority level:
 
 ```json copy
-[
-  "founder",
-  "c_level",
-  "vp",
-  "director",
-  "head",
-  "lead",
-  "manager"
-]
+["founder", "c_level", "vp", "director", "head", "lead", "manager"]
 ```
 
-## Funding Signals Enums
+### Job Change Sources
 
-### Funding Round Types
+```json copy
+["linkedin", "press_release", "other"]
+```
+
+### Job Change Sort Fields
+
+Available sort fields for the job changes endpoint:
+
+```json copy
+["occurred_at", "discovered_at", "person_name", "company_name"]
+```
+
+## Signal Source Types
+
+Types of sources a signal may originate from:
 
 ```json copy
 [
-  "Pre-Seed",
-  "Seed",
-  "Series A",
-  "Series B",
-  "Series C",
-  "Series D",
-  "Series E",
-  "Series F+",
-  "Bridge",
-  "Debt Financing",
-  "Grant",
-  "Convertible Note",
-  "Equity Crowdfunding",
-  "ICO",
-  "IPO",
-  "Private Equity",
-  "Venture",
-  "Angel",
-  "Corporate",
-  "Other"
+  "press_release",
+  "news_article",
+  "social_media",
+  "blog_post",
+  "sec_filing",
+  "crunchbase",
+  "pitchbook"
 ]
 ```
 
@@ -110,43 +201,38 @@ Filter by seniority level:
   "angel",
   "pe",
   "corporate",
+  "government",
   "accelerator",
   "family_office",
-  "fund",
-  "government",
-  "other"
+  "hedge_fund",
+  "crowdfunding"
 ]
 ```
 
-### Investor Ticket Sizes
+### Investor Sort Fields
+
+Available sort fields for the investors endpoint:
 
 ```json copy
-[
-  "1k-50k",
-  "50k-250k",
-  "250k-500k",
-  "500k-1m",
-  "1m-5m",
-  "5m-20m",
-  "20m-50m",
-  "50m+"
-]
+["name", "created_at", "ticket_size_min", "ticket_size_max"]
+```
+
+## Sort Orders
+
+Used across all endpoints:
+
+```json copy
+["asc", "desc"]
 ```
 
 ## Countries (All APIs)
 
-Both country categories and country names can be used to filter results via the `countries` parameter.
+Both country categories and country codes can be used to filter results via the `countries` parameter.
 
 ### Country Categories
 
 ```json copy
-[
-  "CEE",
-  "WE",
-  "NORDICS",
-  "NA",
-  "LATAM"
-]
+["CEE", "WE", "NORDICS", "NA", "LATAM"]
 ```
 
 ### Country Codes (ISO 3166-1 alpha-2)
@@ -172,7 +258,7 @@ Both country categories and country names can be used to filter results via the 
 
 ## Company Categories
 
-Filter by company category using these values:
+Filter by company category using the `subcategories` parameter:
 
 ```json copy
 [
@@ -215,4 +301,3 @@ Filter by company category using these values:
   "non-profit"
 ]
 ```
-

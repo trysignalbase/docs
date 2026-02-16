@@ -15,6 +15,37 @@ The Acquisition Signals API provides access to comprehensive, real-time acquisit
   View the complete OpenAPI specification
 </Card>
 
+## Count Mode
+
+You can get the total number of results matching any filter combination **without consuming credits** by adding `count=true` to your request. This returns an empty `data` array with full pagination metadata, including `totalCount`.
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/acquisitions?count=true&countries=US,GB&date_preset=last_90d" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": [],
+  "pagination": {
+    "currentPage": 1,
+    "totalPages": 8,
+    "totalCount": 152,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  },
+  "meta": {
+    "endpoint": "signals.acquisitions",
+    "creditsUsed": 0
+  }
+}
+```
+
+<Tip>Use count mode to preview how many results match your filters before fetching actual data. This is useful for building filter UIs, showing result counts, or validating queries — all at zero credit cost.</Tip>
+
 ## Key Features
 
 - **Real-time Signals**: Acquisition signals are aggregated continuously from web sources

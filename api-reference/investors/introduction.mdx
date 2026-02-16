@@ -15,6 +15,37 @@ The Investors API provides access to comprehensive venture capital and investor 
   View the complete OpenAPI specification
 </Card>
 
+## Count Mode
+
+You can get the total number of results matching any filter combination **without consuming credits** by adding `count=true` to your request. This returns an empty `data` array with full pagination metadata, including `totalCount`.
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/investors?count=true&type=vc,angel&countries=US" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": [],
+  "pagination": {
+    "currentPage": 1,
+    "totalPages": 22,
+    "totalCount": 430,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  },
+  "meta": {
+    "endpoint": "signals.investors",
+    "creditsUsed": 0
+  }
+}
+```
+
+<Tip>Use count mode to preview how many results match your filters before fetching actual data. This is useful for building filter UIs, showing result counts, or validating queries — all at zero credit cost.</Tip>
+
 ## Key Features
 
 - **Comprehensive Coverage**: Access data on VCs, angels, PE firms, corporate investors, hedge funds, crowdfunding platforms, and more

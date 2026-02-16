@@ -1,11 +1,11 @@
 ---
 title: 'Introduction'
-description: 'Access comprehensive VC and investor data with advanced filtering and search'
+description: 'Access comprehensive VC and investor data with advanced filtering, sorting, and search'
 ---
 
 ## Welcome to the Investors API
 
-The Investors API provides access to comprehensive venture capital and investor data aggregated from across the web. Our platform continuously monitors and collects information on VCs, angel investors, private equity firms, and corporate investors, giving you up-to-date intelligence on the investment landscape.
+The Investors API provides access to comprehensive venture capital and investor data aggregated from across the web. Our platform continuously monitors and collects information on VCs, angel investors, private equity firms, corporate investors, and more, giving you up-to-date intelligence on the investment landscape.
 
 <Card
   title="Investors Endpoint"
@@ -17,9 +17,11 @@ The Investors API provides access to comprehensive venture capital and investor 
 
 ## Key Features
 
-- **Comprehensive Coverage**: Access data on VCs, angel investors, PE firms, and corporate investors
-- **Advanced Filtering**: Filter by countries, investor types, and search by name
-- **Pagination Support**: Efficiently retrieve large datasets with customizable pagination
+- **Comprehensive Coverage**: Access data on VCs, angels, PE firms, corporate investors, hedge funds, crowdfunding platforms, and more
+- **Advanced Filtering**: Filter by countries, investor types, HQ location, and ticket size ranges
+- **Flexible Sorting**: Sort by name, created date, or ticket size
+- **Date Filtering**: Filter by created date or use date presets for relative ranges
+- **Pagination Support**: Efficiently retrieve large datasets with up to 100 results per page
 - **Rich Investor Data**: Detailed information on investment focus, portfolio, and contact details
 - **Credit-based Usage**: Transparent credit consumption per API call
 
@@ -28,39 +30,71 @@ The Investors API provides access to comprehensive venture capital and investor 
 - **Rate Limit**: Based on your subscription tier
 - **Uptime**: 99% guaranteed uptime
 - **Data Freshness**: Continuously updated investor information
-- **Maximum Results**: Up to 50 results per page
+- **Maximum Results**: Up to 100 results per page
 
 ## Authentication
 
 All API endpoints require authentication using a Bearer token passed in the Authorization header.
 
-The API key should be included as a Bearer token:
-
 ```bash
-curl -X GET "https://www.trysignalbase.com/api/v2/signals/investors?page=1&limit=20&categories=vc" \
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/investors?page=1&limit=20&type=vc" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
 ## Query Parameters
 
-- **page**: Page number (default: 1)
-- **limit**: Results per page (default: 20, max: 50)
-- **countries**: Comma-separated country codes (e.g., US,GB,CA)
-- **categories**: Comma-separated investor types (vc, angel, pe, corporate)
-- **search**: Search by investor name or type
+### Pagination
 
-## Investor Categories
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `page` | integer | 1 | Page number |
+| `limit` | integer | 20 | Results per page (max: 100) |
 
-The API supports filtering by various investor types:
+### Date Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `dateFrom` | string | Filter by created date from (ISO-8601 string) |
+| `dateTo` | string | Filter by created date to (ISO-8601 string) |
+| `date_preset` | string | Relative date shorthand — takes precedence over `dateFrom`/`dateTo`. See [Date Presets](/enums#date-presets) |
+
+### Investor Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `countries` | string | Comma-separated country codes (e.g., `US,GB,DE`) |
+| `type` | string | Comma-separated investor types. See [Investor Types](/enums#investor-types) |
+| `categories` | string | Legacy: pipe-separated investor types (same values as `type`) |
+| `headquarters` | string | Search by HQ location (partial match) |
+| `search` | string | Free-text search across investor name & type |
+
+### Numeric Range Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ticket_size_min` | integer | Minimum ticket size in USD |
+| `ticket_size_max` | integer | Maximum ticket size in USD |
+
+### Sorting
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `sort_by` | string | `created_at` | Sort field: `name`, `created_at`, `ticket_size_min`, `ticket_size_max` |
+| `sort_order` | string | `desc` | Sort direction: `asc` or `desc` |
+
+## Investor Types
+
+The API supports filtering by the following investor types:
 
 - **vc**: Venture Capital firms
 - **angel**: Angel investors and angel groups
 - **pe**: Private Equity firms
 - **corporate**: Corporate venture arms and strategic investors
+- **government**: Government-backed investment entities
 - **accelerator**: Startup accelerators and incubators
 - **family_office**: Family offices
-- **fund**: Investment funds
-- **government**: Government-backed investment entities
+- **hedge_fund**: Hedge funds
+- **crowdfunding**: Crowdfunding platforms
 
 ## Response Structure
 
@@ -117,28 +151,27 @@ Error responses include:
 ### Filter by Investor Type
 
 ```bash
-curl -X GET "https://www.trysignalbase.com/api/v2/signals/investors?categories=vc,angel" \
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/investors?type=vc,angel&countries=US" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
-### Filter by Country
+### Filter by Ticket Size Range
 
 ```bash
-curl -X GET "https://www.trysignalbase.com/api/v2/signals/investors?countries=US,GB" \
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/investors?ticket_size_min=100000&ticket_size_max=5000000" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
-### Search for Specific Investors
+### Search by HQ Location with Sorting
 
 ```bash
-curl -X GET "https://www.trysignalbase.com/api/v2/signals/investors?search=sequoia" \
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/investors?headquarters=San%20Francisco&sort_by=name&sort_order=asc" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
 ### Combined Filters
 
 ```bash
-curl -X GET "https://www.trysignalbase.com/api/v2/signals/investors?search=capital&countries=US&categories=vc&limit=10" \
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/investors?type=vc&countries=US,GB&ticket_size_min=500000&sort_by=ticket_size_max&sort_order=desc&limit=50" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
-

@@ -1,11 +1,11 @@
 ---
 title: 'Introduction'
-description: 'Access real-time acquisition signals with advanced filtering and pagination'
+description: 'Access real-time acquisition signals with advanced filtering, sorting, and pagination'
 ---
 
 ## Welcome to the Acquisition Signals API
 
-The Acquisition Signals API provides access to comprehensive, real-time acquisition signals aggregated from across the web. Our platform continuously monitors and collects acquisition activity, giving you up-to-date information on potential acquisition targets, acquirers, and market trends.
+The Acquisition Signals API provides access to comprehensive, real-time acquisition signals aggregated from across the web. Our platform continuously monitors and collects acquisition activity, giving you up-to-date information on M&A deals, acquirers, and market trends.
 
 <Card
   title="Acquisition Signals Endpoint"
@@ -18,9 +18,12 @@ The Acquisition Signals API provides access to comprehensive, real-time acquisit
 ## Key Features
 
 - **Real-time Signals**: Acquisition signals are aggregated continuously from web sources
-- **Advanced Filtering**: Filter by countries, categories, date ranges, and search terms
-- **Pagination Support**: Efficiently retrieve large datasets with customizable pagination
-- **Rich Response Data**: Detailed company information and acquisition indicators
+- **Advanced Filtering**: Filter by countries, categories, subcategories, date ranges, and search terms
+- **Numeric Range Filters**: Filter by amount, employee count, and founded year
+- **Flexible Sorting**: Sort by date, amount, or employee count
+- **Verification Status**: Filter signals by verified, unverified, or pending status
+- **Pagination Support**: Efficiently retrieve large datasets with up to 100 results per page
+- **Rich Response Data**: Detailed company information, acquisition amounts, and acquirer data
 - **Credit-based Usage**: Transparent credit consumption per API call
 
 ## Service Level
@@ -28,13 +31,11 @@ The Acquisition Signals API provides access to comprehensive, real-time acquisit
 - **Rate Limit**: Based on your subscription tier
 - **Uptime**: 99% guaranteed uptime
 - **Data Freshness**: Real-time aggregation ensures up-to-date signals
-- **Maximum Results**: Up to 50 results per page
+- **Maximum Results**: Up to 100 results per page
 
 ## Authentication
 
 All API endpoints require authentication using a Bearer token passed in the Authorization header.
-
-The API key should be included as a Bearer token:
 
 ```bash
 curl -X GET "https://www.trysignalbase.com/api/v2/signals/acquisitions?page=1&limit=20" \
@@ -43,13 +44,57 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/acquisitions?page=1&li
 
 ## Query Parameters
 
-- **page**: Page number (default: 1)
-- **limit**: Results per page (default: 20, max: 50)
-- **dateFrom**: Filter by date from (ISO 8601 format: YYYY-MM-DD)
-- **dateTo**: Filter by date to (ISO 8601 format: YYYY-MM-DD)
-- **countries**: Comma-separated country codes (e.g., US,GB,CA)
-- **categories**: Comma-separated company categories
-- **search**: Search by company name or industry
+### Pagination
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `page` | integer | 1 | Page number |
+| `limit` | integer | 20 | Results per page (max: 100) |
+
+### Date Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `dateFrom` | string | Filter by date from (ISO-8601 string) |
+| `dateTo` | string | Filter by date to (ISO-8601 string) |
+| `date_preset` | string | Relative date shorthand — takes precedence over `dateFrom`/`dateTo`. See [Date Presets](/enums#date-presets) |
+
+### Company Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `countries` | string | Comma-separated country codes (e.g., `US,GB,DE`) |
+| `categories` | string | Pipe-separated company categories / industries |
+| `subcategories` | string | Comma-separated subcategory IDs (e.g., `ai,fintech,saas`) |
+| `industry` | string | Comma-separated exact industry names |
+| `company_name` | string | Search by acquired company name (partial match) |
+| `search` | string | Free-text search across company name & industry |
+
+### Numeric Range Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `amount_min` | integer | Minimum acquisition amount in USD cents |
+| `amount_max` | integer | Maximum acquisition amount in USD cents |
+| `employee_count_min` | integer | Minimum company employee count |
+| `employee_count_max` | integer | Maximum company employee count |
+| `founded_year_min` | integer | Minimum company founded year |
+| `founded_year_max` | integer | Maximum company founded year |
+
+### Acquisition-specific Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `currency` | string | Currency symbol filter (e.g., `$`, `€`, `£`) |
+| `verification_status` | string | Comma-separated statuses: `verified`, `unverified`, `pending` |
+| `acquiring_company` | string | Search by acquiring company name (partial match) |
+
+### Sorting
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `sort_by` | string | `occurred_at` | Sort field: `occurred_at`, `discovered_at`, `amount`, `employee_count` |
+| `sort_order` | string | `desc` | Sort direction: `asc` or `desc` |
 
 ## Response Structure
 
@@ -91,3 +136,32 @@ Error responses include:
 }
 ```
 
+## Example Usage
+
+### Filter by Date Preset and Country
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/acquisitions?date_preset=last_90d&countries=US,GB" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Filter by Amount and Acquiring Company
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/acquisitions?amount_min=10000000&acquiring_company=Google" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Filter by Subcategory with Sorting
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/acquisitions?subcategories=ai&sort_by=amount&sort_order=desc" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Combined Filters
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/acquisitions?date_preset=last_30d&countries=US&verification_status=verified&sort_by=discovered_at&limit=50" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```

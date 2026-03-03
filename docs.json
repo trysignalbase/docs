@@ -82,6 +82,23 @@
         ]
       },
       {
+        "tab": "Hiring Signals",
+        "groups": [
+          {
+            "group": "Hiring Signals API",
+            "pages": [
+              "api-reference/hiring-signals/introduction"
+            ]
+          },
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api-reference/hiring-signals/endpoint/get"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "Investors",
         "groups": [
           {
@@ -94,6 +111,23 @@
             "group": "Endpoints",
             "pages": [
               "api-reference/investors/endpoint/get"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Companies",
+        "groups": [
+          {
+            "group": "Companies API",
+            "pages": [
+              "api-reference/companies/introduction"
+            ]
+          },
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api-reference/companies/endpoint/get"
             ]
           }
         ]

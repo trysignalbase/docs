@@ -1,0 +1,207 @@
+---
+title: 'Introduction'
+description: 'Browse and search companies independently with filtering by industry, size, location, and more'
+---
+
+## Welcome to the Companies API
+
+The Companies API lets you browse and search our company database independently of any signal data. Query companies by name, industry, country, employee count, founded year, and more — with full pagination and sorting support.
+
+<Card
+  title="Companies Endpoint"
+  icon="building"
+  href="/api-reference/companies/endpoint/get"
+>
+  View the complete OpenAPI specification
+</Card>
+
+## Count Mode
+
+You can get the total number of results matching any filter combination **without consuming credits** by adding `count=true` to your request. This returns an empty `data` array with full pagination metadata, including `totalCount`.
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/companies?count=true&countries=US&industry=Software" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": [],
+  "pagination": {
+    "currentPage": 1,
+    "totalPages": 40,
+    "totalCount": 792,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  },
+  "meta": {
+    "endpoint": "companies.list",
+    "creditsUsed": 0
+  }
+}
+```
+
+<Tip>Use count mode to preview how many results match your filters before fetching actual data. This is useful for building filter UIs, showing result counts, or validating queries — all at zero credit cost.</Tip>
+
+## Key Features
+
+- **Independent Querying**: Browse companies without needing signal data
+- **Full-text Search**: Search across company name, industry, description, keywords, and specialties
+- **Geographic Filtering**: Filter by headquarters country
+- **Industry Filtering**: Filter by exact industry names
+- **Numeric Range Filters**: Filter by employee count and founded year ranges
+- **Growth Data**: Access headcount growth metrics (1m, 3m, 6m, 9m, 12m)
+- **Flexible Sorting**: Sort by name, employee count, founded year, or creation date
+- **Pagination Support**: Efficiently retrieve large datasets with up to 100 results per page
+- **Credit-based Usage**: Transparent credit consumption per API call
+
+## Service Level
+
+- **Rate Limit**: Based on your subscription tier
+- **Uptime**: 99% guaranteed uptime
+- **Data Freshness**: Company profiles are continuously updated
+- **Maximum Results**: Up to 100 results per page
+
+## Authentication
+
+All API endpoints require a Bearer token in the `Authorization` header.
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/companies?page=1&limit=20" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+## Query Parameters
+
+### Pagination
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `page` | integer | 1 | Page number |
+| `limit` | integer | 20 | Results per page (max: 100) |
+
+### Text Search
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `search` | string | Free-text search across company name, industry, description, keywords, and specialties |
+
+### Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `countries` | string | Comma-separated country codes (e.g., `US,GB,DE`) |
+| `industry` | string | Comma-separated industry names — exact match (e.g., `Software,Technology`) |
+
+### Numeric Range Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `employee_count_min` | integer | Minimum employee count |
+| `employee_count_max` | integer | Maximum employee count |
+| `founded_year_min` | integer | Minimum founded year |
+| `founded_year_max` | integer | Maximum founded year |
+
+### Sorting
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `sort_by` | string | `name` | Sort field: `name`, `employee_count`, `founded_year`, `created_at` |
+| `sort_order` | string | `desc` | Sort direction: `asc` or `desc` |
+
+## Response Structure
+
+All successful responses follow this structure:
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid-here",
+      "name": "NextGen Software",
+      "slug": "nextgen-software",
+      "description": "Enterprise SaaS platform for workflow automation.",
+      "website": "https://www.nextgensoftware.com",
+      "linkedinUrl": "https://www.linkedin.com/company/nextgensoftware",
+      "logoUrl": "https://media.licdn.com/dms/image/example.png",
+      "industry": "Technology",
+      "foundedYear": 2018,
+      "headquartersCountry": "US",
+      "employeeCount": 250,
+      "categories": ["Software", "SaaS"],
+      "keywords": ["workflow automation", "enterprise"],
+      "specialties": ["process automation"],
+      "growthInfo": {
+        "growth_1m": 1.2,
+        "growth_3m": 3.5,
+        "growth_6m": 8.1,
+        "growth_9m": 12.0,
+        "growth_12m": 18.5
+      }
+    }
+  ],
+  "pagination": {
+    "currentPage": 1,
+    "totalPages": 200,
+    "totalCount": 4000,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  },
+  "meta": {
+    "endpoint": "companies.list",
+    "creditsUsed": 1
+  }
+}
+```
+
+## Error Handling
+
+The API returns standard HTTP status codes:
+
+- **200**: Success
+- **401**: Unauthorized - Invalid or missing API key
+- **429**: Rate limit exceeded
+- **500**: Internal server error
+
+Error responses include:
+
+```json
+{
+  "success": false,
+  "error": "Error message description"
+}
+```
+
+## Example Usage
+
+### Search by Keyword and Country
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/companies?search=AI&countries=US" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Filter by Industry and Employee Count
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/companies?industry=Software&employee_count_min=50&employee_count_max=1000" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Filter by Founded Year with Sorting
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/companies?founded_year_min=2020&sort_by=employee_count&sort_order=desc" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Combined Filters
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/companies?search=cloud&countries=US,GB&employee_count_min=10&founded_year_min=2015&sort_by=name&sort_order=asc&limit=50" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```

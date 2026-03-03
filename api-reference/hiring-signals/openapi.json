@@ -1,0 +1,622 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Hiring Signals API",
+    "description": "Access real-time hiring signals (open job postings) with filtering for positions, departments, seniority levels, location targeting, team size, applicant ranges, pagination, and search.",
+    "license": {
+      "name": "MIT"
+    },
+    "version": "2.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://www.trysignalbase.com/api/v2"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/signals/hiring": {
+      "get": {
+        "summary": "Get Hiring Signals",
+        "description": "Fetch hiring signals (open job postings) with filtering, pagination, and search. Supports role-aware position filters, department and seniority filters, location targeting, team size, and applicant range filtering.",
+        "operationId": "getHiringSignals",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number for pagination",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "example": 1
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of results per page (maximum 100)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "example": 20
+          },
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "description": "Filter signals from this date (ISO 8601 format: YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2024-01-01"
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "description": "Filter signals up to this date (ISO 8601 format: YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2024-12-31"
+          },
+          {
+            "name": "date_preset",
+            "in": "query",
+            "description": "Relative date shorthand. Takes precedence over dateFrom/dateTo.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "today",
+                "yesterday",
+                "last_7d",
+                "last_14d",
+                "last_30d",
+                "last_60d",
+                "last_90d",
+                "last_6m",
+                "last_1y",
+                "last_2y",
+                "this_week",
+                "this_month",
+                "this_quarter",
+                "this_year",
+                "last_week",
+                "last_month",
+                "last_quarter",
+                "last_year"
+              ]
+            },
+            "example": "last_30d"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Free-text search across company name, industry, job title, location, and city",
+            "schema": {
+              "type": "string"
+            },
+            "example": "engineering"
+          },
+          {
+            "name": "countries",
+            "in": "query",
+            "description": "Comma-separated list of country codes to filter by",
+            "schema": {
+              "type": "string"
+            },
+            "example": "US,GB,DE"
+          },
+          {
+            "name": "states",
+            "in": "query",
+            "description": "Comma-separated US state codes to filter by",
+            "schema": {
+              "type": "string"
+            },
+            "example": "CA,NY,TX"
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "description": "Free-text search on hiring signal city, location, and region",
+            "schema": {
+              "type": "string"
+            },
+            "example": "San Francisco"
+          },
+          {
+            "name": "categories",
+            "in": "query",
+            "description": "Pipe-separated list of company industry categories to filter by",
+            "schema": {
+              "type": "string"
+            },
+            "example": "Technology|Software"
+          },
+          {
+            "name": "subcategories",
+            "in": "query",
+            "description": "Comma-separated list of subcategory IDs to filter by. These filter companies based on keyword patterns matching their industry, keywords, and specialties.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "ai,fintech,saas"
+          },
+          {
+            "name": "positions",
+            "in": "query",
+            "description": "Comma-separated list of positions to filter by. Allowed values include ceo, cto, cfo, coo, vp of engineering, vp of sales, vp of marketing, head of product, head of growth, head of engineering, engineering manager, product manager, sales manager, marketing manager, founder, co-founder.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "cto,head of engineering"
+          },
+          {
+            "name": "departments",
+            "in": "query",
+            "description": "Comma-separated list of departments to filter by. Allowed values include marketing, sales, engineering, product, design, operations, finance, people, data, customer_success, growth, legal.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "engineering,product"
+          },
+          {
+            "name": "seniorities",
+            "in": "query",
+            "description": "Comma-separated list of seniority levels to filter by. Allowed values include founder, c_level, vp, director, head, lead, manager.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "c_level,vp,head"
+          },
+          {
+            "name": "team_size",
+            "in": "query",
+            "description": "Comma-separated team size ranges to filter by. Format: min-max (e.g., 1-10, 11-50, 51-200, 201-1000, 1000-plus).",
+            "schema": {
+              "type": "string"
+            },
+            "example": "51-200,201-1000"
+          },
+          {
+            "name": "applicants",
+            "in": "query",
+            "description": "Comma-separated applicant count ranges to filter by. Format: min-max (e.g., 0-25, 26-50, 51-100, 101-200, 201-plus).",
+            "schema": {
+              "type": "string"
+            },
+            "example": "0-25,26-50"
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "description": "Field to sort by",
+            "schema": {
+              "type": "string",
+              "enum": ["date_posted", "created_at", "title", "company_name", "location"],
+              "default": "created_at"
+            },
+            "example": "date_posted"
+          },
+          {
+            "name": "sort_order",
+            "in": "query",
+            "description": "Sort direction",
+            "schema": {
+              "type": "string",
+              "enum": ["asc", "desc"],
+              "default": "desc"
+            },
+            "example": "desc"
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "If set to true, returns only the total count without data rows and without deducting credits.",
+            "schema": {
+              "type": "string",
+              "enum": ["true"]
+            },
+            "example": "true"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response with hiring signals",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HiringSignalsResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": [
+                    {
+                      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                      "title": "Senior Software Engineer",
+                      "jobUrl": "https://www.linkedin.com/jobs/view/123456789",
+                      "location": "San Francisco, CA",
+                      "city": "San Francisco",
+                      "region": "California",
+                      "country": "US",
+                      "datePosted": "2024-11-01T00:00:00Z",
+                      "employmentType": "Full-time",
+                      "seniorityLevel": "Mid-Senior level",
+                      "jobFunction": "Engineering",
+                      "numApplicants": "45",
+                      "companyName": "NextGen Software",
+                      "companyWebsite": "https://www.nextgensoftware.com",
+                      "companyIndustry": "Technology",
+                      "companyCountry": "US",
+                      "companyEmployeeCount": 250,
+                      "companyFoundedYear": 2018,
+                      "companyLogoUrl": "https://media.licdn.com/dms/image/example.png"
+                    },
+                    {
+                      "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+                      "title": "VP of Engineering",
+                      "jobUrl": "https://www.linkedin.com/jobs/view/987654321",
+                      "location": "New York, NY",
+                      "city": "New York",
+                      "region": "New York",
+                      "country": "US",
+                      "datePosted": "2024-10-28T00:00:00Z",
+                      "employmentType": "Full-time",
+                      "seniorityLevel": "Executive",
+                      "jobFunction": "Engineering",
+                      "numApplicants": "120",
+                      "companyName": "HealthTech Solutions",
+                      "companyWebsite": "https://www.healthtechsolutions.com",
+                      "companyIndustry": "Healthcare Technology",
+                      "companyCountry": "US",
+                      "companyEmployeeCount": 85,
+                      "companyFoundedYear": 2020,
+                      "companyLogoUrl": "https://media.licdn.com/dms/image/example2.png"
+                    }
+                  ],
+                  "pagination": {
+                    "currentPage": 1,
+                    "totalPages": 50,
+                    "totalCount": 1000,
+                    "hasNextPage": true,
+                    "hasPreviousPage": false
+                  },
+                  "meta": {
+                    "endpoint": "signals.hiring",
+                    "creditsUsed": 1
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Invalid API key"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Rate limit exceeded. Please try again later."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "An unknown error occurred"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HiringSignalsResponse": {
+        "type": "object",
+        "required": ["success", "data", "pagination", "meta"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indicates if the request was successful",
+            "example": true
+          },
+          "data": {
+            "type": "array",
+            "description": "Array of hiring signal records",
+            "items": {
+              "$ref": "#/components/schemas/HiringSignal"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        }
+      },
+      "HiringSignal": {
+        "type": "object",
+        "required": ["id", "title", "jobUrl", "companyName"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the hiring signal",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "jobId": {
+            "type": "string",
+            "nullable": true,
+            "description": "External job ID from the source platform",
+            "example": "123456789"
+          },
+          "jobUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the job posting",
+            "example": "https://www.linkedin.com/jobs/view/123456789"
+          },
+          "title": {
+            "type": "string",
+            "description": "Job title",
+            "example": "Senior Software Engineer"
+          },
+          "location": {
+            "type": "string",
+            "nullable": true,
+            "description": "Full location string",
+            "example": "San Francisco, CA"
+          },
+          "city": {
+            "type": "string",
+            "nullable": true,
+            "description": "City of the job posting",
+            "example": "San Francisco"
+          },
+          "region": {
+            "type": "string",
+            "nullable": true,
+            "description": "State or region of the job posting",
+            "example": "California"
+          },
+          "country": {
+            "type": "string",
+            "nullable": true,
+            "description": "Country code of the job posting",
+            "example": "US"
+          },
+          "datePosted": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "When the job was posted",
+            "example": "2024-11-01T00:00:00Z"
+          },
+          "validThrough": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "When the job posting expires",
+            "example": "2025-01-01T00:00:00Z"
+          },
+          "employmentType": {
+            "type": "string",
+            "nullable": true,
+            "description": "Type of employment (e.g., Full-time, Part-time, Contract)",
+            "example": "Full-time"
+          },
+          "seniorityLevel": {
+            "type": "string",
+            "nullable": true,
+            "description": "Seniority level of the role",
+            "example": "Mid-Senior level"
+          },
+          "jobFunction": {
+            "type": "string",
+            "nullable": true,
+            "description": "Job function / department",
+            "example": "Engineering"
+          },
+          "industries": {
+            "type": "string",
+            "nullable": true,
+            "description": "Industries associated with the posting",
+            "example": "Software Development"
+          },
+          "numApplicants": {
+            "type": "string",
+            "nullable": true,
+            "description": "Number of applicants for the posting",
+            "example": "45"
+          },
+          "descriptionText": {
+            "type": "string",
+            "nullable": true,
+            "description": "Plain text job description"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the signal was ingested",
+            "example": "2024-11-02T12:00:00Z"
+          },
+          "companyId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the company",
+            "example": "d4e5f6a7-b8c9-0123-defg-h45678901234"
+          },
+          "companyName": {
+            "type": "string",
+            "description": "Name of the hiring company",
+            "example": "NextGen Software"
+          },
+          "companyWebsite": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "Company website URL",
+            "example": "https://www.nextgensoftware.com"
+          },
+          "companyIndustry": {
+            "type": "string",
+            "nullable": true,
+            "description": "Industry of the company",
+            "example": "Technology"
+          },
+          "companyCountry": {
+            "type": "string",
+            "nullable": true,
+            "description": "Country where the company is headquartered",
+            "example": "US"
+          },
+          "companyEmployeeCount": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Number of employees at the company",
+            "example": 250
+          },
+          "companyFoundedYear": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Year the company was founded",
+            "example": 2018
+          },
+          "companyLogoUrl": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "URL of the company logo",
+            "example": "https://media.licdn.com/dms/image/example.png"
+          },
+          "companyDescription": {
+            "type": "string",
+            "nullable": true,
+            "description": "Company description"
+          },
+          "companySpecialties": {
+            "type": "string",
+            "nullable": true,
+            "description": "JSON array of company specialties as text"
+          },
+          "companyCategories": {
+            "type": "string",
+            "nullable": true,
+            "description": "JSON array of company categories as text"
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "required": ["currentPage", "totalPages", "totalCount", "hasNextPage", "hasPreviousPage"],
+        "properties": {
+          "currentPage": {
+            "type": "integer",
+            "description": "Current page number",
+            "minimum": 1,
+            "example": 1
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "Total number of pages available",
+            "minimum": 0,
+            "example": 50
+          },
+          "totalCount": {
+            "type": "integer",
+            "description": "Total number of records matching the query",
+            "minimum": 0,
+            "example": 1000
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a next page",
+            "example": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a previous page",
+            "example": false
+          }
+        }
+      },
+      "Meta": {
+        "type": "object",
+        "required": ["endpoint", "creditsUsed"],
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "description": "The endpoint that was called",
+            "example": "signals.hiring"
+          },
+          "creditsUsed": {
+            "type": "number",
+            "description": "Number of API credits consumed by this request",
+            "minimum": 0,
+            "example": 1
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["success", "error"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indicates if the request was successful (always false for errors)",
+            "example": false
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message describing what went wrong",
+            "example": "Invalid API key"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "API key for Hiring Signals API authentication. Include as Bearer token in Authorization header."
+      }
+    }
+  }
+}

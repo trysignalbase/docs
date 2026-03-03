@@ -1,0 +1,216 @@
+---
+title: 'Introduction'
+description: 'Access real-time hiring signals with position, department, seniority, and location filters'
+---
+
+## Welcome to the Hiring Signals API
+
+The Hiring Signals API provides timely insights on open job postings across the web. Track which companies are hiring, what roles they're filling, and where — with precise filters for positions, departments, seniority levels, team size, applicant counts, and geographic targeting.
+
+<Card
+  title="Hiring Signals Endpoint"
+  icon="user-plus"
+  href="/api-reference/hiring-signals/endpoint/get"
+>
+  View the complete OpenAPI specification
+</Card>
+
+## Count Mode
+
+You can get the total number of results matching any filter combination **without consuming credits** by adding `count=true` to your request. This returns an empty `data` array with full pagination metadata, including `totalCount`.
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/hiring?count=true&positions=CTO&date_preset=last_30d" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": [],
+  "pagination": {
+    "currentPage": 1,
+    "totalPages": 8,
+    "totalCount": 156,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  },
+  "meta": {
+    "endpoint": "signals.hiring",
+    "creditsUsed": 0
+  }
+}
+```
+
+<Tip>Use count mode to preview how many results match your filters before fetching actual data. This is useful for building filter UIs, showing result counts, or validating queries — all at zero credit cost.</Tip>
+
+## Key Features
+
+- **Real-time Signals**: Hiring signals aggregated continuously from web sources
+- **Role-aware Filters**: Filter by positions, departments, and seniority levels
+- **Location Targeting**: Filter by country, US state, and city
+- **Category Filters**: Filter by industry categories and keyword-based subcategories
+- **Company Filters**: Filter by team size and applicant count ranges
+- **Flexible Sorting**: Sort by date posted, title, company name, location, or ingestion date
+- **Pagination Support**: Efficiently retrieve large datasets with up to 100 results per page
+- **Credit-based Usage**: Transparent credit consumption per API call
+
+## Service Level
+
+- **Rate Limit**: Based on your subscription tier
+- **Uptime**: 99% guaranteed uptime
+- **Data Freshness**: Real-time aggregation ensures up-to-date signals
+- **Maximum Results**: Up to 100 results per page
+
+## Authentication
+
+All API endpoints require a Bearer token in the `Authorization` header.
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/hiring?page=1&limit=20" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+## Query Parameters
+
+### Pagination
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `page` | integer | 1 | Page number |
+| `limit` | integer | 20 | Results per page (max: 100) |
+
+### Date Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `dateFrom` | string | Filter by date from (ISO-8601 string) |
+| `dateTo` | string | Filter by date to (ISO-8601 string) |
+| `date_preset` | string | Relative date shorthand — takes precedence over `dateFrom`/`dateTo`. See [Date Presets](/enums#date-presets) |
+
+### Text Search & Location
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `search` | string | Free-text search across company name, industry, job title, location, and city |
+| `city` | string | Free-text search on city, location, and region |
+| `countries` | string | Comma-separated country codes (e.g., `US,GB,DE`) |
+| `states` | string | Comma-separated US state codes (e.g., `CA,NY,TX`) |
+
+### Category Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `categories` | string | Pipe-separated industry categories (e.g., `Technology\|Software`) |
+| `subcategories` | string | Comma-separated subcategory IDs (e.g., `ai,fintech,saas`) |
+
+### Role Category Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `positions` | string | Comma-separated position IDs (e.g., `CEO,CTO,CFO`). See [Positions](/enums#positions) |
+| `departments` | string | Comma-separated department IDs (e.g., `marketing,engineering`). See [Departments](/enums#departments) |
+| `seniorities` | string | Comma-separated seniority IDs (e.g., `c_level,vp,director`). See [Seniorities](/enums#seniorities) |
+
+### Company Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `team_size` | string | Comma-separated team size ranges (e.g., `1-10,11-50,51-200,201-1000,1000-plus`) |
+| `applicants` | string | Comma-separated applicant ranges (e.g., `0-25,26-50,51-100,101-200,201-plus`) |
+
+### Sorting
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `sort_by` | string | `created_at` | Sort field: `date_posted`, `created_at`, `title`, `company_name`, `location` |
+| `sort_order` | string | `desc` | Sort direction: `asc` or `desc` |
+
+## Response Structure
+
+All successful responses follow this structure:
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid-here",
+      "title": "Senior Software Engineer",
+      "jobUrl": "https://www.linkedin.com/jobs/view/123456789",
+      "location": "San Francisco, CA",
+      "city": "San Francisco",
+      "country": "US",
+      "datePosted": "2024-11-01T00:00:00Z",
+      "employmentType": "Full-time",
+      "seniorityLevel": "Mid-Senior level",
+      "jobFunction": "Engineering",
+      "numApplicants": "45",
+      "companyName": "NextGen Software",
+      "companyIndustry": "Technology",
+      "companyEmployeeCount": 250
+    }
+  ],
+  "pagination": {
+    "currentPage": 1,
+    "totalPages": 50,
+    "totalCount": 1000,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  },
+  "meta": {
+    "endpoint": "signals.hiring",
+    "creditsUsed": 1
+  }
+}
+```
+
+## Error Handling
+
+The API returns standard HTTP status codes:
+
+- **200**: Success
+- **401**: Unauthorized - Invalid or missing API key
+- **429**: Rate limit exceeded
+- **500**: Internal server error
+
+Error responses include:
+
+```json
+{
+  "success": false,
+  "error": "Error message description"
+}
+```
+
+## Example Usage
+
+### Filter by Position and Date Preset
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/hiring?date_preset=last_30d&positions=CTO" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Filter by Country and City
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/hiring?countries=US&city=San%20Francisco" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Filter by Department and Seniority with Sorting
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/hiring?departments=engineering&seniorities=c_level&sort_by=date_posted&sort_order=desc" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Filter by Team Size and Subcategory
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/hiring?team_size=51-200&subcategories=ai,saas&date_preset=last_90d" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```

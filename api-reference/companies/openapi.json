@@ -1,0 +1,521 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Companies API",
+    "description": "Browse and search companies independently of signal data. Query by name, industry, country, employee count, founded year, and more with pagination and sorting.",
+    "license": {
+      "name": "MIT"
+    },
+    "version": "2.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://www.trysignalbase.com/api/v2"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/companies": {
+      "get": {
+        "summary": "Get Companies",
+        "description": "Browse and search companies with filtering, pagination, and sorting. Returns company profiles with industry, headcount, location, and metadata — independent of any signal data.",
+        "operationId": "getCompanies",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number for pagination",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "example": 1
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of results per page (maximum 100)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "example": 20
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Free-text search across company name, industry, description, keywords, and specialties",
+            "schema": {
+              "type": "string"
+            },
+            "example": "AI"
+          },
+          {
+            "name": "countries",
+            "in": "query",
+            "description": "Comma-separated list of country codes to filter by",
+            "schema": {
+              "type": "string"
+            },
+            "example": "US,GB,DE"
+          },
+          {
+            "name": "industry",
+            "in": "query",
+            "description": "Comma-separated list of industry names to filter by (exact match)",
+            "schema": {
+              "type": "string"
+            },
+            "example": "Software,Technology"
+          },
+          {
+            "name": "employee_count_min",
+            "in": "query",
+            "description": "Minimum employee count",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "example": 50
+          },
+          {
+            "name": "employee_count_max",
+            "in": "query",
+            "description": "Maximum employee count",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "example": 5000
+          },
+          {
+            "name": "founded_year_min",
+            "in": "query",
+            "description": "Minimum founded year",
+            "schema": {
+              "type": "integer",
+              "minimum": 1800
+            },
+            "example": 2020
+          },
+          {
+            "name": "founded_year_max",
+            "in": "query",
+            "description": "Maximum founded year",
+            "schema": {
+              "type": "integer",
+              "minimum": 1800
+            },
+            "example": 2025
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "description": "Field to sort by",
+            "schema": {
+              "type": "string",
+              "enum": ["name", "employee_count", "founded_year", "created_at"],
+              "default": "name"
+            },
+            "example": "employee_count"
+          },
+          {
+            "name": "sort_order",
+            "in": "query",
+            "description": "Sort direction",
+            "schema": {
+              "type": "string",
+              "enum": ["asc", "desc"],
+              "default": "desc"
+            },
+            "example": "desc"
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "If set to true, returns only the total count without data rows and without deducting credits.",
+            "schema": {
+              "type": "string",
+              "enum": ["true"]
+            },
+            "example": "true"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response with companies",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompaniesResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": [
+                    {
+                      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                      "name": "NextGen Software",
+                      "slug": "nextgen-software",
+                      "description": "Enterprise SaaS platform for workflow automation.",
+                      "website": "https://www.nextgensoftware.com",
+                      "linkedinUrl": "https://www.linkedin.com/company/nextgensoftware",
+                      "twitterUrl": "https://twitter.com/nextgensoftware",
+                      "logoUrl": "https://media.licdn.com/dms/image/example.png",
+                      "industry": "Technology",
+                      "foundedYear": 2018,
+                      "headquartersCountry": "US",
+                      "employeeCount": 250,
+                      "categories": ["Software", "SaaS", "Enterprise"],
+                      "keywords": ["workflow automation", "enterprise", "AI"],
+                      "specialties": ["process automation", "integration"],
+                      "growthInfo": {
+                        "growth_1m": 1.2,
+                        "growth_3m": 3.5,
+                        "growth_6m": 8.1,
+                        "growth_9m": 12.0,
+                        "growth_12m": 18.5
+                      },
+                      "createdAt": "2024-06-15T10:30:00Z",
+                      "updatedAt": "2024-11-20T14:00:00Z"
+                    },
+                    {
+                      "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+                      "name": "HealthTech Solutions",
+                      "slug": "healthtech-solutions",
+                      "description": "AI-powered healthcare diagnostics platform for early disease detection.",
+                      "website": "https://www.healthtechsolutions.co.uk",
+                      "linkedinUrl": "https://www.linkedin.com/company/healthtechsolutions",
+                      "twitterUrl": null,
+                      "logoUrl": "https://media.licdn.com/dms/image/example2.png",
+                      "industry": "Healthcare Technology",
+                      "foundedYear": 2022,
+                      "headquartersCountry": "GB",
+                      "employeeCount": 85,
+                      "categories": ["Healthcare", "AI"],
+                      "keywords": ["diagnostics", "AI", "health"],
+                      "specialties": ["disease detection", "medical imaging"],
+                      "growthInfo": null,
+                      "createdAt": "2024-08-01T09:00:00Z",
+                      "updatedAt": "2024-11-18T11:30:00Z"
+                    }
+                  ],
+                  "pagination": {
+                    "currentPage": 1,
+                    "totalPages": 200,
+                    "totalCount": 4000,
+                    "hasNextPage": true,
+                    "hasPreviousPage": false
+                  },
+                  "meta": {
+                    "endpoint": "companies.list",
+                    "creditsUsed": 1
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Invalid API key"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Rate limit exceeded. Please try again later."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "An unknown error occurred"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CompaniesResponse": {
+        "type": "object",
+        "required": ["success", "data", "pagination", "meta"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indicates if the request was successful",
+            "example": true
+          },
+          "data": {
+            "type": "array",
+            "description": "Array of company records",
+            "items": {
+              "$ref": "#/components/schemas/Company"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        }
+      },
+      "Company": {
+        "type": "object",
+        "required": ["id", "name", "slug"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the company",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "name": {
+            "type": "string",
+            "description": "Company name",
+            "example": "NextGen Software"
+          },
+          "slug": {
+            "type": "string",
+            "description": "URL-friendly unique slug for the company",
+            "example": "nextgen-software"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Company description",
+            "example": "Enterprise SaaS platform for workflow automation."
+          },
+          "website": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "Company website URL",
+            "example": "https://www.nextgensoftware.com"
+          },
+          "linkedinUrl": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "LinkedIn company page URL",
+            "example": "https://www.linkedin.com/company/nextgensoftware"
+          },
+          "twitterUrl": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "Twitter/X profile URL",
+            "example": "https://twitter.com/nextgensoftware"
+          },
+          "logoUrl": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "URL of the company logo",
+            "example": "https://media.licdn.com/dms/image/example.png"
+          },
+          "industry": {
+            "type": "string",
+            "nullable": true,
+            "description": "Industry sector of the company",
+            "example": "Technology"
+          },
+          "foundedYear": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Year the company was founded",
+            "example": 2018
+          },
+          "headquartersCountry": {
+            "type": "string",
+            "nullable": true,
+            "description": "Country where the company is headquartered",
+            "example": "US"
+          },
+          "employeeCount": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Number of employees",
+            "example": 250
+          },
+          "categories": {
+            "type": "array",
+            "description": "Business categories",
+            "items": {
+              "type": "string"
+            },
+            "example": ["Software", "SaaS", "Enterprise"]
+          },
+          "keywords": {
+            "type": "array",
+            "description": "Keywords associated with the company",
+            "items": {
+              "type": "string"
+            },
+            "example": ["workflow automation", "enterprise", "AI"]
+          },
+          "specialties": {
+            "type": "array",
+            "description": "Company specialties",
+            "items": {
+              "type": "string"
+            },
+            "example": ["process automation", "integration"]
+          },
+          "growthInfo": {
+            "type": "object",
+            "nullable": true,
+            "description": "Headcount growth percentages over various time periods",
+            "properties": {
+              "growth_1m": {
+                "type": "number",
+                "description": "1-month growth percentage",
+                "example": 1.2
+              },
+              "growth_3m": {
+                "type": "number",
+                "description": "3-month growth percentage",
+                "example": 3.5
+              },
+              "growth_6m": {
+                "type": "number",
+                "description": "6-month growth percentage",
+                "example": 8.1
+              },
+              "growth_9m": {
+                "type": "number",
+                "description": "9-month growth percentage",
+                "example": 12.0
+              },
+              "growth_12m": {
+                "type": "number",
+                "description": "12-month growth percentage",
+                "example": 18.5
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the company record was created",
+            "example": "2024-06-15T10:30:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the company record was last updated",
+            "example": "2024-11-20T14:00:00Z"
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "required": ["currentPage", "totalPages", "totalCount", "hasNextPage", "hasPreviousPage"],
+        "properties": {
+          "currentPage": {
+            "type": "integer",
+            "description": "Current page number",
+            "minimum": 1,
+            "example": 1
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "Total number of pages available",
+            "minimum": 0,
+            "example": 200
+          },
+          "totalCount": {
+            "type": "integer",
+            "description": "Total number of records matching the query",
+            "minimum": 0,
+            "example": 4000
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a next page",
+            "example": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a previous page",
+            "example": false
+          }
+        }
+      },
+      "Meta": {
+        "type": "object",
+        "required": ["endpoint", "creditsUsed"],
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "description": "The endpoint that was called",
+            "example": "companies.list"
+          },
+          "creditsUsed": {
+            "type": "number",
+            "description": "Number of API credits consumed by this request",
+            "minimum": 0,
+            "example": 1
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["success", "error"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indicates if the request was successful (always false for errors)",
+            "example": false
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message describing what went wrong",
+            "example": "Invalid API key"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "API key for Companies API authentication. Include as Bearer token in Authorization header."
+      }
+    }
+  }
+}

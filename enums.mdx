@@ -94,7 +94,7 @@ All funding and acquisition amounts are **converted to USD during ingestion** an
 | `amount_max` (filter) | Maximum amount in whole USD. Inclusive (`<=`). |
 | `currency` (filter) | Filters rows by the stored currency string. **Does not convert** between currencies — it is a simple exact-match filter on the currency field. |
 
-**There is no server-side currency conversion at query time.** The ingestion pipeline converts all amounts to USD before storage, so the vast majority of records have `currency` set to `"USD"` or `"$"`. Passing `currency` as a filter narrows results to only rows that were stored with that exact currency value.
+**There is no server-side currency conversion at query time.** The ingestion pipeline converts all amounts to USD before storage, so the vast majority of records have `currency` set to `"USD"`. Passing `currency` as a filter narrows results to only rows that were stored with that exact currency value.
 
 #### Currency Values
 

@@ -81,13 +81,30 @@ Filter signals by their verification status:
 ["verified", "unverified", "pending"]
 ```
 
-### Currencies
+### Amounts & Currency
 
-Supported currency symbols for filtering funding and acquisition amounts:
+#### How `amount`, `amount_min`, `amount_max`, and `currency` work
+
+All funding and acquisition amounts are **converted to USD during ingestion** and stored as **whole US dollars** (integer, not cents and not a float). For example, a $5M round is stored as `5000000`.
+
+| Field | Description |
+|-------|-------------|
+| `amount` (response) | Integer amount in whole USD. `null` when the amount is undisclosed. |
+| `amount_min` (filter) | Minimum amount in whole USD. Inclusive (`>=`). |
+| `amount_max` (filter) | Maximum amount in whole USD. Inclusive (`<=`). |
+| `currency` (filter) | Filters rows by the stored currency string. **Does not convert** between currencies — it is a simple exact-match filter on the currency field. |
+
+**There is no server-side currency conversion at query time.** The ingestion pipeline converts all amounts to USD before storage, so the vast majority of records have `currency` set to `"USD"` or `"$"`. Passing `currency` as a filter narrows results to only rows that were stored with that exact currency value.
+
+#### Currency Values
+
+The `currency` field on each record stores an ISO code:
 
 ```json copy
 ["USD", "EUR", "GBP", "JPY", "INR", "AUD", "CAD", "CHF", "SEK", "NOK", "DKK", "SGD", "HKD", "BRL", "KRW", "CNY", "NZD", "ZAR", "MXN", "ILS", "PLN", "TRY", "AED", "SAR"]
 ```
+
+Most records use `"USD"`. When filtering, pass the exact string you want to match.
 
 ### Funding Sort Fields
 
@@ -267,26 +284,229 @@ Both country categories and country codes can be used to filter results via the 
 ]
 ```
 
-## Company Categories
+## Company Categories & Industries
 
-Filter by company category using the `subcategories` parameter:
+Companies have two classification systems that map to different API filter parameters:
+
+| API Parameter | DB Column | Description | Delimiter |
+|---------------|-----------|-------------|-----------|
+| `categories` | `company.industry` | LinkedIn industry label (free text) | pipe `\|` separated |
+| `subcategories` | `company.subcategory` | Signalbase category (strict enum) | comma `,` separated |
+
+### Categories (`categories` parameter)
+
+The `categories` parameter filters by exact match on the company's LinkedIn industry label.
+
+These are free-text labels sourced from LinkedIn's industry taxonomy. The taxonomy has **20 main categories** that group **434 industries**. Since this is a free-text field, new labels may appear as companies are ingested.
+
+#### Main Categories (20)
+
+```json copy
+[
+  "Accommodation Services",
+  "Administrative and Support Services",
+  "Construction",
+  "Consumer Services",
+  "Education",
+  "Entertainment Providers",
+  "Farming, Ranching, Forestry",
+  "Financial Services",
+  "Government Administration",
+  "Holding Companies",
+  "Hospitals and Health Care",
+  "Manufacturing",
+  "Oil, Gas, and Mining",
+  "Professional Services",
+  "Real Estate and Equipment Rental Services",
+  "Retail",
+  "Technology, Information and Media",
+  "Transportation, Logistics, Supply Chain and Storage",
+  "Utilities",
+  "Wholesale"
+]
+```
+
+#### All Industries (434)
+
+```json copy
+[
+  "Abrasives and Nonmetallic Minerals Manufacturing", "Accessible Architecture and Design", "Accessible Hardware Manufacturing",
+  "Accommodation Services", "Accounting", "Administration of Justice",
+  "Administrative and Support Services", "Advertising Services", "Agricultural Chemical Manufacturing",
+  "Agriculture, Construction, Mining Machinery Manufacturing", "Air, Water, and Waste Program Management", "Airlines and Aviation",
+  "Alternative Dispute Resolution", "Alternative Fuel Vehicle Manufacturing", "Alternative Medicine",
+  "Ambulance Services", "Amusement Parks and Arcades", "Animal Feed Manufacturing",
+  "Animation and Post-production", "Apparel Manufacturing", "Appliances, Electrical, and Electronics Manufacturing",
+  "Architectural and Structural Metal Manufacturing", "Architecture and Planning", "Armed Forces",
+  "Artificial Rubber and Synthetic Fiber Manufacturing", "Artists and Writers", "Audio and Video Equipment Manufacturing",
+  "Automation Machinery Manufacturing", "Aviation and Aerospace Component Manufacturing", "Baked Goods Manufacturing",
+  "Banking", "Bars, Taverns, and Nightclubs", "Bed-and-Breakfasts, Hostels, Homestays",
+  "Beverage Manufacturing", "Biomass Electric Power Generation", "Biotechnology Research",
+  "Blockchain Services", "Blogs", "Boilers, Tanks, and Shipping Container Manufacturing",
+  "Book Publishing", "Book and Periodical Publishing", "Breweries",
+  "Broadcast Media Production and Distribution", "Building Construction", "Building Equipment Contractors",
+  "Building Finishing Contractors", "Building Structure and Exterior Contractors", "Business Consulting and Services",
+  "Business Content", "Business Intelligence Platforms", "Cable and Satellite Programming",
+  "Capital Markets", "Caterers", "Chemical Manufacturing",
+  "Chemical Raw Materials Manufacturing", "Child Day Care Services", "Chiropractors",
+  "Circuses and Magic Shows", "Civic and Social Organizations", "Civil Engineering",
+  "Claims Adjusting, Actuarial Services", "Clay and Refractory Products Manufacturing", "Climate Data and Analytics",
+  "Climate Technology Product Manufacturing", "Coal Mining", "Collection Agencies",
+  "Commercial and Industrial Equipment Rental", "Commercial and Industrial Machinery Maintenance", "Commercial and Service Industry Machinery Manufacturing",
+  "Communications Equipment Manufacturing", "Community Development and Urban Planning", "Community Services",
+  "Computer Games", "Computer Hardware Manufacturing", "Computer Networking Products",
+  "Computer and Network Security", "Computers and Electronics Manufacturing", "Conservation Programs",
+  "Construction", "Construction Hardware Manufacturing", "Consumer Goods Rental",
+  "Consumer Services", "Correctional Institutions", "Cosmetology and Barber Schools",
+  "Courts of Law", "Credit Intermediation", "Cutlery and Handtool Manufacturing",
+  "Dairy Product Manufacturing", "Dance Companies", "Data Infrastructure and Analytics",
+  "Data Security Software Products", "Defense and Space Manufacturing", "Dentists",
+  "Design Services", "Desktop Computing Software Products", "Digital Accessibility Services",
+  "Distilleries", "E-Learning Providers", "Economic Programs",
+  "Education", "Education Administration Programs", "Electric Lighting Equipment Manufacturing",
+  "Electric Power Generation", "Electric Power Transmission, Control, and Distribution", "Electrical Equipment Manufacturing",
+  "Electronic and Precision Equipment Maintenance", "Embedded Software Products", "Emergency and Relief Services",
+  "Engineering Services", "Engines and Power Transmission Equipment Manufacturing", "Entertainment Providers",
+  "Environmental Quality Programs", "Environmental Services", "Equipment Rental Services",
+  "Events Services", "Executive Offices", "Executive Search Services",
+  "Fabricated Metal Products", "Facilities Services", "Family Planning Centers",
+  "Farming", "Farming, Ranching, Forestry", "Fashion Accessories Manufacturing",
+  "Financial Services", "Fine Arts Schools", "Fire Protection",
+  "Fisheries", "Flight Training", "Food and Beverage Manufacturing",
+  "Food and Beverage Retail", "Food and Beverage Services", "Footwear Manufacturing",
+  "Footwear and Leather Goods Repair", "Forestry and Logging", "Fossil Fuel Electric Power Generation",
+  "Freight and Package Transportation", "Fruit and Vegetable Preserves Manufacturing", "Fuel Cell Manufacturing",
+  "Fundraising", "Funds and Trusts", "Furniture and Home Furnishings Manufacturing",
+  "Gambling Facilities and Casinos", "Geothermal Electric Power Generation", "Glass Product Manufacturing",
+  "Glass, Ceramics and Concrete Manufacturing", "Golf Courses and Country Clubs", "Government Administration",
+  "Government Relations Services", "Graphic Design", "Ground Passenger Transportation",
+  "HVAC and Refrigeration Equipment Manufacturing", "Health and Human Services", "Higher Education",
+  "Highway, Street, and Bridge Construction", "Historical Sites", "Holding Companies",
+  "Home Health Care Services", "Horticulture", "Hospitality",
+  "Hospitals", "Hospitals and Health Care", "Hotels and Motels",
+  "Household Appliance Manufacturing", "Household Services", "Household and Institutional Furniture Manufacturing",
+  "Housing Programs", "Housing and Community Development", "Human Resources Services",
+  "Hydroelectric Power Generation", "IT Services and IT Consulting", "IT System Custom Software Development",
+  "IT System Data Services", "IT System Design Services", "IT System Installation and Disposal",
+  "IT System Operations and Maintenance", "IT System Testing and Evaluation", "IT System Training and Support",
+  "Individual and Family Services", "Industrial Machinery Manufacturing", "Industry Associations",
+  "Information Services", "Insurance", "Insurance Agencies and Brokerages",
+  "Insurance Carriers", "Insurance and Employee Benefit Funds", "Interior Design",
+  "International Affairs", "International Trade and Development", "Internet Marketplace Platforms",
+  "Internet News", "Internet Publishing", "Interurban and Rural Bus Services",
+  "Investment Advice", "Investment Banking", "Investment Management",
+  "Janitorial Services", "Landscaping Services", "Language Schools",
+  "Laundry and Drycleaning Services", "Law Enforcement", "Law Practice",
+  "Leasing Non-residential Real Estate", "Leasing Residential Real Estate", "Leather Product Manufacturing",
+  "Legal Services", "Legislative Offices", "Libraries",
+  "Lime and Gypsum Products Manufacturing", "Loan Brokers", "Machinery Manufacturing",
+  "Magnetic and Optical Media Manufacturing", "Manufacturing", "Maritime Transportation",
+  "Market Research", "Marketing Services", "Mattress and Blinds Manufacturing",
+  "Measuring and Control Instrument Manufacturing", "Meat Products Manufacturing", "Media & Telecommunications",
+  "Media Production", "Medical Equipment Manufacturing", "Medical Practices",
+  "Medical and Diagnostic Laboratories", "Mental Health Care", "Metal Ore Mining",
+  "Metal Treatments", "Metal Valve, Ball, and Roller Manufacturing", "Metalworking Machinery Manufacturing",
+  "Military and International Affairs", "Mining", "Mobile Computing Software Products",
+  "Mobile Food Services", "Mobile Gaming Apps", "Motor Vehicle Manufacturing",
+  "Motor Vehicle Parts Manufacturing", "Movies and Sound Recording", "Movies, Videos and Sound",
+  "Museums", "Museums, Historical Sites, and Zoos", "Musicians",
+  "Nanotechnology Research", "Natural Gas Distribution", "Natural Gas Extraction",
+  "Newspaper Publishing", "Non-profit Organizations", "Nonmetallic Mineral Mining",
+  "Nonresidential Building Construction", "Nuclear Electric Power Generation", "Nursing Homes and Residential Care Facilities",
+  "Office Administration", "Office Furniture and Fixtures Manufacturing", "Oil Extraction",
+  "Oil and Coal Product Manufacturing", "Oil and Gas", "Oil, Gas, and Mining",
+  "Online Audio and Video Media", "Online and Mail Order Retail", "Operations Consulting",
+  "Optometrists", "Outpatient Care Centers", "Outsourcing and Offshoring Consulting",
+  "Packaging and Containers Manufacturing", "Paint, Coating, and Adhesive Manufacturing", "Paper and Forest Product Manufacturing",
+  "Pension Funds", "Performing Arts", "Performing Arts and Spectator Sports",
+  "Periodical Publishing", "Personal Care Product Manufacturing", "Personal Care Services",
+  "Personal and Laundry Services", "Pet Services", "Pharmaceutical Manufacturing",
+  "Philanthropic Fundraising Services", "Photography", "Physical, Occupational and Speech Therapists",
+  "Physicians", "Pipeline Transportation", "Plastics Manufacturing",
+  "Plastics and Rubber Product Manufacturing", "Political Organizations", "Postal Services",
+  "Primary Metal Manufacturing", "Primary and Secondary Education", "Printing Services",
+  "Professional Organizations", "Professional Services", "Professional Training and Coaching",
+  "Public Assistance Programs", "Public Health", "Public Policy Offices",
+  "Public Relations and Communications Services", "Public Safety", "Racetracks",
+  "Radio and Television Broadcasting", "Rail Transportation", "Railroad Equipment Manufacturing",
+  "Ranching", "Ranching and Fisheries", "Real Estate",
+  "Real Estate Agents and Brokers", "Real Estate and Equipment Rental Services", "Recreational Facilities",
+  "Regenerative Design", "Religious Institutions", "Renewable Energy Equipment Manufacturing",
+  "Renewable Energy Power Generation", "Renewable Energy Semiconductor Manufacturing", "Repair and Maintenance",
+  "Research Services", "Residential Building Construction", "Restaurants",
+  "Retail", "Retail Apparel and Fashion", "Retail Appliances, Electrical, and Electronic Equipment",
+  "Retail Art Dealers", "Retail Art Supplies", "Retail Books and Printed News",
+  "Retail Building Materials and Garden Equipment", "Retail Florists", "Retail Furniture and Home Furnishings",
+  "Retail Gasoline", "Retail Groceries", "Retail Health and Personal Care Products",
+  "Retail Luxury Goods and Jewelry", "Retail Motor Vehicles", "Retail Musical Instruments",
+  "Retail Office Equipment", "Retail Office Supplies and Gifts", "Retail Pharmacies",
+  "Retail Recyclable Materials & Used Merchandise", "Reupholstery and Furniture Repair", "Robot Manufacturing",
+  "Robotics Engineering", "Rubber Products Manufacturing", "Satellite Telecommunications",
+  "Savings Institutions", "School and Employee Bus Services", "Seafood Product Manufacturing",
+  "Secretarial Schools", "Securities and Commodity Exchanges", "Security Guards and Patrol Services",
+  "Security Systems Services", "Security and Investigations", "Semiconductor Manufacturing",
+  "Services for Renewable Energy", "Services for the Elderly and Disabled", "Sheet Music Publishing",
+  "Shipbuilding", "Shuttles and Special Needs Transportation Services", "Sightseeing Transportation",
+  "Skiing Facilities", "Smart Meter Manufacturing", "Soap and Cleaning Product Manufacturing",
+  "Social Networking Platforms", "Software Development", "Solar Electric Power Generation",
+  "Sound Recording", "Space Research and Technology", "Specialty Trade Contractors",
+  "Spectator Sports", "Sporting Goods Manufacturing", "Sports Teams and Clubs",
+  "Sports and Recreation Instruction", "Spring and Wire Product Manufacturing", "Staffing and Recruiting",
+  "Steam and Air-Conditioning Supply", "Strategic Management Services", "Subdivision of Land",
+  "Sugar and Confectionery Product Manufacturing", "Surveying and Mapping Services", "Taxi and Limousine Services",
+  "Technical and Vocational Training", "Technology, Information and Internet", "Technology, Information and Media",
+  "Telecommunications", "Telecommunications Carriers", "Telephone Call Centers",
+  "Temporary Help Services", "Textile Manufacturing", "Theater Companies",
+  "Think Tanks", "Tobacco Manufacturing", "Translation and Localization",
+  "Transportation Equipment Manufacturing", "Transportation Programs", "Transportation, Logistics, Supply Chain and Storage",
+  "Travel Arrangements", "Truck Transportation", "Trusts and Estates",
+  "Turned Products and Fastener Manufacturing", "Urban Transit Services", "Utilities",
+  "Utilities Administration", "Utility System Construction", "Vehicle Repair and Maintenance",
+  "Venture Capital and Private Equity Principals", "Veterinary Services", "Vocational Rehabilitation Services",
+  "Warehousing and Storage", "Waste Collection", "Waste Treatment and Disposal",
+  "Water Supply and Irrigation Systems", "Water, Waste, Steam, and Air Conditioning Services", "Wellness and Fitness Services",
+  "Wholesale", "Wholesale Alcoholic Beverages", "Wholesale Apparel and Sewing Supplies",
+  "Wholesale Appliances, Electrical, and Electronics", "Wholesale Building Materials", "Wholesale Chemical and Allied Products",
+  "Wholesale Computer Equipment", "Wholesale Drugs and Sundries", "Wholesale Food and Beverage",
+  "Wholesale Footwear", "Wholesale Furniture and Home Furnishings", "Wholesale Hardware, Plumbing, Heating Equipment",
+  "Wholesale Import and Export", "Wholesale Luxury Goods and Jewelry", "Wholesale Machinery",
+  "Wholesale Metals and Minerals", "Wholesale Motor Vehicles and Parts", "Wholesale Paper Products",
+  "Wholesale Petroleum and Petroleum Products", "Wholesale Photography Equipment and Supplies", "Wholesale Raw Farm Products",
+  "Wholesale Recyclable Materials", "Wind Electric Power Generation", "Wineries",
+  "Wireless Services", "Women's Handbag Manufacturing", "Wood Product Manufacturing",
+  "Writing and Editing", "Zoos and Botanical Gardens"
+]
+```
+
+**Example:** `?categories=Software Development|Financial Services`
+
+### Subcategories (`subcategories` parameter)
+
+The `subcategories` parameter filters by the Signalbase-assigned company category. Values are **comma-separated** and validated against a strict enum. Only exact matches from the list below are accepted; invalid values are silently ignored.
 
 ```json copy
 [
   "ai",
   "saas",
+  "software",
   "cybersecurity",
   "web3",
   "devtools",
   "analytics",
+  "cloud",
+  "iot",
   "fintech",
+  "payments",
+  "accounting",
   "ecommerce",
+  "insurance",
+  "vc & investment",
+  "regtech",
   "marketing",
+  "advertising",
   "sales",
   "hr tech",
   "legal",
-  "insurance",
-  "vc & investment",
   "healthcare",
   "biotechnology",
   "education",
@@ -296,12 +516,16 @@ Filter by company category using the `subcategories` parameter:
   "manufacturing",
   "retail",
   "agriculture",
+  "food & beverage",
+  "automotive",
   "aerospace & defense",
   "robotics",
   "telecommunications",
   "travel",
   "sports",
+  "gaming",
   "media",
+  "govtech",
   "construction",
   "environmental services",
   "battery technology",
@@ -312,3 +536,5 @@ Filter by company category using the `subcategories` parameter:
   "non-profit"
 ]
 ```
+
+**Example:** `?subcategories=ai,fintech,saas`

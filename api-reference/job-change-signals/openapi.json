@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Job Change Signals API",
-    "description": "Access real-time job change signals with filtering for positions, departments, seniority levels, LinkedIn targeting, pagination, and search.",
+    "description": "Access real-time job change signals with filtering for positions, departments, seniority levels, LinkedIn targeting, pagination, and search. Returns person details, new role information, company data, and source references.",
     "license": {
       "name": "MIT"
     },
@@ -22,87 +22,166 @@
     "/signals/job-changes": {
       "get": {
         "summary": "Get Job Change Signals",
-        "description": "Fetch job change signals with filtering, pagination, and search. Supports role-aware position filters, department and seniority filters, plus LinkedIn targeting.",
+        "description": "Fetch job change signals with filtering, pagination, and search. Supports role-aware position filters, department and seniority filters, LinkedIn targeting, and field-specific search. Person names are GDPR-masked (first name + last initial only).",
         "operationId": "getJobChangeSignals",
         "parameters": [
           {
             "name": "page",
             "in": "query",
             "description": "Page number for pagination",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            },
+            "schema": { "type": "integer", "minimum": 1, "default": 1 },
             "example": 1
           },
           {
             "name": "limit",
             "in": "query",
-            "description": "Number of results per page (maximum 50)",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 50,
-              "default": 20
-            },
+            "description": "Number of results per page (maximum 100)",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 },
             "example": 20
+          },
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "description": "Filter signals from this date (ISO 8601 format: YYYY-MM-DD)",
+            "schema": { "type": "string", "format": "date" },
+            "example": "2024-01-01"
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "description": "Filter signals up to this date (ISO 8601 format: YYYY-MM-DD)",
+            "schema": { "type": "string", "format": "date" },
+            "example": "2024-12-31"
+          },
+          {
+            "name": "date_preset",
+            "in": "query",
+            "description": "Relative date shorthand. Takes precedence over dateFrom/dateTo.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "today", "yesterday", "last_7d", "last_14d", "last_30d",
+                "last_60d", "last_90d", "last_6m", "last_1y", "last_2y",
+                "this_week", "this_month", "this_quarter", "this_year",
+                "last_week", "last_month", "last_quarter", "last_year"
+              ]
+            },
+            "example": "last_30d"
           },
           {
             "name": "search",
             "in": "query",
-            "description": "Search by company or person keywords",
-            "schema": {
-              "type": "string"
-            },
+            "description": "Free-text search across company name, industry, person name, role, person location, and person country",
+            "schema": { "type": "string" },
             "example": "engineering leadership"
+          },
+          {
+            "name": "countries",
+            "in": "query",
+            "description": "Comma-separated list of country codes to filter by (matches person country or company HQ)",
+            "schema": { "type": "string" },
+            "example": "US,GB"
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "description": "Free-text search on person city and person location",
+            "schema": { "type": "string" },
+            "example": "San Francisco"
           },
           {
             "name": "personLinkedinUrl",
             "in": "query",
             "description": "Exact LinkedIn profile URL of the person",
-            "schema": {
-              "type": "string",
-              "format": "uri"
-            },
+            "schema": { "type": "string" },
             "example": "https://www.linkedin.com/in/example"
           },
           {
             "name": "companyLinkedinUrl",
             "in": "query",
             "description": "Exact LinkedIn company page URL",
-            "schema": {
-              "type": "string",
-              "format": "uri"
-            },
+            "schema": { "type": "string" },
             "example": "https://www.linkedin.com/company/example"
+          },
+          {
+            "name": "person_name",
+            "in": "query",
+            "description": "Search by person name (partial match)",
+            "schema": { "type": "string" },
+            "example": "Alex"
+          },
+          {
+            "name": "company_name",
+            "in": "query",
+            "description": "Search by company name (partial match)",
+            "schema": { "type": "string" },
+            "example": "Google"
+          },
+          {
+            "name": "new_role",
+            "in": "query",
+            "description": "Search by new role / job title (partial match)",
+            "schema": { "type": "string" },
+            "example": "VP Engineering"
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "description": "Exact match on signal source",
+            "schema": { "type": "string", "enum": ["linkedin", "press_release", "other"] },
+            "example": "linkedin"
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "description": "Search by keyword tag (partial match)",
+            "schema": { "type": "string" },
+            "example": "promotion"
           },
           {
             "name": "positions",
             "in": "query",
-            "description": "Comma-separated list of positions to filter by. Allowed values include ceo, cto, cfo, coo, vp of engineering, vp of sales, vp of marketing, head of product, head of growth, head of engineering, engineering manager, product manager, sales manager, marketing manager, founder, co-founder.",
-            "schema": {
-              "type": "string"
-            },
+            "description": "Comma-separated list of positions to filter by (e.g., ceo, cto, cfo, coo, vp of engineering, head of product, engineering manager, product manager, founder, co-founder)",
+            "schema": { "type": "string" },
             "example": "cto,head of engineering"
           },
           {
             "name": "departments",
             "in": "query",
-            "description": "Comma-separated list of departments to filter by. Allowed values include marketing, sales, engineering, product, design, operations, finance, people, data, customer_success, growth, legal.",
-            "schema": {
-              "type": "string"
-            },
+            "description": "Comma-separated list of departments to filter by (e.g., marketing, sales, engineering, product, design, operations, finance, people, data, customer_success, growth, legal)",
+            "schema": { "type": "string" },
             "example": "engineering,product"
           },
           {
             "name": "seniorities",
             "in": "query",
-            "description": "Comma-separated list of seniority levels to filter by. Allowed values include founder, c_level, vp, director, head, lead, manager.",
-            "schema": {
-              "type": "string"
-            },
+            "description": "Comma-separated list of seniority levels to filter by (e.g., founder, c_level, vp, director, head, lead, manager)",
+            "schema": { "type": "string" },
             "example": "c_level,vp,head"
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "description": "Field to sort by",
+            "schema": {
+              "type": "string",
+              "enum": ["occurred_at", "discovered_at", "person_name", "company_name"],
+              "default": "occurred_at"
+            },
+            "example": "occurred_at"
+          },
+          {
+            "name": "sort_order",
+            "in": "query",
+            "description": "Sort direction",
+            "schema": { "type": "string", "enum": ["asc", "desc"], "default": "desc" },
+            "example": "desc"
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "When set to \"true\", returns only pagination metadata with an empty data array. No credits are charged.",
+            "schema": { "type": "string", "enum": ["true"] }
           }
         ],
         "responses": {
@@ -110,33 +189,48 @@
             "description": "Successful response with job change signals",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JobChangeSignalsResponse"
-                },
+                "schema": { "$ref": "#/components/schemas/JobChangeSignalsResponse" },
                 "example": {
                   "success": true,
                   "data": [
                     {
-                      "signalId": "550e8400-e29b-41d4-a716-446655440000",
-                      "personName": "Alex Johnson",
+                      "signalId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                      "signalType": "job_change",
+                      "occurredAt": "2026-03-01T00:00:00.000Z",
+                      "discoveredAt": "2026-03-02T12:00:00.000Z",
+                      "personName": "Alex J.",
                       "personLinkedinUrl": "https://www.linkedin.com/in/alexjohnson",
-                      "signalType": "job_change",
-                      "occurredAt": "2024-11-01T00:00:00Z",
-                      "discoveredAt": "2024-11-02T12:00:00Z",
-                      "companyName": "NextGen Software",
                       "companyLinkedinUrl": "https://www.linkedin.com/company/nextgensoftware",
-                      "newRole": "Chief Technology Officer"
-                    },
-                    {
-                      "signalId": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
-                      "personName": "Priya Singh",
-                      "personLinkedinUrl": "https://www.linkedin.com/in/priyasingh",
-                      "signalType": "job_change",
-                      "occurredAt": "2024-10-20T00:00:00Z",
-                      "discoveredAt": "2024-10-21T08:00:00Z",
-                      "companyName": "HealthTech Solutions",
-                      "companyLinkedinUrl": "https://www.linkedin.com/company/healthtechsolutions",
-                      "newRole": "Head of Product"
+                      "newRole": "Chief Technology Officer",
+                      "postContent": "Excited to announce my new role as CTO at NextGen Software!",
+                      "takenFrom": "https://www.linkedin.com/feed/update/urn:li:activity:123456",
+                      "source": "linkedin",
+                      "companyName": "NextGen Software",
+                      "personCurrentTitle": "Chief Technology Officer at NextGen Software",
+                      "personHeadline": "CTO | Building the future of enterprise software",
+                      "personLocation": "San Francisco Bay Area",
+                      "personCity": "San Francisco",
+                      "personCountry": "US",
+                      "personFollowers": 5200,
+                      "personConnections": 2500,
+                      "personPosts": null,
+                      "companyWebsite": "https://www.nextgensoftware.com",
+                      "companyIndustry": "Technology",
+                      "companyCountry": "US",
+                      "companyEmployeeCount": 250,
+                      "companyFoundedYear": 2018,
+                      "companyLogoUrl": "https://images.trysignalbase.com/nextgen.png",
+                      "companyDescription": "Enterprise software company.",
+                      "companySpecialties": "[\"Cloud\",\"SaaS\"]",
+                      "companyCategories": "[\"Technology\",\"Software\"]",
+                      "isFreeAccess": true,
+                      "companyLogo": "https://images.trysignalbase.com/nextgen.png",
+                      "sources": [
+                        {
+                          "url": "https://www.linkedin.com/feed/update/urn:li:activity:123456",
+                          "sourceType": "social_media"
+                        }
+                      ]
                     }
                   ],
                   "pagination": {
@@ -147,8 +241,9 @@
                     "hasPreviousPage": false
                   },
                   "meta": {
-                    "endpoint": "signals.job-changes",
-                    "creditsUsed": 1
+                    "endpoint": "signals.jobChanges",
+                    "creditsUsed": 1,
+                    "creditsRemaining": 999
                   }
                 }
               }
@@ -156,45 +251,19 @@
           },
           "401": {
             "description": "Unauthorized - Invalid or missing API key",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "success": false,
-                  "error": "Invalid API key"
-                }
-              }
-            }
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "example": { "success": false, "error": "Invalid API key" } } }
+          },
+          "402": {
+            "description": "Insufficient credits",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "example": { "success": false, "error": "out of credits, please contact support to increase your usage" } } }
           },
           "429": {
             "description": "Rate limit exceeded",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "success": false,
-                  "error": "Rate limit exceeded. Please try again later."
-                }
-              }
-            }
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "example": { "success": false, "error": "Rate limit exceeded. Please try again later." } } }
           },
           "500": {
             "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "success": false,
-                  "error": "An unknown error occurred"
-                }
-              }
-            }
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "example": { "success": false, "error": "An unknown error occurred" } } }
           }
         }
       }
@@ -206,150 +275,87 @@
         "type": "object",
         "required": ["success", "data", "pagination", "meta"],
         "properties": {
-          "success": {
-            "type": "boolean",
-            "description": "Indicates if the request was successful",
-            "example": true
-          },
-          "data": {
-            "type": "array",
-            "description": "Array of job change signal records",
-            "items": {
-              "$ref": "#/components/schemas/JobChangeSignal"
-            }
-          },
-          "pagination": {
-            "$ref": "#/components/schemas/Pagination"
-          },
-          "meta": {
-            "$ref": "#/components/schemas/Meta"
-          }
+          "success": { "type": "boolean", "example": true },
+          "data": { "type": "array", "items": { "$ref": "#/components/schemas/JobChangeSignal" } },
+          "pagination": { "$ref": "#/components/schemas/Pagination" },
+          "meta": { "$ref": "#/components/schemas/Meta" }
         }
       },
       "JobChangeSignal": {
         "type": "object",
-        "required": ["signalId", "signalType", "occurredAt", "personName", "companyName", "newRole"],
+        "required": ["signalId", "signalType", "occurredAt", "personName", "newRole"],
         "properties": {
-          "signalId": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Unique identifier for the job change signal",
-            "example": "550e8400-e29b-41d4-a716-446655440000"
-          },
-          "signalType": {
-            "type": "string",
-            "description": "Type of signal (job_change)",
-            "example": "job_change"
-          },
-          "occurredAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the job change occurred",
-            "example": "2024-11-01T00:00:00Z"
-          },
-          "discoveredAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "description": "When the signal was discovered",
-            "example": "2024-11-02T12:00:00Z"
-          },
-          "personName": {
-            "type": "string",
-            "description": "Full name of the person",
-            "example": "Alex Johnson"
-          },
-          "personLinkedinUrl": {
-            "type": "string",
-            "format": "uri",
-            "nullable": true,
-            "description": "LinkedIn profile URL of the person",
-            "example": "https://www.linkedin.com/in/alexjohnson"
-          },
-          "companyName": {
-            "type": "string",
-            "description": "Name of the company",
-            "example": "NextGen Software"
-          },
-          "companyLinkedinUrl": {
-            "type": "string",
-            "format": "uri",
-            "nullable": true,
-            "description": "LinkedIn company page URL",
-            "example": "https://www.linkedin.com/company/nextgensoftware"
-          },
-          "newRole": {
-            "type": "string",
-            "description": "New role/title for the person",
-            "example": "Chief Technology Officer"
+          "signalId": { "type": "string", "format": "uuid", "description": "Unique identifier for the signal" },
+          "signalType": { "type": "string", "description": "Type of signal (always \"job_change\")", "example": "job_change" },
+          "occurredAt": { "type": "string", "format": "date-time", "description": "When the job change occurred" },
+          "discoveredAt": { "type": "string", "format": "date-time", "description": "When the signal was discovered" },
+          "personName": { "type": "string", "description": "Person's name (GDPR-masked: first name + last initial only)", "example": "Alex J." },
+          "personLinkedinUrl": { "type": "string", "nullable": true, "description": "Person's LinkedIn profile URL" },
+          "companyLinkedinUrl": { "type": "string", "nullable": true, "description": "Company's LinkedIn page URL" },
+          "newRole": { "type": "string", "description": "New role / job title" },
+          "postContent": { "type": "string", "nullable": true, "description": "Content of the post announcing the change" },
+          "takenFrom": { "type": "string", "nullable": true, "description": "URL where the signal was sourced from" },
+          "source": { "type": "string", "nullable": true, "description": "Source platform", "enum": ["linkedin", "press_release", "other"] },
+          "companyName": { "type": "string", "nullable": true, "description": "Company name (from job change details)" },
+          "personCurrentTitle": { "type": "string", "nullable": true, "description": "Person's current title as shown on their profile" },
+          "personHeadline": { "type": "string", "nullable": true, "description": "Person's LinkedIn headline" },
+          "personLocation": { "type": "string", "nullable": true, "description": "Person's full location string" },
+          "personCity": { "type": "string", "nullable": true, "description": "Person's city" },
+          "personCountry": { "type": "string", "nullable": true, "description": "Person's country" },
+          "personFollowers": { "type": "integer", "nullable": true, "description": "Number of LinkedIn followers" },
+          "personConnections": { "type": "integer", "nullable": true, "description": "Number of LinkedIn connections" },
+          "personPosts": { "type": "string", "nullable": true, "description": "JSON-encoded array of recent person posts" },
+          "companyWebsite": { "type": "string", "nullable": true, "description": "Company website URL" },
+          "companyIndustry": { "type": "string", "nullable": true, "description": "Company industry" },
+          "companyCountry": { "type": "string", "nullable": true, "description": "Company HQ country code" },
+          "companyEmployeeCount": { "type": "integer", "nullable": true, "description": "Company employee count" },
+          "companyFoundedYear": { "type": "integer", "nullable": true, "description": "Company founded year" },
+          "companyLogoUrl": { "type": "string", "nullable": true, "description": "Company logo URL" },
+          "companyDescription": { "type": "string", "nullable": true, "description": "Company description" },
+          "companySpecialties": { "type": "string", "nullable": true, "description": "JSON-encoded array of company specialties" },
+          "companyCategories": { "type": "string", "nullable": true, "description": "JSON-encoded array of company categories" },
+          "isFreeAccess": { "type": "boolean", "description": "Whether full data is accessible (always true for authenticated requests)", "example": true },
+          "companyLogo": { "type": "string", "nullable": true, "description": "Alias of companyLogoUrl for backwards compatibility" },
+          "sources": {
+            "type": "array",
+            "description": "Source references for this signal",
+            "items": { "$ref": "#/components/schemas/Source" }
           }
+        }
+      },
+      "Source": {
+        "type": "object",
+        "properties": {
+          "url": { "type": "string", "description": "URL of the source" },
+          "sourceType": { "type": "string", "nullable": true, "description": "Type of source", "enum": ["press_release", "news_article", "social_media", "blog_post", "sec_filing", "crunchbase", "pitchbook"] }
         }
       },
       "Pagination": {
         "type": "object",
         "required": ["currentPage", "totalPages", "totalCount", "hasNextPage", "hasPreviousPage"],
         "properties": {
-          "currentPage": {
-            "type": "integer",
-            "description": "Current page number",
-            "minimum": 1,
-            "example": 1
-          },
-          "totalPages": {
-            "type": "integer",
-            "description": "Total number of pages available",
-            "minimum": 0,
-            "example": 12
-          },
-          "totalCount": {
-            "type": "integer",
-            "description": "Total number of records matching the query",
-            "minimum": 0,
-            "example": 240
-          },
-          "hasNextPage": {
-            "type": "boolean",
-            "description": "Indicates if there is a next page",
-            "example": true
-          },
-          "hasPreviousPage": {
-            "type": "boolean",
-            "description": "Indicates if there is a previous page",
-            "example": false
-          }
+          "currentPage": { "type": "integer", "minimum": 1 },
+          "totalPages": { "type": "integer", "minimum": 0 },
+          "totalCount": { "type": "integer", "minimum": 0 },
+          "hasNextPage": { "type": "boolean" },
+          "hasPreviousPage": { "type": "boolean" }
         }
       },
       "Meta": {
         "type": "object",
         "required": ["endpoint", "creditsUsed"],
         "properties": {
-          "endpoint": {
-            "type": "string",
-            "description": "The endpoint that was called",
-            "example": "signals.job-changes"
-          },
-          "creditsUsed": {
-            "type": "number",
-            "description": "Number of API credits consumed by this request",
-            "minimum": 0,
-            "example": 1
-          }
+          "endpoint": { "type": "string", "example": "signals.jobChanges" },
+          "creditsUsed": { "type": "number", "minimum": 0, "example": 1 },
+          "creditsRemaining": { "type": "number", "description": "Credits remaining after this request" }
         }
       },
       "ErrorResponse": {
         "type": "object",
         "required": ["success", "error"],
         "properties": {
-          "success": {
-            "type": "boolean",
-            "description": "Indicates if the request was successful (always false for errors)",
-            "example": false
-          },
-          "error": {
-            "type": "string",
-            "description": "Error message describing what went wrong",
-            "example": "Invalid API key"
-          }
+          "success": { "type": "boolean", "example": false },
+          "error": { "type": "string" }
         }
       }
     },
@@ -358,9 +364,8 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT",
-        "description": "API key for Job Change Signals API authentication. Include as Bearer token in Authorization header."
+        "description": "API key authentication. Include as Bearer token in Authorization header."
       }
     }
   }
 }
-

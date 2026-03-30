@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Acquisition Signals API",
-    "description": "Access real-time acquisition signals with advanced filtering, pagination, and search capabilities. This API provides comprehensive acquisition intelligence aggregated from web sources.",
+    "description": "Access real-time acquisition signals with advanced filtering, pagination, and search capabilities. This API provides comprehensive acquisition intelligence including acquired company details, acquiring company information, deal amounts, and source references.",
     "license": {
       "name": "MIT"
     },
@@ -22,7 +22,7 @@
     "/signals/acquisitions": {
       "get": {
         "summary": "Get Acquisition Signals",
-        "description": "Fetch acquisition signals with filtering, pagination, and search capabilities. Returns a list of companies showing acquisition indicators.",
+        "description": "Fetch acquisition signals with filtering, pagination, and search capabilities. Returns acquisition events with acquired company details, acquiring company information, deal amounts, and source references.",
         "operationId": "getAcquisitionSignals",
         "parameters": [
           {
@@ -39,11 +39,11 @@
           {
             "name": "limit",
             "in": "query",
-            "description": "Number of results per page (maximum 50)",
+            "description": "Number of results per page (maximum 100)",
             "schema": {
               "type": "integer",
               "minimum": 1,
-              "maximum": 50,
+              "maximum": 100,
               "default": 20
             },
             "example": 20
@@ -69,31 +69,148 @@
             "example": "2024-12-31"
           },
           {
+            "name": "date_preset",
+            "in": "query",
+            "description": "Relative date shorthand. Takes precedence over dateFrom/dateTo.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "today", "yesterday", "last_7d", "last_14d", "last_30d",
+                "last_60d", "last_90d", "last_6m", "last_1y", "last_2y",
+                "this_week", "this_month", "this_quarter", "this_year",
+                "last_week", "last_month", "last_quarter", "last_year"
+              ]
+            },
+            "example": "last_90d"
+          },
+          {
             "name": "countries",
             "in": "query",
-            "description": "Comma-separated list of country codes to filter by",
-            "schema": {
-              "type": "string"
-            },
-            "example": "US,GB,CA"
+            "description": "Comma-separated list of country codes to filter by (acquired company)",
+            "schema": { "type": "string" },
+            "example": "US,GB"
           },
           {
             "name": "categories",
             "in": "query",
-            "description": "Comma-separated list of company categories to filter by",
-            "schema": {
-              "type": "string"
-            },
-            "example": "Technology,Healthcare"
+            "description": "Pipe-separated list of company categories / industries to filter by",
+            "schema": { "type": "string" },
+            "example": "Technology|Healthcare"
+          },
+          {
+            "name": "subcategories",
+            "in": "query",
+            "description": "Comma-separated list of subcategory IDs to filter by",
+            "schema": { "type": "string" },
+            "example": "ai,fintech"
           },
           {
             "name": "search",
             "in": "query",
             "description": "Search by company name or industry keywords",
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "example": "tech"
+          },
+          {
+            "name": "industry",
+            "in": "query",
+            "description": "Comma-separated list of exact industry names to filter by",
+            "schema": { "type": "string" },
+            "example": "Financial Services"
+          },
+          {
+            "name": "company_name",
+            "in": "query",
+            "description": "Search by acquired company name (partial match)",
+            "schema": { "type": "string" },
+            "example": "stripe"
+          },
+          {
+            "name": "acquiring_company",
+            "in": "query",
+            "description": "Search by acquiring company name (partial match)",
+            "schema": { "type": "string" },
+            "example": "Google"
+          },
+          {
+            "name": "amount_min",
+            "in": "query",
+            "description": "Minimum acquisition amount in USD cents",
+            "schema": { "type": "integer" },
+            "example": 10000000
+          },
+          {
+            "name": "amount_max",
+            "in": "query",
+            "description": "Maximum acquisition amount in USD cents",
+            "schema": { "type": "integer" },
+            "example": 1000000000
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "description": "Currency symbol filter",
+            "schema": { "type": "string" },
+            "example": "$"
+          },
+          {
+            "name": "verification_status",
+            "in": "query",
+            "description": "Comma-separated list of verification statuses to filter by",
+            "schema": { "type": "string", "enum": ["verified", "unverified", "pending"] },
+            "example": "verified"
+          },
+          {
+            "name": "employee_count_min",
+            "in": "query",
+            "description": "Minimum company employee count",
+            "schema": { "type": "integer" },
+            "example": 10
+          },
+          {
+            "name": "employee_count_max",
+            "in": "query",
+            "description": "Maximum company employee count",
+            "schema": { "type": "integer" },
+            "example": 500
+          },
+          {
+            "name": "founded_year_min",
+            "in": "query",
+            "description": "Minimum company founded year",
+            "schema": { "type": "integer" },
+            "example": 2015
+          },
+          {
+            "name": "founded_year_max",
+            "in": "query",
+            "description": "Maximum company founded year",
+            "schema": { "type": "integer" },
+            "example": 2025
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "description": "Field to sort results by",
+            "schema": {
+              "type": "string",
+              "enum": ["occurred_at", "discovered_at", "amount", "employee_count"],
+              "default": "occurred_at"
+            },
+            "example": "occurred_at"
+          },
+          {
+            "name": "sort_order",
+            "in": "query",
+            "description": "Sort direction",
+            "schema": { "type": "string", "enum": ["asc", "desc"], "default": "desc" },
+            "example": "desc"
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "When set to \"true\", returns only pagination metadata with an empty data array. No credits are charged.",
+            "schema": { "type": "string", "enum": ["true"] }
           }
         ],
         "responses": {
@@ -101,51 +218,54 @@
             "description": "Successful response with acquisition signals",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AcquisitionSignalsResponse"
-                },
+                "schema": { "$ref": "#/components/schemas/AcquisitionSignalsResponse" },
                 "example": {
                   "success": true,
                   "data": [
                     {
-                      "id": "550e8400-e29b-41d4-a716-446655440000",
-                      "companyName": "TechVentures Inc",
-                      "industry": "Software Development",
-                      "country": "United States",
-                      "category": "Technology",
-                      "website": "https://www.techventures.com",
-                      "linkedinUrl": "https://www.linkedin.com/company/techventures",
-                      "employeeCount": 150,
-                      "revenue": "10M-50M",
-                      "foundedYear": 2018,
-                      "description": "Leading provider of enterprise software solutions for modern businesses.",
-                      "acquisitionSignalScore": 85,
-                      "signalIndicators": [
-                        "Recent funding round",
-                        "Leadership changes",
-                        "Market consolidation"
-                      ],
-                      "lastUpdated": "2024-11-15T10:30:00Z"
-                    },
-                    {
-                      "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
-                      "companyName": "HealthTech Solutions",
-                      "industry": "Healthcare Technology",
-                      "country": "United Kingdom",
-                      "category": "Healthcare",
-                      "website": "https://www.healthtechsolutions.co.uk",
-                      "linkedinUrl": "https://www.linkedin.com/company/healthtechsolutions",
-                      "employeeCount": 85,
-                      "revenue": "5M-10M",
-                      "foundedYear": 2019,
-                      "description": "Innovative healthcare technology company focused on patient care solutions.",
-                      "acquisitionSignalScore": 78,
-                      "signalIndicators": [
-                        "Strategic partnerships",
-                        "Rapid growth",
-                        "Market expansion"
-                      ],
-                      "lastUpdated": "2024-11-14T15:45:00Z"
+                      "signalId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                      "signalType": "acquisition",
+                      "occurredAt": "2026-02-10T12:00:00.000Z",
+                      "discoveredAt": "2026-02-10T14:30:00.000Z",
+                      "companyId": "d4e5f6a7-b8c9-0123-defg-h45678901234",
+                      "companyName": "DataVault",
+                      "companySlug": "datavault",
+                      "companyLogo": "https://images.trysignalbase.com/datavault.png",
+                      "companyWebsite": "datavault.io",
+                      "companyLinkedin": "linkedin.com/company/datavault",
+                      "companyIndustry": "Data Analytics",
+                      "companyCountry": "US",
+                      "companyFoundedYear": 2019,
+                      "companyCategories": "[\"Data Analytics\",\"SaaS\"]",
+                      "companyDescription": "Enterprise data analytics platform.",
+                      "companyEmployeeCount": 85,
+                      "acquiringCompanyId": "e5f6a7b8-c9d0-1234-efgh-i56789012345",
+                      "amount": 250000000,
+                      "currency": "$",
+                      "percentage": "100%",
+                      "announcedDate": "2026-02-10",
+                      "isFreeAccess": true,
+                      "acquiringCompany": {
+                        "id": "e5f6a7b8-c9d0-1234-efgh-i56789012345",
+                        "name": "Snowflake",
+                        "slug": "snowflake",
+                        "logo": "https://images.trysignalbase.com/snowflake.png",
+                        "website": "snowflake.com",
+                        "linkedin": "linkedin.com/company/snowflake",
+                        "industry": "Cloud Computing",
+                        "country": "US",
+                        "foundedYear": 2012,
+                        "employeeCount": 5000
+                      },
+                      "sources": [
+                        {
+                          "url": "https://techcrunch.com/2026/02/10/snowflake-acquires-datavault",
+                          "sourceType": "news_article",
+                          "title": "Snowflake acquires DataVault for $250M",
+                          "publishedAt": "2026-02-10T12:00:00.000Z",
+                          "isPrimary": true
+                        }
+                      ]
                     }
                   ],
                   "pagination": {
@@ -157,7 +277,8 @@
                   },
                   "meta": {
                     "endpoint": "signals.acquisitions",
-                    "creditsUsed": 1
+                    "creditsUsed": 1,
+                    "creditsRemaining": 999
                   }
                 }
               }
@@ -165,45 +286,19 @@
           },
           "401": {
             "description": "Unauthorized - Invalid or missing API key",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "success": false,
-                  "error": "Invalid API key"
-                }
-              }
-            }
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "example": { "success": false, "error": "Invalid API key" } } }
+          },
+          "402": {
+            "description": "Insufficient credits",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "example": { "success": false, "error": "out of credits, please contact support to increase your usage" } } }
           },
           "429": {
             "description": "Rate limit exceeded",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "success": false,
-                  "error": "Rate limit exceeded. Please try again later."
-                }
-              }
-            }
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "example": { "success": false, "error": "Rate limit exceeded. Please try again later." } } }
           },
           "500": {
             "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "success": false,
-                  "error": "An unknown error occurred"
-                }
-              }
-            }
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "example": { "success": false, "error": "An unknown error occurred" } } }
           }
         }
       }
@@ -215,189 +310,101 @@
         "type": "object",
         "required": ["success", "data", "pagination", "meta"],
         "properties": {
-          "success": {
-            "type": "boolean",
-            "description": "Indicates if the request was successful",
-            "example": true
-          },
-          "data": {
-            "type": "array",
-            "description": "Array of acquisition signal records",
-            "items": {
-              "$ref": "#/components/schemas/AcquisitionSignal"
-            }
-          },
-          "pagination": {
-            "$ref": "#/components/schemas/Pagination"
-          },
-          "meta": {
-            "$ref": "#/components/schemas/Meta"
-          }
+          "success": { "type": "boolean", "example": true },
+          "data": { "type": "array", "items": { "$ref": "#/components/schemas/AcquisitionSignal" } },
+          "pagination": { "$ref": "#/components/schemas/Pagination" },
+          "meta": { "$ref": "#/components/schemas/Meta" }
         }
       },
       "AcquisitionSignal": {
         "type": "object",
-        "required": ["id", "companyName"],
+        "required": ["signalId", "signalType", "occurredAt", "discoveredAt", "companyName"],
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Unique identifier for the acquisition signal",
-            "example": "550e8400-e29b-41d4-a716-446655440000"
-          },
-          "companyName": {
-            "type": "string",
-            "description": "Name of the company",
-            "example": "TechVentures Inc"
-          },
-          "industry": {
-            "type": "string",
+          "signalId": { "type": "string", "format": "uuid", "description": "Unique identifier for the acquisition signal" },
+          "signalType": { "type": "string", "description": "Type of signal (always \"acquisition\" for this endpoint)", "example": "acquisition" },
+          "occurredAt": { "type": "string", "format": "date-time", "description": "When the acquisition occurred" },
+          "discoveredAt": { "type": "string", "format": "date-time", "description": "When the signal was discovered" },
+          "companyId": { "type": "string", "format": "uuid", "description": "Unique identifier for the acquired company" },
+          "companyName": { "type": "string", "description": "Name of the acquired company" },
+          "companySlug": { "type": "string", "description": "URL-friendly slug for the acquired company" },
+          "companyLogo": { "type": "string", "nullable": true, "description": "URL to the acquired company logo" },
+          "companyWebsite": { "type": "string", "nullable": true, "description": "Acquired company website" },
+          "companyLinkedin": { "type": "string", "nullable": true, "description": "Acquired company LinkedIn URL" },
+          "companyIndustry": { "type": "string", "nullable": true, "description": "Industry of the acquired company" },
+          "companyCountry": { "type": "string", "nullable": true, "description": "Country code of the acquired company" },
+          "companyFoundedYear": { "type": "integer", "nullable": true, "description": "Year the acquired company was founded" },
+          "companyCategories": { "type": "string", "nullable": true, "description": "JSON-encoded array of company categories" },
+          "companyDescription": { "type": "string", "nullable": true, "description": "Description of the acquired company" },
+          "companyEmployeeCount": { "type": "integer", "nullable": true, "description": "Employee count of the acquired company" },
+          "acquiringCompanyId": { "type": "string", "format": "uuid", "nullable": true, "description": "ID of the acquiring company (null if unknown)" },
+          "amount": { "type": "integer", "nullable": true, "description": "Acquisition amount in USD cents" },
+          "currency": { "type": "string", "description": "Currency symbol", "example": "$" },
+          "percentage": { "type": "string", "nullable": true, "description": "Acquisition percentage (e.g., \"100%\", \"51%\", \"partial\")" },
+          "announcedDate": { "type": "string", "format": "date", "nullable": true, "description": "Date when the acquisition was announced" },
+          "isFreeAccess": { "type": "boolean", "description": "Whether full data is accessible (always true for authenticated requests)", "example": true },
+          "acquiringCompany": {
             "nullable": true,
-            "description": "Industry sector of the company",
-            "example": "Software Development"
+            "description": "Details of the acquiring company (null if unknown)",
+            "$ref": "#/components/schemas/AcquiringCompany"
           },
-          "country": {
-            "type": "string",
-            "nullable": true,
-            "description": "Country where the company is headquartered",
-            "example": "United States"
-          },
-          "category": {
-            "type": "string",
-            "nullable": true,
-            "description": "Primary business category",
-            "example": "Technology"
-          },
-          "website": {
-            "type": "string",
-            "format": "uri",
-            "nullable": true,
-            "description": "Company website URL",
-            "example": "https://www.techventures.com"
-          },
-          "linkedinUrl": {
-            "type": "string",
-            "format": "uri",
-            "nullable": true,
-            "description": "LinkedIn company page URL",
-            "example": "https://www.linkedin.com/company/techventures"
-          },
-          "employeeCount": {
-            "type": "integer",
-            "nullable": true,
-            "description": "Number of employees",
-            "example": 150
-          },
-          "revenue": {
-            "type": "string",
-            "nullable": true,
-            "description": "Revenue range",
-            "example": "10M-50M"
-          },
-          "foundedYear": {
-            "type": "integer",
-            "nullable": true,
-            "description": "Year the company was founded",
-            "example": 2018
-          },
-          "description": {
-            "type": "string",
-            "nullable": true,
-            "description": "Company description",
-            "example": "Leading provider of enterprise software solutions for modern businesses."
-          },
-          "acquisitionSignalScore": {
-            "type": "number",
-            "format": "float",
-            "nullable": true,
-            "description": "Score indicating likelihood of acquisition (0-100)",
-            "minimum": 0,
-            "maximum": 100,
-            "example": 85
-          },
-          "signalIndicators": {
+          "sources": {
             "type": "array",
-            "nullable": true,
-            "description": "List of indicators suggesting acquisition potential",
-            "items": {
-              "type": "string"
-            },
-            "example": ["Recent funding round", "Leadership changes", "Market consolidation"]
-          },
-          "lastUpdated": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "description": "Timestamp when the signal was last updated",
-            "example": "2024-11-15T10:30:00Z"
+            "description": "Source articles and references for this signal",
+            "items": { "$ref": "#/components/schemas/Source" }
           }
+        }
+      },
+      "AcquiringCompany": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid", "description": "Unique identifier" },
+          "name": { "type": "string", "description": "Company name" },
+          "slug": { "type": "string", "description": "URL-friendly slug" },
+          "logo": { "type": "string", "nullable": true, "description": "Logo URL" },
+          "website": { "type": "string", "nullable": true, "description": "Website URL" },
+          "linkedin": { "type": "string", "nullable": true, "description": "LinkedIn URL" },
+          "industry": { "type": "string", "nullable": true, "description": "Industry" },
+          "country": { "type": "string", "nullable": true, "description": "Country code" },
+          "foundedYear": { "type": "integer", "nullable": true, "description": "Founded year" },
+          "employeeCount": { "type": "integer", "nullable": true, "description": "Employee count" }
+        }
+      },
+      "Source": {
+        "type": "object",
+        "properties": {
+          "url": { "type": "string", "description": "URL of the source article" },
+          "sourceType": { "type": "string", "nullable": true, "description": "Type of source", "enum": ["press_release", "news_article", "social_media", "blog_post", "sec_filing", "crunchbase", "pitchbook"] },
+          "title": { "type": "string", "nullable": true, "description": "Title of the source article" },
+          "publishedAt": { "type": "string", "format": "date-time", "nullable": true, "description": "When the source was published" },
+          "isPrimary": { "type": "boolean", "description": "Whether this is the primary source" }
         }
       },
       "Pagination": {
         "type": "object",
         "required": ["currentPage", "totalPages", "totalCount", "hasNextPage", "hasPreviousPage"],
         "properties": {
-          "currentPage": {
-            "type": "integer",
-            "description": "Current page number",
-            "minimum": 1,
-            "example": 1
-          },
-          "totalPages": {
-            "type": "integer",
-            "description": "Total number of pages available",
-            "minimum": 0,
-            "example": 25
-          },
-          "totalCount": {
-            "type": "integer",
-            "description": "Total number of records matching the query",
-            "minimum": 0,
-            "example": 500
-          },
-          "hasNextPage": {
-            "type": "boolean",
-            "description": "Indicates if there is a next page",
-            "example": true
-          },
-          "hasPreviousPage": {
-            "type": "boolean",
-            "description": "Indicates if there is a previous page",
-            "example": false
-          }
+          "currentPage": { "type": "integer", "minimum": 1 },
+          "totalPages": { "type": "integer", "minimum": 0 },
+          "totalCount": { "type": "integer", "minimum": 0 },
+          "hasNextPage": { "type": "boolean" },
+          "hasPreviousPage": { "type": "boolean" }
         }
       },
       "Meta": {
         "type": "object",
         "required": ["endpoint", "creditsUsed"],
         "properties": {
-          "endpoint": {
-            "type": "string",
-            "description": "The endpoint that was called",
-            "example": "signals.acquisitions"
-          },
-          "creditsUsed": {
-            "type": "number",
-            "description": "Number of API credits consumed by this request",
-            "minimum": 0,
-            "example": 1
-          }
+          "endpoint": { "type": "string", "example": "signals.acquisitions" },
+          "creditsUsed": { "type": "number", "minimum": 0, "example": 1 },
+          "creditsRemaining": { "type": "number", "description": "Credits remaining after this request" }
         }
       },
       "ErrorResponse": {
         "type": "object",
         "required": ["success", "error"],
         "properties": {
-          "success": {
-            "type": "boolean",
-            "description": "Indicates if the request was successful (always false for errors)",
-            "example": false
-          },
-          "error": {
-            "type": "string",
-            "description": "Error message describing what went wrong",
-            "example": "Invalid API key"
-          }
+          "success": { "type": "boolean", "example": false },
+          "error": { "type": "string" }
         }
       }
     },
@@ -406,9 +413,8 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT",
-        "description": "API key for Acquisition Signals API authentication. Include as Bearer token in Authorization header."
+        "description": "API key authentication. Include as Bearer token in Authorization header."
       }
     }
   }
 }
-

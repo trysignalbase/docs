@@ -39,11 +39,11 @@
           {
             "name": "limit",
             "in": "query",
-            "description": "Number of results per page (maximum 50)",
+            "description": "Number of results per page (maximum 100)",
             "schema": {
               "type": "integer",
               "minimum": 1,
-              "maximum": 50,
+              "maximum": 100,
               "default": 20
             },
             "example": 20
@@ -69,6 +69,35 @@
             "example": "2024-12-31"
           },
           {
+            "name": "date_preset",
+            "in": "query",
+            "description": "Relative date shorthand. Takes precedence over dateFrom/dateTo when provided.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "today",
+                "yesterday",
+                "last_7d",
+                "last_14d",
+                "last_30d",
+                "last_60d",
+                "last_90d",
+                "last_6m",
+                "last_1y",
+                "last_2y",
+                "this_week",
+                "this_month",
+                "this_quarter",
+                "this_year",
+                "last_week",
+                "last_month",
+                "last_quarter",
+                "last_year"
+              ]
+            },
+            "example": "last_30d"
+          },
+          {
             "name": "countries",
             "in": "query",
             "description": "Comma-separated list of country codes to filter by",
@@ -80,39 +109,59 @@
           {
             "name": "categories",
             "in": "query",
-            "description": "Comma-separated list of company categories to filter by",
+            "description": "Pipe-separated list of company categories / industries to filter by",
             "schema": {
               "type": "string"
             },
-            "example": "Technology,Healthcare"
+            "example": "Technology|Healthcare"
           },
           {
             "name": "round",
             "in": "query",
-            "description": "Comma-separated list of funding round types to filter by (e.g., Seed, Series A, Series B)",
+            "description": "Comma-separated list of funding round types to filter by",
             "schema": {
               "type": "string"
             },
             "example": "Seed,Series A"
           },
           {
+            "name": "round_flavor",
+            "in": "query",
+            "description": "Comma-separated list of round flavors to filter by",
+            "schema": {
+              "type": "string",
+              "enum": ["bridge", "extension", "secondary"]
+            },
+            "example": "bridge"
+          },
+          {
             "name": "subcategories",
             "in": "query",
-            "description": "Comma-separated list of subcategory IDs to filter by. These filter companies based on keyword patterns matching their industry, keywords, and specialties.",
+            "description": "Comma-separated list of subcategory IDs to filter by. These filter companies based on their assigned subcategory.",
             "schema": {
               "type": "string",
               "enum": [
                 "ai",
                 "saas",
+                "software",
                 "cybersecurity",
                 "web3",
                 "devtools",
-                "fintech",
                 "analytics",
-                "vc & investment",
+                "cloud",
+                "iot",
+                "fintech",
+                "payments",
+                "accounting",
                 "ecommerce",
+                "insurance",
+                "vc & investment",
+                "regtech",
                 "marketing",
+                "advertising",
                 "sales",
+                "hr tech",
+                "legal",
                 "healthcare",
                 "biotechnology",
                 "education",
@@ -121,24 +170,25 @@
                 "logistics",
                 "manufacturing",
                 "retail",
-                "aerospace & defense",
                 "agriculture",
+                "food & beverage",
+                "automotive",
+                "aerospace & defense",
                 "robotics",
                 "telecommunications",
                 "travel",
                 "sports",
+                "gaming",
                 "media",
-                "hr tech",
-                "non-profit",
+                "govtech",
+                "construction",
                 "environmental services",
                 "battery technology",
                 "arts",
                 "architecture",
                 "cosmetics",
-                "construction",
                 "science",
-                "legal",
-                "insurance"
+                "non-profit"
               ]
             },
             "example": "ai,fintech"
@@ -151,6 +201,138 @@
               "type": "string"
             },
             "example": "fintech"
+          },
+          {
+            "name": "industry",
+            "in": "query",
+            "description": "Comma-separated list of exact industry names to filter by",
+            "schema": {
+              "type": "string"
+            },
+            "example": "Financial Services,Healthcare"
+          },
+          {
+            "name": "company_name",
+            "in": "query",
+            "description": "Search by company name (partial match)",
+            "schema": {
+              "type": "string"
+            },
+            "example": "stripe"
+          },
+          {
+            "name": "amount_min",
+            "in": "query",
+            "description": "Minimum funding amount in USD cents",
+            "schema": {
+              "type": "integer"
+            },
+            "example": 1000000
+          },
+          {
+            "name": "amount_max",
+            "in": "query",
+            "description": "Maximum funding amount in USD cents",
+            "schema": {
+              "type": "integer"
+            },
+            "example": 50000000
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "description": "Currency symbol filter",
+            "schema": {
+              "type": "string",
+              "enum": ["$", "€", "£", "¥", "₹", "A$", "C$", "CHF", "SEK", "NOK", "DKK", "SGD", "HKD", "BRL", "KRW"]
+            },
+            "example": "$"
+          },
+          {
+            "name": "verification_status",
+            "in": "query",
+            "description": "Comma-separated list of verification statuses to filter by",
+            "schema": {
+              "type": "string",
+              "enum": ["verified", "unverified", "pending"]
+            },
+            "example": "verified"
+          },
+          {
+            "name": "investor_name",
+            "in": "query",
+            "description": "Search by investor name (partial match)",
+            "schema": {
+              "type": "string"
+            },
+            "example": "Sequoia"
+          },
+          {
+            "name": "employee_count_min",
+            "in": "query",
+            "description": "Minimum company employee count",
+            "schema": {
+              "type": "integer"
+            },
+            "example": 10
+          },
+          {
+            "name": "employee_count_max",
+            "in": "query",
+            "description": "Maximum company employee count",
+            "schema": {
+              "type": "integer"
+            },
+            "example": 500
+          },
+          {
+            "name": "founded_year_min",
+            "in": "query",
+            "description": "Minimum company founded year",
+            "schema": {
+              "type": "integer"
+            },
+            "example": 2020
+          },
+          {
+            "name": "founded_year_max",
+            "in": "query",
+            "description": "Maximum company founded year",
+            "schema": {
+              "type": "integer"
+            },
+            "example": 2025
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "description": "Field to sort results by",
+            "schema": {
+              "type": "string",
+              "enum": ["occurred_at", "discovered_at", "amount", "employee_count", "founded_year"],
+              "default": "occurred_at"
+            },
+            "example": "occurred_at"
+          },
+          {
+            "name": "sort_order",
+            "in": "query",
+            "description": "Sort direction",
+            "schema": {
+              "type": "string",
+              "enum": ["asc", "desc"],
+              "default": "desc"
+            },
+            "example": "desc"
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "When set to \"true\", returns only pagination metadata (totalCount) with an empty data array. No credits are charged.",
+            "schema": {
+              "type": "string",
+              "enum": ["true"]
+            }
           }
         ],
         "responses": {
@@ -165,56 +347,57 @@
                   "success": true,
                   "data": [
                     {
-                      "signalId": "550e8400-e29b-41d4-a716-446655440000",
-                      "companyName": "FinTech Innovations",
+                      "signalId": "f9422f20-bcdc-4d38-8049-4cda561bc9dd",
+                      "signalType": "funding_round",
+                      "occurredAt": "2026-03-17T04:05:52.903Z",
+                      "discoveredAt": "2026-03-17T05:06:08.184Z",
+                      "companyId": "3bba1b2e-fb85-485e-80d5-5cc4617cfe13",
+                      "companyName": "dtcpay",
+                      "companySlug": "dtcpay",
+                      "companyLogo": "https://images.trysignalbase.com/dtcpay.png",
+                      "companyWebsite": "dtcpay.com",
+                      "companyLinkedin": "linkedin.com/company/digital-treasures-center-pte-ltd",
+                      "companyIndustry": "Financial Services",
+                      "companyCountry": "SG",
+                      "companyFoundedYear": 2019,
+                      "companyCategories": "[\"Financial Services\",\"Payments\"]",
+                      "companyDescription": "dtcpay is a regulated payment service provider enabling seamless digital payments.",
+                      "companyEmployeeCount": 125,
                       "roundType": "Series A",
-                      "fundingAmount": 15000000,
-                      "fundingCurrency": "USD",
-                      "announcedDate": "2024-10-15",
-                      "industry": "Financial Technology",
-                      "country": "United States",
-                      "category": "Technology",
-                      "website": "https://www.fintechinnovations.com",
-                      "linkedinUrl": "https://www.linkedin.com/company/fintechinnovations",
-                      "employeeCount": 85,
-                      "foundedYear": 2020,
-                      "description": "Revolutionary fintech platform transforming digital payments for businesses.",
-                      "investorNames": [
-                        "Sequoia Capital",
-                        "Andreessen Horowitz",
-                        "FirstMark Capital"
+                      "roundFlavor": null,
+                      "amount": 10000000,
+                      "currency": "$",
+                      "announcedDate": "2026-03-17",
+                      "confidenceScore": 0.95,
+                      "verificationStatus": "verified",
+                      "isFreeAccess": true,
+                      "investors": [
+                        {
+                          "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                          "name": "Sequoia Capital",
+                          "type": "vc",
+                          "website": "https://www.sequoiacap.com",
+                          "linkedin": "linkedin.com/company/sequoia-capital",
+                          "isLead": true
+                        },
+                        {
+                          "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+                          "name": "Andreessen Horowitz",
+                          "type": "vc",
+                          "website": "https://a16z.com",
+                          "linkedin": "linkedin.com/company/a16z",
+                          "isLead": false
+                        }
                       ],
-                      "leadInvestor": "Sequoia Capital",
-                      "totalFundingToDate": 25000000,
-                      "valuation": 75000000,
-                      "useOfFunds": "Product development and market expansion",
-                      "lastUpdated": "2024-11-15T10:30:00Z"
-                    },
-                    {
-                      "signalId": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
-                      "companyName": "HealthTech Solutions",
-                      "roundType": "Seed",
-                      "fundingAmount": 3000000,
-                      "fundingCurrency": "USD",
-                      "announcedDate": "2024-09-20",
-                      "industry": "Healthcare Technology",
-                      "country": "United Kingdom",
-                      "category": "Healthcare",
-                      "website": "https://www.healthtechsolutions.co.uk",
-                      "linkedinUrl": "https://www.linkedin.com/company/healthtechsolutions",
-                      "employeeCount": 25,
-                      "foundedYear": 2022,
-                      "description": "AI-powered healthcare diagnostics platform for early disease detection.",
-                      "investorNames": [
-                        "Y Combinator",
-                        "Khosla Ventures",
-                        "Digital Health Ventures"
-                      ],
-                      "leadInvestor": "Y Combinator",
-                      "totalFundingToDate": 3000000,
-                      "valuation": 15000000,
-                      "useOfFunds": "R&D and clinical trials",
-                      "lastUpdated": "2024-11-14T15:45:00Z"
+                      "sources": [
+                        {
+                          "url": "https://technode.global/2026/03/17/dtcpay-raises-10m-series-a",
+                          "sourceType": "news_article",
+                          "title": "dtcpay raises $10M in Series A led by Sequoia Capital",
+                          "publishedAt": "2026-03-17T04:05:52.903Z",
+                          "isPrimary": true
+                        }
+                      ]
                     }
                   ],
                   "pagination": {
@@ -226,7 +409,8 @@
                   },
                   "meta": {
                     "endpoint": "signals.funding",
-                    "creditsUsed": 1
+                    "creditsUsed": 1,
+                    "creditsRemaining": 999
                   }
                 }
               }
@@ -242,6 +426,20 @@
                 "example": {
                   "success": false,
                   "error": "Invalid API key"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "out of credits, please contact support to increase your usage"
                 }
               }
             }
@@ -306,22 +504,106 @@
       },
       "FundingSignal": {
         "type": "object",
-        "required": ["signalId", "companyName", "roundType"],
+        "required": ["signalId", "signalType", "occurredAt", "discoveredAt", "companyName", "roundType"],
         "properties": {
           "signalId": {
             "type": "string",
             "format": "uuid",
             "description": "Unique identifier for the funding signal",
-            "example": "550e8400-e29b-41d4-a716-446655440000"
+            "example": "f9422f20-bcdc-4d38-8049-4cda561bc9dd"
+          },
+          "signalType": {
+            "type": "string",
+            "description": "Type of signal (always \"funding_round\" for this endpoint)",
+            "example": "funding_round"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the funding event occurred",
+            "example": "2026-03-17T04:05:52.903Z"
+          },
+          "discoveredAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the signal was discovered by our system",
+            "example": "2026-03-17T05:06:08.184Z"
+          },
+          "companyId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the company",
+            "example": "3bba1b2e-fb85-485e-80d5-5cc4617cfe13"
           },
           "companyName": {
             "type": "string",
             "description": "Name of the company that received funding",
-            "example": "FinTech Innovations"
+            "example": "dtcpay"
+          },
+          "companySlug": {
+            "type": "string",
+            "description": "URL-friendly slug for the company",
+            "example": "dtcpay"
+          },
+          "companyLogo": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "URL to the company logo image",
+            "example": "https://images.trysignalbase.com/dtcpay.png"
+          },
+          "companyWebsite": {
+            "type": "string",
+            "nullable": true,
+            "description": "Company website URL",
+            "example": "dtcpay.com"
+          },
+          "companyLinkedin": {
+            "type": "string",
+            "nullable": true,
+            "description": "LinkedIn company page URL",
+            "example": "linkedin.com/company/digital-treasures-center-pte-ltd"
+          },
+          "companyIndustry": {
+            "type": "string",
+            "nullable": true,
+            "description": "Industry sector of the company",
+            "example": "Financial Services"
+          },
+          "companyCountry": {
+            "type": "string",
+            "nullable": true,
+            "description": "Country code where the company is headquartered",
+            "example": "SG"
+          },
+          "companyFoundedYear": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Year the company was founded",
+            "example": 2019
+          },
+          "companyCategories": {
+            "type": "string",
+            "nullable": true,
+            "description": "JSON-encoded array of company categories",
+            "example": "[\"Financial Services\",\"Payments\"]"
+          },
+          "companyDescription": {
+            "type": "string",
+            "nullable": true,
+            "description": "Company description",
+            "example": "dtcpay is a regulated payment service provider enabling seamless digital payments."
+          },
+          "companyEmployeeCount": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Number of employees",
+            "example": 125
           },
           "roundType": {
             "type": "string",
-            "description": "Type of funding round (e.g., Seed, Series A, Series B)",
+            "nullable": true,
+            "description": "Type of funding round",
             "enum": [
               "Pre-Seed",
               "Seed",
@@ -330,130 +612,149 @@
               "Series C",
               "Series D",
               "Series E",
-              "Series F+",
-              "Bridge",
-              "Debt Financing",
+              "Series F",
+              "Series G",
+              "Growth",
+              "Debt",
               "Grant",
-              "Convertible Note",
-              "Equity Crowdfunding",
-              "ICO",
               "IPO",
-              "Private Equity",
-              "Venture",
-              "Angel",
-              "Corporate",
-              "Other"
+              "Undisclosed"
             ],
             "example": "Series A"
           },
-          "fundingAmount": {
-            "type": "number",
-            "nullable": true,
-            "description": "Amount of funding raised",
-            "example": 15000000
-          },
-          "fundingCurrency": {
+          "roundFlavor": {
             "type": "string",
             "nullable": true,
-            "description": "Currency of the funding amount (ISO 4217 code)",
-            "example": "USD"
+            "description": "Flavor/variant of the funding round (null for standard rounds)",
+            "enum": ["bridge", "extension", "secondary"],
+            "example": null
+          },
+          "amount": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Funding amount in USD cents",
+            "example": 10000000
+          },
+          "currency": {
+            "type": "string",
+            "description": "Currency symbol for the funding amount",
+            "example": "$"
           },
           "announcedDate": {
             "type": "string",
             "format": "date",
             "nullable": true,
-            "description": "Date when the funding was announced",
-            "example": "2024-10-15"
+            "description": "Date when the funding was announced (YYYY-MM-DD)",
+            "example": "2026-03-17"
           },
-          "industry": {
+          "confidenceScore": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "description": "AI confidence score for this signal (0.0 to 1.0)",
+            "minimum": 0,
+            "maximum": 1,
+            "example": 0.95
+          },
+          "verificationStatus": {
+            "type": "string",
+            "description": "Verification status of the funding signal",
+            "enum": ["verified", "unverified", "pending"],
+            "example": "verified"
+          },
+          "isFreeAccess": {
+            "type": "boolean",
+            "description": "Whether full data is accessible (always true for authenticated requests)",
+            "example": true
+          },
+          "investors": {
+            "type": "array",
+            "description": "List of investors participating in this round",
+            "items": {
+              "$ref": "#/components/schemas/Investor"
+            }
+          },
+          "sources": {
+            "type": "array",
+            "description": "List of source articles and references for this signal",
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            }
+          }
+        }
+      },
+      "Investor": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the investor",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the investor",
+            "example": "Sequoia Capital"
+          },
+          "type": {
             "type": "string",
             "nullable": true,
-            "description": "Industry sector of the company",
-            "example": "Financial Technology"
-          },
-          "country": {
-            "type": "string",
-            "nullable": true,
-            "description": "Country where the company is headquartered",
-            "example": "United States"
-          },
-          "category": {
-            "type": "string",
-            "nullable": true,
-            "description": "Primary business category",
-            "example": "Technology"
+            "description": "Type of investor",
+            "enum": ["vc", "angel", "pe", "corporate", "government", "accelerator", "family_office", "hedge_fund", "crowdfunding"],
+            "example": "vc"
           },
           "website": {
             "type": "string",
-            "format": "uri",
             "nullable": true,
-            "description": "Company website URL",
-            "example": "https://www.fintechinnovations.com"
+            "description": "Investor website URL",
+            "example": "https://www.sequoiacap.com"
           },
-          "linkedinUrl": {
-            "type": "string",
-            "format": "uri",
-            "nullable": true,
-            "description": "LinkedIn company page URL",
-            "example": "https://www.linkedin.com/company/fintechinnovations"
-          },
-          "employeeCount": {
-            "type": "integer",
-            "nullable": true,
-            "description": "Number of employees",
-            "example": 85
-          },
-          "foundedYear": {
-            "type": "integer",
-            "nullable": true,
-            "description": "Year the company was founded",
-            "example": 2020
-          },
-          "description": {
+          "linkedin": {
             "type": "string",
             "nullable": true,
-            "description": "Company description",
-            "example": "Revolutionary fintech platform transforming digital payments for businesses."
+            "description": "Investor LinkedIn URL",
+            "example": "linkedin.com/company/sequoia-capital"
           },
-          "investorNames": {
-            "type": "array",
-            "nullable": true,
-            "description": "List of investors participating in this round",
-            "items": {
-              "type": "string"
-            },
-            "example": ["Sequoia Capital", "Andreessen Horowitz", "FirstMark Capital"]
+          "isLead": {
+            "type": "boolean",
+            "description": "Whether this investor is the lead investor for this round",
+            "example": true
+          }
+        }
+      },
+      "Source": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "URL of the source article",
+            "example": "https://technode.global/2026/03/17/dtcpay-raises-10m-series-a"
           },
-          "leadInvestor": {
+          "sourceType": {
             "type": "string",
             "nullable": true,
-            "description": "Name of the lead investor",
-            "example": "Sequoia Capital"
+            "description": "Type of source",
+            "enum": ["press_release", "news_article", "social_media", "blog_post", "sec_filing", "crunchbase", "pitchbook"],
+            "example": "news_article"
           },
-          "totalFundingToDate": {
-            "type": "number",
-            "nullable": true,
-            "description": "Total funding raised by the company to date",
-            "example": 25000000
-          },
-          "valuation": {
-            "type": "number",
-            "nullable": true,
-            "description": "Post-money valuation",
-            "example": 75000000
-          },
-          "useOfFunds": {
+          "title": {
             "type": "string",
             "nullable": true,
-            "description": "Stated use of the raised funds",
-            "example": "Product development and market expansion"
+            "description": "Title of the source article",
+            "example": "dtcpay raises $10M in Series A led by Sequoia Capital"
           },
-          "lastUpdated": {
+          "publishedAt": {
             "type": "string",
             "format": "date-time",
             "nullable": true,
-            "description": "Timestamp when the signal was last updated",
-            "example": "2024-11-15T10:30:00Z"
+            "description": "When the source was published",
+            "example": "2026-03-17T04:05:52.903Z"
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Whether this is the primary source for the signal",
+            "example": true
           }
         }
       },
@@ -505,6 +806,11 @@
             "description": "Number of API credits consumed by this request",
             "minimum": 0,
             "example": 1
+          },
+          "creditsRemaining": {
+            "type": "number",
+            "description": "Number of API credits remaining after this request",
+            "example": 999
           }
         }
       },
@@ -535,4 +841,3 @@
     }
   }
 }
-

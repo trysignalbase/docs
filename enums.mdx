@@ -7,6 +7,17 @@ description: "Reference for enumerated values used across the Signalbase V2 APIs
 
 This page lists all enumeration values and constants used across the Signalbase V2 APIs. Use it to validate filter parameters, build UIs, and understand available options for each endpoint.
 
+## Company fields in signal responses
+
+Across **funding**, **acquisition**, **hiring**, and **job change** signal endpoints, company headquarters are always exposed as **`companyCountry`** (ISO-style country code where available).
+
+- **Nested company objects** use the same rule. For example, on acquisition signals the `acquiringCompany` object uses **`companyCountry`** (not `country`) for the acquirer’s HQ.
+- **Hiring signals** also return **`jobCountry`**: the country associated with the **job listing location**. That is separate from **`companyCountry`** (the employer’s HQ).
+
+## Company subcategory in responses
+
+When a company row has been classified, responses include **`companySubcategory`**: a single subcategory id drawn from the same vocabulary as the **`subcategories`** query parameter (see the **Subcategories** section on this page). The field is omitted or `null` when no subcategory is assigned.
+
 ## Signal Types
 
 The three signal types available in the API:

@@ -57,6 +57,10 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/hiring?count=true&posi
 - **Pagination Support**: Efficiently retrieve large datasets with up to 100 results per page
 - **Credit-based Usage**: Transparent credit consumption per API call
 
+## Response: company vs. job location
+
+Each row includes **`companyCountry`** (employer HQ) and **`jobCountry`** (listing location). Signal rows also include **`companySubcategory`** when the company has been classified. See [Company fields in signal responses](/enums#company-fields-in-signal-responses) for naming conventions shared across signal APIs.
+
 ## Service Level
 
 - **Rate Limit**: Based on your subscription tier
@@ -142,7 +146,7 @@ All successful responses follow this structure:
       "jobUrl": "https://www.linkedin.com/jobs/view/123456789",
       "location": "San Francisco, CA",
       "city": "San Francisco",
-      "country": "US",
+      "jobCountry": "US",
       "datePosted": "2024-11-01T00:00:00Z",
       "employmentType": "Full-time",
       "seniorityLevel": "Mid-Senior level",
@@ -150,6 +154,8 @@ All successful responses follow this structure:
       "numApplicants": "45",
       "companyName": "NextGen Software",
       "companyIndustry": "Technology",
+      "companyCountry": "US",
+      "companySubcategory": "saas",
       "companyEmployeeCount": 250
     }
   ],

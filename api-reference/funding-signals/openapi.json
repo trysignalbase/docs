@@ -359,6 +359,7 @@
                       "companyLinkedin": "linkedin.com/company/digital-treasures-center-pte-ltd",
                       "companyIndustry": "Financial Services",
                       "companyCountry": "SG",
+                      "companySubcategory": "fintech",
                       "companyFoundedYear": 2019,
                       "companyCategories": "[\"Financial Services\",\"Payments\"]",
                       "companyDescription": "dtcpay is a regulated payment service provider enabling seamless digital payments.",
@@ -575,6 +576,12 @@
             "nullable": true,
             "description": "Country code where the company is headquartered",
             "example": "SG"
+          },
+          "companySubcategory": {
+            "type": "string",
+            "nullable": true,
+            "description": "Assigned company subcategory ID (same vocabulary as the `subcategories` query filter). Null when not classified.",
+            "example": "fintech"
           },
           "companyFoundedYear": {
             "type": "integer",

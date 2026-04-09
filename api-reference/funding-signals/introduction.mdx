@@ -58,6 +58,10 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/funding?count=true&cou
 - **Pagination Support**: Efficiently retrieve large datasets with up to 100 results per page
 - **Credit-based Usage**: Transparent credit consumption per API call
 
+## Company fields in responses
+
+Funding signal payloads include **`companyCountry`** for HQ and **`companySubcategory`** when classified. Conventions match the other signal APIs; see [Company fields in signal responses](/enums#company-fields-in-signal-responses).
+
 ## Service Level
 
 - **Rate Limit**: Based on your subscription tier

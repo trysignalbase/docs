@@ -57,6 +57,10 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/acquisitions?count=tru
 - **Rich Response Data**: Detailed company information, acquisition amounts, and acquirer data
 - **Credit-based Usage**: Transparent credit consumption per API call
 
+## Company fields and acquirer object
+
+The acquired company uses **`companyCountry`** and **`companySubcategory`** on the root of each signal. The nested **`acquiringCompany`** object uses the same naming (**`companyCountry`**, **`companySubcategory`**) so all company HQ fields are consistent across the API. See [Company fields in signal responses](/enums#company-fields-in-signal-responses).
+
 ## Service Level
 
 - **Rate Limit**: Based on your subscription tier

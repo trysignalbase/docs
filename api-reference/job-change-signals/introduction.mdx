@@ -56,6 +56,10 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/job-changes?count=true
 - **Pagination Support**: Efficiently retrieve large datasets with up to 100 results per page
 - **Credit-based Usage**: Transparent credit consumption per API call
 
+## Company vs. person location
+
+Company headquarters use **`companyCountry`** and **`companySubcategory`** (when set). Person location uses **`personCountry`**, **`personCity`**, and related fields — see [Company fields in signal responses](/enums#company-fields-in-signal-responses).
+
 ## Service Level
 
 - **Rate Limit**: Based on your subscription tier

@@ -235,6 +235,7 @@
                       "companyLinkedin": "linkedin.com/company/datavault",
                       "companyIndustry": "Data Analytics",
                       "companyCountry": "US",
+                      "companySubcategory": "saas",
                       "companyFoundedYear": 2019,
                       "companyCategories": "[\"Data Analytics\",\"SaaS\"]",
                       "companyDescription": "Enterprise data analytics platform.",
@@ -253,7 +254,8 @@
                         "website": "snowflake.com",
                         "linkedin": "linkedin.com/company/snowflake",
                         "industry": "Cloud Computing",
-                        "country": "US",
+                        "companyCountry": "US",
+                        "companySubcategory": "cloud",
                         "foundedYear": 2012,
                         "employeeCount": 5000
                       },
@@ -332,6 +334,7 @@
           "companyLinkedin": { "type": "string", "nullable": true, "description": "Acquired company LinkedIn URL" },
           "companyIndustry": { "type": "string", "nullable": true, "description": "Industry of the acquired company" },
           "companyCountry": { "type": "string", "nullable": true, "description": "Country code of the acquired company" },
+          "companySubcategory": { "type": "string", "nullable": true, "description": "Assigned subcategory for the acquired company (same vocabulary as the `subcategories` filter)" },
           "companyFoundedYear": { "type": "integer", "nullable": true, "description": "Year the acquired company was founded" },
           "companyCategories": { "type": "string", "nullable": true, "description": "JSON-encoded array of company categories" },
           "companyDescription": { "type": "string", "nullable": true, "description": "Description of the acquired company" },
@@ -364,7 +367,8 @@
           "website": { "type": "string", "nullable": true, "description": "Website URL" },
           "linkedin": { "type": "string", "nullable": true, "description": "LinkedIn URL" },
           "industry": { "type": "string", "nullable": true, "description": "Industry" },
-          "country": { "type": "string", "nullable": true, "description": "Country code" },
+          "companyCountry": { "type": "string", "nullable": true, "description": "Headquarters country code" },
+          "companySubcategory": { "type": "string", "nullable": true, "description": "Assigned subcategory (same vocabulary as the `subcategories` filter)" },
           "foundedYear": { "type": "integer", "nullable": true, "description": "Founded year" },
           "employeeCount": { "type": "integer", "nullable": true, "description": "Employee count" }
         }

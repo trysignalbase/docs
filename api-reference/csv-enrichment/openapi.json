@@ -1,0 +1,391 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "CSV Enrichment API",
+    "description": "Submit company lists for enrichment with funding, acquisition, hiring, job change, and investor intelligence. This endpoint creates an asynchronous enrichment job using the same pipeline as dashboard CSV enrichment.",
+    "license": {
+      "name": "MIT"
+    },
+    "version": "2.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://www.trysignalbase.com/api/v2"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/csv-enrichment": {
+      "post": {
+        "summary": "Create CSV Enrichment Job",
+        "description": "Submit companies for enrichment. Each company must include at least one identifier: company name, website URL/domain, or LinkedIn URL. The endpoint returns a job ID immediately while enrichment runs asynchronously.",
+        "operationId": "createCSVEnrichmentJob",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CSVEnrichmentRequest"
+              },
+              "example": {
+                "fileName": "target-accounts.json",
+                "companies": [
+                  {
+                    "company_name": "Acme",
+                    "website_url": "https://acme.com",
+                    "linkedin_url": "https://www.linkedin.com/company/acme",
+                    "external_id": "acct_123"
+                  },
+                  {
+                    "company_name": "Stripe",
+                    "website_url": "https://stripe.com"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Enrichment job created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CSVEnrichmentResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "jobId": "7f4b7a34-8d65-4cc3-8ab0-3477f8a967a6",
+                    "detectedMapping": {
+                      "companyName": "company_name",
+                      "websiteUrl": "website_url",
+                      "linkedinUrl": "linkedin_url"
+                    }
+                  },
+                  "meta": {
+                    "endpoint": "csv.enrichment",
+                    "creditsUsed": 1,
+                    "creditsRemaining": 999
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "missingCompanies": {
+                    "summary": "Missing companies array",
+                    "value": {
+                      "success": false,
+                      "error": "Required"
+                    }
+                  },
+                  "missingIdentifier": {
+                    "summary": "Company has no usable identifier",
+                    "value": {
+                      "success": false,
+                      "error": "Each company must include company_name, website_url, or linkedin_url."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Invalid API key. No key found."
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "out of credits, please contact support to increase your usage"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Too many requests. Please upgrade your plan or slow down."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "An unknown error occurred"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CSVEnrichmentRequest": {
+        "type": "object",
+        "required": ["companies"],
+        "properties": {
+          "fileName": {
+            "type": "string",
+            "description": "Optional label stored on the enrichment job. Defaults to api-companies.json.",
+            "maxLength": 500,
+            "example": "target-accounts.json"
+          },
+          "companies": {
+            "type": "array",
+            "description": "Companies to enrich. Maximum 1,000 companies per request.",
+            "minItems": 1,
+            "maxItems": 1000,
+            "items": {
+              "$ref": "#/components/schemas/CompanyEnrichmentInput"
+            }
+          }
+        }
+      },
+      "CompanyEnrichmentInput": {
+        "type": "object",
+        "description": "Company input. Include at least one of company_name, website_url, or linkedin_url. Additional fields are preserved on the enrichment job row.",
+        "additionalProperties": true,
+        "properties": {
+          "company_name": {
+            "type": "string",
+            "description": "Company name",
+            "example": "Acme"
+          },
+          "companyName": {
+            "type": "string",
+            "description": "Alias for company_name",
+            "example": "Acme"
+          },
+          "name": {
+            "type": "string",
+            "description": "Alias for company_name",
+            "example": "Acme"
+          },
+          "website_url": {
+            "type": "string",
+            "description": "Company website URL or domain",
+            "example": "https://acme.com"
+          },
+          "websiteUrl": {
+            "type": "string",
+            "description": "Alias for website_url",
+            "example": "https://acme.com"
+          },
+          "website": {
+            "type": "string",
+            "description": "Alias for website_url",
+            "example": "https://acme.com"
+          },
+          "domain": {
+            "type": "string",
+            "description": "Alias for website_url",
+            "example": "acme.com"
+          },
+          "linkedin_url": {
+            "type": "string",
+            "description": "Company LinkedIn URL",
+            "example": "https://www.linkedin.com/company/acme"
+          },
+          "linkedinUrl": {
+            "type": "string",
+            "description": "Alias for linkedin_url",
+            "example": "https://www.linkedin.com/company/acme"
+          },
+          "linkedin": {
+            "type": "string",
+            "description": "Alias for linkedin_url",
+            "example": "https://www.linkedin.com/company/acme"
+          },
+          "company_linkedin_url": {
+            "type": "string",
+            "description": "Alias for linkedin_url",
+            "example": "https://www.linkedin.com/company/acme"
+          },
+          "external_id": {
+            "type": "string",
+            "description": "Optional client-side identifier preserved with the row",
+            "example": "acct_123"
+          }
+        },
+        "anyOf": [
+          {
+            "required": ["company_name"]
+          },
+          {
+            "required": ["companyName"]
+          },
+          {
+            "required": ["name"]
+          },
+          {
+            "required": ["website_url"]
+          },
+          {
+            "required": ["websiteUrl"]
+          },
+          {
+            "required": ["website"]
+          },
+          {
+            "required": ["domain"]
+          },
+          {
+            "required": ["linkedin_url"]
+          },
+          {
+            "required": ["linkedinUrl"]
+          },
+          {
+            "required": ["linkedin"]
+          },
+          {
+            "required": ["company_linkedin_url"]
+          }
+        ]
+      },
+      "CSVEnrichmentResponse": {
+        "type": "object",
+        "required": ["success", "data", "meta"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indicates if the request was successful",
+            "example": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/CSVEnrichmentJob"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        }
+      },
+      "CSVEnrichmentJob": {
+        "type": "object",
+        "required": ["jobId", "detectedMapping"],
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the enrichment job",
+            "example": "7f4b7a34-8d65-4cc3-8ab0-3477f8a967a6"
+          },
+          "detectedMapping": {
+            "$ref": "#/components/schemas/DetectedMapping"
+          }
+        }
+      },
+      "DetectedMapping": {
+        "type": "object",
+        "required": ["companyName", "websiteUrl", "linkedinUrl"],
+        "properties": {
+          "companyName": {
+            "type": ["string", "null"],
+            "description": "Input field detected as company name",
+            "example": "company_name"
+          },
+          "websiteUrl": {
+            "type": ["string", "null"],
+            "description": "Input field detected as website URL",
+            "example": "website_url"
+          },
+          "linkedinUrl": {
+            "type": ["string", "null"],
+            "description": "Input field detected as LinkedIn URL",
+            "example": "linkedin_url"
+          }
+        }
+      },
+      "Meta": {
+        "type": "object",
+        "required": ["endpoint", "creditsUsed"],
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "description": "The endpoint that was called",
+            "example": "csv.enrichment"
+          },
+          "creditsUsed": {
+            "type": "number",
+            "description": "Number of API credits consumed by this request",
+            "minimum": 0,
+            "example": 1
+          },
+          "creditsRemaining": {
+            "type": "number",
+            "description": "Number of API credits remaining after this request",
+            "example": 999
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["success", "error"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indicates if the request was successful (always false for errors)",
+            "example": false
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message describing what went wrong",
+            "example": "Invalid API key"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "API key",
+        "description": "API key for Signalbase API authentication. Include as Bearer token in Authorization header."
+      }
+    }
+  }
+}

@@ -1,0 +1,110 @@
+---
+title: 'Introduction'
+description: 'Submit company lists for enrichment with funding, acquisition, hiring, job change, and investor intelligence'
+---
+
+## Welcome to the CSV Enrichment API
+
+The CSV Enrichment API lets clients submit a list of companies and start the same enrichment workflow available in the Signalbase dashboard. Each company is matched by name, website, or LinkedIn URL, then enriched with company profile data and available signals from Signalbase.
+
+<Card
+  title="CSV Enrichment Endpoint"
+  icon="file-spreadsheet"
+  href="/api-reference/csv-enrichment/endpoint/post"
+>
+  View the complete OpenAPI specification
+</Card>
+
+## Key Features
+
+- **Company Matching**: Match companies by `company_name`, `website_url`, or `linkedin_url`
+- **Signal Enrichment**: Enrich matched companies with funding, acquisition, hiring, job change, and investor data
+- **Dashboard Parity**: Uses the same enrichment job pipeline as dashboard CSV enrichment
+- **Asynchronous Processing**: Returns a job ID immediately while enrichment runs in the background
+- **Credit-based Usage**: Transparent credit consumption per API request
+
+## Authentication
+
+All API endpoints require authentication using a Bearer token passed in the Authorization header.
+
+```bash
+curl -X POST "https://www.trysignalbase.com/api/v2/csv-enrichment" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "companies": [
+      {
+        "company_name": "Acme",
+        "website_url": "https://acme.com",
+        "linkedin_url": "https://www.linkedin.com/company/acme"
+      }
+    ]
+  }'
+```
+
+## Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `companies` | array | Yes | Companies to enrich. Maximum 1,000 companies per request. |
+| `fileName` | string | No | Optional label stored on the enrichment job. Defaults to `api-companies.json`. |
+
+Each company must include at least one of:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `company_name` | string | Company name |
+| `website_url` | string | Company website URL or domain |
+| `linkedin_url` | string | Company LinkedIn URL |
+
+The API also accepts common aliases such as `companyName`, `name`, `websiteUrl`, `website`, `domain`, `linkedinUrl`, `linkedin`, and `company_linkedin_url`.
+
+## Response Structure
+
+A successful request creates an enrichment job and returns its ID:
+
+```json
+{
+  "success": true,
+  "data": {
+    "jobId": "7f4b7a34-8d65-4cc3-8ab0-3477f8a967a6",
+    "detectedMapping": {
+      "companyName": "company_name",
+      "websiteUrl": "website_url",
+      "linkedinUrl": "linkedin_url"
+    }
+  },
+  "meta": {
+    "endpoint": "csv.enrichment",
+    "creditsUsed": 1,
+    "creditsRemaining": 999
+  }
+}
+```
+
+## Service Level
+
+- **Rate Limit**: Based on your subscription tier
+- **Maximum Companies**: Up to 1,000 companies per request
+- **Processing**: Enrichment runs asynchronously after the job is created
+- **Credit Cost**: 1 API credit per accepted request
+
+## Error Handling
+
+The API returns standard HTTP status codes:
+
+- **200**: Job created successfully
+- **400**: Invalid request body or missing company identifiers
+- **401**: Unauthorized - Invalid or missing API key
+- **402**: Insufficient credits
+- **429**: Rate limit exceeded
+- **500**: Internal server error
+
+Error responses include:
+
+```json
+{
+  "success": false,
+  "error": "Error message description"
+}
+```

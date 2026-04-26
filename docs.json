@@ -131,6 +131,23 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "CSV Enrichment",
+        "groups": [
+          {
+            "group": "CSV Enrichment API",
+            "pages": [
+              "api-reference/csv-enrichment/introduction"
+            ]
+          },
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api-reference/csv-enrichment/endpoint/post"
+            ]
+          }
+        ]
       }
     ],
     "global": {}

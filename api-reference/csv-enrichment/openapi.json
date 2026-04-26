@@ -195,14 +195,54 @@
             "description": "Company name",
             "example": "Acme"
           },
+          "companyName": {
+            "type": "string",
+            "description": "Alias for company_name",
+            "example": "Acme"
+          },
+          "name": {
+            "type": "string",
+            "description": "Alias for company_name",
+            "example": "Acme"
+          },
           "website_url": {
             "type": "string",
             "description": "Company website URL or domain",
             "example": "https://acme.com"
           },
+          "websiteUrl": {
+            "type": "string",
+            "description": "Alias for website_url",
+            "example": "https://acme.com"
+          },
+          "website": {
+            "type": "string",
+            "description": "Alias for website_url",
+            "example": "https://acme.com"
+          },
+          "domain": {
+            "type": "string",
+            "description": "Alias for website_url",
+            "example": "acme.com"
+          },
           "linkedin_url": {
             "type": "string",
             "description": "Company LinkedIn URL",
+            "example": "https://www.linkedin.com/company/acme"
+          },
+          "linkedinUrl": {
+            "type": "string",
+            "description": "Alias for linkedin_url",
+            "example": "https://www.linkedin.com/company/acme"
+          },
+          "linkedin": {
+            "type": "string",
+            "description": "Alias for linkedin_url",
+            "example": "https://www.linkedin.com/company/acme"
+          },
+          "company_linkedin_url": {
+            "type": "string",
+            "description": "Alias for linkedin_url",
             "example": "https://www.linkedin.com/company/acme"
           },
           "external_id": {
@@ -216,10 +256,34 @@
             "required": ["company_name"]
           },
           {
+            "required": ["companyName"]
+          },
+          {
+            "required": ["name"]
+          },
+          {
             "required": ["website_url"]
           },
           {
+            "required": ["websiteUrl"]
+          },
+          {
+            "required": ["website"]
+          },
+          {
+            "required": ["domain"]
+          },
+          {
             "required": ["linkedin_url"]
+          },
+          {
+            "required": ["linkedinUrl"]
+          },
+          {
+            "required": ["linkedin"]
+          },
+          {
+            "required": ["company_linkedin_url"]
           }
         ]
       },

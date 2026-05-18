@@ -2,11 +2,11 @@
   "openapi": "3.1.0",
   "info": {
     "title": "CSV Enrichment API",
-    "description": "Submit company lists for enrichment with funding, acquisition, hiring, job change, and investor intelligence. This endpoint creates an asynchronous enrichment job using the same pipeline as dashboard CSV enrichment.",
+    "description": "Submit company lists for enrichment with funding, acquisition, hiring, job change, and investor intelligence. Create an asynchronous job, optionally wait for small jobs, then retrieve status and paginated results.",
     "license": {
       "name": "MIT"
     },
-    "version": "2.0.0"
+    "version": "2.1.0"
   },
   "servers": [
     {
@@ -22,7 +22,7 @@
     "/csv-enrichment": {
       "post": {
         "summary": "Create CSV Enrichment Job",
-        "description": "Submit companies for enrichment. Each company must include at least one identifier: company name, website URL/domain, or LinkedIn URL. The endpoint returns a job ID immediately while enrichment runs asynchronously.",
+        "description": "Submit companies for enrichment. Each company must include at least one identifier: company name, website URL/domain, or LinkedIn URL. The endpoint costs 1 credit per accepted job. Add wait=true for small lists to return completed results inline when processing finishes within timeout seconds.",
         "operationId": "createCSVEnrichmentJob",
         "requestBody": {
           "required": true,
@@ -32,17 +32,14 @@
                 "$ref": "#/components/schemas/CSVEnrichmentRequest"
               },
               "example": {
-                "fileName": "target-accounts.json",
+                "fileName": "target-accounts.csv",
+                "wait": true,
+                "timeout": 30,
                 "companies": [
                   {
-                    "company_name": "Acme",
-                    "website_url": "https://acme.com",
-                    "linkedin_url": "https://www.linkedin.com/company/acme",
+                    "company_name": "Mollie",
+                    "website_url": "mollie.com",
                     "external_id": "acct_123"
-                  },
-                  {
-                    "company_name": "Stripe",
-                    "website_url": "https://stripe.com"
                   }
                 ]
               }
@@ -51,112 +48,186 @@
         },
         "responses": {
           "200": {
-            "description": "Enrichment job created successfully",
+            "description": "Enrichment job accepted. If wait=true and processing completed, data also includes status, summary, and results.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CSVEnrichmentResponse"
+                  "$ref": "#/components/schemas/CSVEnrichmentCreateResponse"
                 },
-                "example": {
-                  "success": true,
-                  "data": {
-                    "jobId": "7f4b7a34-8d65-4cc3-8ab0-3477f8a967a6",
-                    "detectedMapping": {
-                      "companyName": "company_name",
-                      "websiteUrl": "website_url",
-                      "linkedinUrl": "linkedin_url"
+                "examples": {
+                  "accepted": {
+                    "summary": "Asynchronous job accepted",
+                    "value": {
+                      "success": true,
+                      "data": {
+                        "jobId": "7f4b7a34-8d65-4cc3-8ab0-3477f8a967a6",
+                        "detectedMapping": {
+                          "companyName": "company_name",
+                          "websiteUrl": "website_url",
+                          "linkedinUrl": "linkedin_url"
+                        }
+                      },
+                      "meta": {
+                        "endpoint": "csv.enrichment",
+                        "creditsUsed": 1,
+                        "creditsRemaining": 999
+                      }
                     }
                   },
-                  "meta": {
-                    "endpoint": "csv.enrichment",
-                    "creditsUsed": 1,
-                    "creditsRemaining": 999
+                  "waitCompleted": {
+                    "summary": "wait=true completed within timeout",
+                    "value": {
+                      "success": true,
+                      "data": {
+                        "jobId": "7f4b7a34-8d65-4cc3-8ab0-3477f8a967a6",
+                        "detectedMapping": {
+                          "companyName": "company_name",
+                          "websiteUrl": "website_url",
+                          "linkedinUrl": null
+                        },
+                        "status": "completed",
+                        "progress": {
+                          "processed": 1,
+                          "total": 1
+                        },
+                        "submittedAt": "2026-05-12T07:25:42.000Z",
+                        "completedAt": "2026-05-12T07:26:01.000Z",
+                        "summary": {
+                          "totalInputs": 1,
+                          "matched": 1,
+                          "unmatched": 0,
+                          "withFundingSignals": 0,
+                          "withAcquisitionSignals": 0,
+                          "withHiringSignals": 1,
+                          "withJobChangeSignals": 0
+                        },
+                        "results": [
+                          {
+                            "input": {
+                              "company_name": "Mollie",
+                              "website_url": "mollie.com"
+                            },
+                            "matched": true,
+                            "companyId": "c5ff2e53-0c99-4b6a-964e-63c2fc7e2a8e",
+                            "company": {
+                              "name": "Mollie",
+                              "domain": "mollie.com",
+                              "industry": "Financial Services",
+                              "country": "NL",
+                              "employeeCount": 850
+                            },
+                            "signals": {
+                              "funding": [],
+                              "acquisition": [],
+                              "hiring": [],
+                              "job_change": [],
+                              "investors": []
+                            }
+                          }
+                        ],
+                        "nextCursor": null
+                      },
+                      "meta": {
+                        "endpoint": "csv.enrichment",
+                        "creditsUsed": 1,
+                        "creditsRemaining": 999
+                      }
+                    }
                   }
                 }
               }
             }
           },
           "400": {
-            "description": "Invalid request body",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "examples": {
-                  "missingCompanies": {
-                    "summary": "Missing companies array",
-                    "value": {
-                      "success": false,
-                      "error": "Required"
-                    }
-                  },
-                  "missingIdentifier": {
-                    "summary": "Company has no usable identifier",
-                    "value": {
-                      "success": false,
-                      "error": "Each company must include company_name, website_url, or linkedin_url."
-                    }
-                  }
-                }
-              }
-            }
+            "$ref": "#/components/responses/BadRequest"
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "success": false,
-                  "error": "Invalid API key. No key found."
-                }
-              }
-            }
+            "$ref": "#/components/responses/Unauthorized"
           },
           "402": {
-            "description": "Insufficient credits",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "success": false,
-                  "error": "out of credits, please contact support to increase your usage"
-                }
-              }
-            }
+            "$ref": "#/components/responses/InsufficientCredits"
+          },
+          "403": {
+            "$ref": "#/components/responses/SubscriptionExpired"
           },
           "429": {
-            "description": "Rate limit exceeded",
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/csv-enrichment/{jobId}": {
+      "get": {
+        "summary": "Get CSV Enrichment Job",
+        "description": "Retrieve job status, progress, summary counts, and completed results. Polling is free and returns creditsUsed: 0. Results are paginated with cursor and limit.",
+        "operationId": "getCSVEnrichmentJob",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "description": "Job ID returned by POST /csv-enrichment",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "Pagination cursor returned as data.nextCursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Results per page. Defaults to 50, maximum 100.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job status and results",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "success": false,
-                  "error": "Too many requests. Please upgrade your plan or slow down."
+                  "$ref": "#/components/schemas/CSVEnrichmentGetResponse"
                 }
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/JobNotFound"
+          },
+          "410": {
+            "$ref": "#/components/responses/JobExpired"
+          },
+          "403": {
+            "$ref": "#/components/responses/SubscriptionExpired"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
           "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "success": false,
-                  "error": "An unknown error occurred"
-                }
-              }
-            }
+            "$ref": "#/components/responses/InternalError"
           }
         }
       }
@@ -172,7 +243,19 @@
             "type": "string",
             "description": "Optional label stored on the enrichment job. Defaults to api-companies.json.",
             "maxLength": 500,
-            "example": "target-accounts.json"
+            "example": "target-accounts.csv"
+          },
+          "wait": {
+            "type": "boolean",
+            "description": "If true, wait up to timeout seconds and return completed results inline when available.",
+            "default": false
+          },
+          "timeout": {
+            "type": "integer",
+            "description": "Maximum wait time in seconds when wait=true.",
+            "minimum": 1,
+            "maximum": 30,
+            "default": 30
           },
           "companies": {
             "type": "array",
@@ -187,135 +270,319 @@
       },
       "CompanyEnrichmentInput": {
         "type": "object",
-        "description": "Company input. Include at least one of company_name, website_url, or linkedin_url. Additional fields are preserved on the enrichment job row.",
+        "description": "Company input. Include at least one of company_name, website_url, or linkedin_url. Additional fields are preserved on the enrichment row.",
         "additionalProperties": true,
         "properties": {
           "company_name": {
             "type": "string",
             "description": "Company name",
-            "example": "Acme"
+            "example": "Mollie"
           },
           "companyName": {
             "type": "string",
-            "description": "Alias for company_name",
-            "example": "Acme"
+            "description": "Alias for company_name"
           },
           "name": {
             "type": "string",
-            "description": "Alias for company_name",
-            "example": "Acme"
+            "description": "Alias for company_name"
           },
           "website_url": {
             "type": "string",
             "description": "Company website URL or domain",
-            "example": "https://acme.com"
+            "example": "mollie.com"
           },
           "websiteUrl": {
             "type": "string",
-            "description": "Alias for website_url",
-            "example": "https://acme.com"
+            "description": "Alias for website_url"
           },
           "website": {
             "type": "string",
-            "description": "Alias for website_url",
-            "example": "https://acme.com"
+            "description": "Alias for website_url"
           },
           "domain": {
             "type": "string",
-            "description": "Alias for website_url",
-            "example": "acme.com"
+            "description": "Alias for website_url"
           },
           "linkedin_url": {
             "type": "string",
-            "description": "Company LinkedIn URL",
-            "example": "https://www.linkedin.com/company/acme"
+            "description": "Company LinkedIn URL"
           },
           "linkedinUrl": {
             "type": "string",
-            "description": "Alias for linkedin_url",
-            "example": "https://www.linkedin.com/company/acme"
+            "description": "Alias for linkedin_url"
           },
           "linkedin": {
             "type": "string",
-            "description": "Alias for linkedin_url",
-            "example": "https://www.linkedin.com/company/acme"
+            "description": "Alias for linkedin_url"
           },
           "company_linkedin_url": {
             "type": "string",
-            "description": "Alias for linkedin_url",
-            "example": "https://www.linkedin.com/company/acme"
-          },
-          "external_id": {
-            "type": "string",
-            "description": "Optional client-side identifier preserved with the row",
-            "example": "acct_123"
+            "description": "Alias for linkedin_url"
           }
-        },
-        "anyOf": [
-          {
-            "required": ["company_name"]
-          },
-          {
-            "required": ["companyName"]
-          },
-          {
-            "required": ["name"]
-          },
-          {
-            "required": ["website_url"]
-          },
-          {
-            "required": ["websiteUrl"]
-          },
-          {
-            "required": ["website"]
-          },
-          {
-            "required": ["domain"]
-          },
-          {
-            "required": ["linkedin_url"]
-          },
-          {
-            "required": ["linkedinUrl"]
-          },
-          {
-            "required": ["linkedin"]
-          },
-          {
-            "required": ["company_linkedin_url"]
-          }
-        ]
+        }
       },
-      "CSVEnrichmentResponse": {
+      "CSVEnrichmentCreateResponse": {
         "type": "object",
         "required": ["success", "data", "meta"],
         "properties": {
           "success": {
             "type": "boolean",
-            "description": "Indicates if the request was successful",
-            "example": true
+            "const": true
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CSVEnrichmentCreatedJob"
+              },
+              {
+                "$ref": "#/components/schemas/CSVEnrichmentJobWithMapping"
+              }
+            ]
+          },
+          "meta": {
+            "$ref": "#/components/schemas/CreateMeta"
+          }
+        }
+      },
+      "CSVEnrichmentGetResponse": {
+        "type": "object",
+        "required": ["success", "data", "meta"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
           },
           "data": {
             "$ref": "#/components/schemas/CSVEnrichmentJob"
           },
           "meta": {
-            "$ref": "#/components/schemas/Meta"
+            "$ref": "#/components/schemas/GetMeta"
           }
         }
       },
-      "CSVEnrichmentJob": {
+      "CSVEnrichmentCreatedJob": {
         "type": "object",
         "required": ["jobId", "detectedMapping"],
         "properties": {
           "jobId": {
             "type": "string",
-            "format": "uuid",
-            "description": "Unique identifier for the enrichment job",
-            "example": "7f4b7a34-8d65-4cc3-8ab0-3477f8a967a6"
+            "format": "uuid"
           },
           "detectedMapping": {
             "$ref": "#/components/schemas/DetectedMapping"
+          }
+        }
+      },
+      "CSVEnrichmentJobWithMapping": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/CSVEnrichmentJob"
+          },
+          {
+            "type": "object",
+            "required": ["detectedMapping"],
+            "properties": {
+              "detectedMapping": {
+                "$ref": "#/components/schemas/DetectedMapping"
+              }
+            }
+          }
+        ]
+      },
+      "CSVEnrichmentJob": {
+        "type": "object",
+        "required": [
+          "jobId",
+          "status",
+          "progress",
+          "submittedAt",
+          "completedAt",
+          "summary",
+          "results",
+          "nextCursor"
+        ],
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CSVEnrichmentStatus"
+          },
+          "progress": {
+            "$ref": "#/components/schemas/Progress"
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": ["string", "null"],
+            "format": "date-time"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/Summary"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EnrichmentResult"
+            }
+          },
+          "nextCursor": {
+            "type": ["string", "null"]
+          },
+          "error": {
+            "$ref": "#/components/schemas/JobError"
+          }
+        }
+      },
+      "CSVEnrichmentStatus": {
+        "type": "string",
+        "enum": ["pending", "running", "completed", "failed"]
+      },
+      "Progress": {
+        "type": "object",
+        "required": ["processed", "total"],
+        "properties": {
+          "processed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "Summary": {
+        "type": "object",
+        "required": [
+          "totalInputs",
+          "matched",
+          "unmatched",
+          "withFundingSignals",
+          "withAcquisitionSignals",
+          "withHiringSignals",
+          "withJobChangeSignals"
+        ],
+        "properties": {
+          "totalInputs": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "matched": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "unmatched": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "withFundingSignals": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "withAcquisitionSignals": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "withHiringSignals": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "withJobChangeSignals": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "EnrichmentResult": {
+        "type": "object",
+        "required": ["input", "matched", "companyId", "company", "signals"],
+        "properties": {
+          "input": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "matched": {
+            "type": "boolean"
+          },
+          "companyId": {
+            "type": ["string", "null"],
+            "format": "uuid"
+          },
+          "company": {
+            "type": ["object", "null"],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "domain": {
+                "type": ["string", "null"]
+              },
+              "industry": {
+                "type": ["string", "null"]
+              },
+              "country": {
+                "type": ["string", "null"]
+              },
+              "employeeCount": {
+                "type": ["integer", "null"]
+              }
+            }
+          },
+          "signals": {
+            "$ref": "#/components/schemas/Signals"
+          }
+        }
+      },
+      "Signals": {
+        "type": "object",
+        "required": [
+          "funding",
+          "acquisition",
+          "hiring",
+          "job_change",
+          "investors"
+        ],
+        "properties": {
+          "funding": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "acquisition": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "hiring": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "job_change": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "investors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
           }
         }
       },
@@ -324,57 +591,211 @@
         "required": ["companyName", "websiteUrl", "linkedinUrl"],
         "properties": {
           "companyName": {
-            "type": ["string", "null"],
-            "description": "Input field detected as company name",
-            "example": "company_name"
+            "type": ["string", "null"]
           },
           "websiteUrl": {
-            "type": ["string", "null"],
-            "description": "Input field detected as website URL",
-            "example": "website_url"
+            "type": ["string", "null"]
           },
           "linkedinUrl": {
-            "type": ["string", "null"],
-            "description": "Input field detected as LinkedIn URL",
-            "example": "linkedin_url"
+            "type": ["string", "null"]
           }
         }
       },
-      "Meta": {
+      "JobError": {
+        "type": "object",
+        "required": ["code", "message"],
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": ["match_engine_unavailable"]
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateMeta": {
         "type": "object",
         "required": ["endpoint", "creditsUsed"],
         "properties": {
           "endpoint": {
             "type": "string",
-            "description": "The endpoint that was called",
-            "example": "csv.enrichment"
+            "const": "csv.enrichment"
           },
           "creditsUsed": {
-            "type": "number",
-            "description": "Number of API credits consumed by this request",
-            "minimum": 0,
-            "example": 1
+            "type": "integer",
+            "const": 1
           },
           "creditsRemaining": {
-            "type": "number",
-            "description": "Number of API credits remaining after this request",
-            "example": 999
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "GetMeta": {
+        "type": "object",
+        "required": ["endpoint", "creditsUsed"],
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "const": "csv.enrichment.get"
+          },
+          "creditsUsed": {
+            "type": "integer",
+            "const": 0
           }
         }
       },
       "ErrorResponse": {
         "type": "object",
-        "required": ["success", "error"],
+        "required": ["success", "error", "code"],
         "properties": {
           "success": {
             "type": "boolean",
-            "description": "Indicates if the request was successful (always false for errors)",
-            "example": false
+            "const": false
           },
           "error": {
+            "type": "string"
+          },
+          "code": {
             "type": "string",
-            "description": "Error message describing what went wrong",
-            "example": "Invalid API key"
+            "enum": [
+              "invalid_company_payload",
+              "invalid_api_key",
+              "subscription_expired",
+              "insufficient_credits",
+              "rate_limited",
+              "job_not_found",
+              "job_expired",
+              "match_engine_unavailable"
+            ]
+          },
+          "retryAfter": {
+            "type": "integer",
+            "description": "Seconds until retry is recommended, present on rate limit responses."
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Invalid request body, cursor, or company identifiers",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "success": false,
+              "error": "Each company must include company_name, website_url, or linkedin_url.",
+              "code": "invalid_company_payload"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Invalid or missing API key",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "success": false,
+              "error": "Invalid API key. No key found.",
+              "code": "invalid_api_key"
+            }
+          }
+        }
+      },
+      "SubscriptionExpired": {
+        "description": "The API key belongs to a team without an active subscription",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "success": false,
+              "error": "Subscription expired. Please upgrade your subscription: https://www.trysignalbase.com/#pricing",
+              "code": "subscription_expired"
+            }
+          }
+        }
+      },
+      "InsufficientCredits": {
+        "description": "Insufficient API credits",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "success": false,
+              "error": "out of credits, please contact support to increase your usage",
+              "code": "insufficient_credits"
+            }
+          }
+        }
+      },
+      "JobNotFound": {
+        "description": "Unknown job ID for this authenticated team",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "success": false,
+              "error": "Job not found",
+              "code": "job_not_found"
+            }
+          }
+        }
+      },
+      "JobExpired": {
+        "description": "The job is older than the 30-day retention window",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "success": false,
+              "error": "CSV enrichment jobs are retrievable for 30 days.",
+              "code": "job_expired"
+            }
+          }
+        }
+      },
+      "RateLimited": {
+        "description": "Rate limit exceeded",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "success": false,
+              "error": "Too many requests. Please upgrade your plan or slow down.",
+              "code": "rate_limited",
+              "retryAfter": 60
+            }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "success": false,
+              "error": "An unknown error occurred",
+              "code": "match_engine_unavailable"
+            }
           }
         }
       }
@@ -384,7 +805,7 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "API key",
-        "description": "API key for Signalbase API authentication. Include as Bearer token in Authorization header."
+        "description": "Signalbase API key. Include as Bearer token in the Authorization header."
       }
     }
   }

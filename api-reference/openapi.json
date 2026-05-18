@@ -1,0 +1,472 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Signalbase API",
+    "description": "Signalbase API endpoints for company signals and CSV enrichment.",
+    "version": "2.1.0"
+  },
+  "servers": [
+    {
+      "url": "https://www.trysignalbase.com/api/v2"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/csv-enrichment": {
+      "post": {
+        "summary": "Create CSV Enrichment Job",
+        "operationId": "createCSVEnrichmentJob",
+        "description": "Submit companies for enrichment. Costs 1 credit per accepted job. Use wait=true for small lists to return results inline when processing completes within timeout seconds.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CSVEnrichmentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Job accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CSVEnrichmentCreateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "402": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/csv-enrichment/{jobId}": {
+      "get": {
+        "summary": "Get CSV Enrichment Job",
+        "operationId": "getCSVEnrichmentJob",
+        "description": "Retrieve job status, summary, and paginated results. Polling costs 0 credits.",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job status and results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CSVEnrichmentGetResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "410": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CSVEnrichmentRequest": {
+        "type": "object",
+        "required": ["companies"],
+        "properties": {
+          "fileName": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "wait": {
+            "type": "boolean",
+            "default": false
+          },
+          "timeout": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30,
+            "default": 30
+          },
+          "companies": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 1000,
+            "items": {
+              "type": "object",
+              "additionalProperties": true,
+              "properties": {
+                "company_name": {
+                  "type": "string"
+                },
+                "website_url": {
+                  "type": "string"
+                },
+                "linkedin_url": {
+                  "type": "string"
+                },
+                "domain": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "CSVEnrichmentCreateResponse": {
+        "type": "object",
+        "required": ["success", "data", "meta"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "required": ["jobId", "detectedMapping"],
+            "additionalProperties": true,
+            "properties": {
+              "jobId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "detectedMapping": {
+                "$ref": "#/components/schemas/DetectedMapping"
+              },
+              "status": {
+                "$ref": "#/components/schemas/CSVEnrichmentStatus"
+              },
+              "summary": {
+                "$ref": "#/components/schemas/Summary"
+              },
+              "results": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/EnrichmentResult"
+                }
+              },
+              "nextCursor": {
+                "type": ["string", "null"]
+              }
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        }
+      },
+      "CSVEnrichmentGetResponse": {
+        "type": "object",
+        "required": ["success", "data", "meta"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/CSVEnrichmentJob"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        }
+      },
+      "CSVEnrichmentJob": {
+        "type": "object",
+        "required": [
+          "jobId",
+          "status",
+          "progress",
+          "submittedAt",
+          "completedAt",
+          "summary",
+          "results",
+          "nextCursor"
+        ],
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CSVEnrichmentStatus"
+          },
+          "progress": {
+            "type": "object",
+            "required": ["processed", "total"],
+            "properties": {
+              "processed": {
+                "type": "integer"
+              },
+              "total": {
+                "type": "integer"
+              }
+            }
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": ["string", "null"],
+            "format": "date-time"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/Summary"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EnrichmentResult"
+            }
+          },
+          "nextCursor": {
+            "type": ["string", "null"]
+          },
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "CSVEnrichmentStatus": {
+        "type": "string",
+        "enum": ["pending", "running", "completed", "failed"]
+      },
+      "DetectedMapping": {
+        "type": "object",
+        "required": ["companyName", "websiteUrl", "linkedinUrl"],
+        "properties": {
+          "companyName": {
+            "type": ["string", "null"]
+          },
+          "websiteUrl": {
+            "type": ["string", "null"]
+          },
+          "linkedinUrl": {
+            "type": ["string", "null"]
+          }
+        }
+      },
+      "Summary": {
+        "type": "object",
+        "required": [
+          "totalInputs",
+          "matched",
+          "unmatched",
+          "withFundingSignals",
+          "withAcquisitionSignals",
+          "withHiringSignals",
+          "withJobChangeSignals"
+        ],
+        "properties": {
+          "totalInputs": {
+            "type": "integer"
+          },
+          "matched": {
+            "type": "integer"
+          },
+          "unmatched": {
+            "type": "integer"
+          },
+          "withFundingSignals": {
+            "type": "integer"
+          },
+          "withAcquisitionSignals": {
+            "type": "integer"
+          },
+          "withHiringSignals": {
+            "type": "integer"
+          },
+          "withJobChangeSignals": {
+            "type": "integer"
+          }
+        }
+      },
+      "EnrichmentResult": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["input", "matched", "companyId", "company", "signals"],
+        "properties": {
+          "input": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "matched": {
+            "type": "boolean"
+          },
+          "companyId": {
+            "type": ["string", "null"]
+          },
+          "company": {
+            "type": ["object", "null"],
+            "additionalProperties": true
+          },
+          "signals": {
+            "type": "object",
+            "required": [
+              "funding",
+              "acquisition",
+              "hiring",
+              "job_change",
+              "investors"
+            ],
+            "properties": {
+              "funding": {
+                "type": "array"
+              },
+              "acquisition": {
+                "type": "array"
+              },
+              "hiring": {
+                "type": "array"
+              },
+              "job_change": {
+                "type": "array"
+              },
+              "investors": {
+                "type": "array"
+              }
+            }
+          }
+        }
+      },
+      "Meta": {
+        "type": "object",
+        "required": ["endpoint", "creditsUsed"],
+        "properties": {
+          "endpoint": {
+            "type": "string"
+          },
+          "creditsUsed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "creditsRemaining": {
+            "type": "integer"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["success", "error", "code"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": false
+          },
+          "error": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "invalid_company_payload",
+              "invalid_api_key",
+              "subscription_expired",
+              "insufficient_credits",
+              "rate_limited",
+              "job_not_found",
+              "job_expired",
+              "match_engine_unavailable"
+            ]
+          }
+        }
+      }
+    },
+    "responses": {
+      "Error": {
+        "description": "Error response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "API key"
+      }
+    }
+  }
+}

@@ -18,15 +18,11 @@
         "groups": [
           {
             "group": "Get Started",
-            "pages": [
-              "index"
-            ]
+            "pages": ["index"]
           },
           {
             "group": "Available Filters & Enums",
-            "pages": [
-              "enums"
-            ]
+            "pages": ["enums"]
           }
         ]
       },
@@ -35,15 +31,11 @@
         "groups": [
           {
             "group": "Funding Signals API",
-            "pages": [
-              "api-reference/funding-signals/introduction"
-            ]
+            "pages": ["api-reference/funding-signals/introduction"]
           },
           {
             "group": "Endpoints",
-            "pages": [
-              "api-reference/funding-signals/endpoint/get"
-            ]
+            "pages": ["api-reference/funding-signals/endpoint/get"]
           }
         ]
       },
@@ -52,15 +44,11 @@
         "groups": [
           {
             "group": "Acquisition Signals API",
-            "pages": [
-              "api-reference/acquisition-signals/introduction"
-            ]
+            "pages": ["api-reference/acquisition-signals/introduction"]
           },
           {
             "group": "Endpoints",
-            "pages": [
-              "api-reference/acquisition-signals/endpoint/get"
-            ]
+            "pages": ["api-reference/acquisition-signals/endpoint/get"]
           }
         ]
       },
@@ -69,15 +57,11 @@
         "groups": [
           {
             "group": "Job Change Signals API",
-            "pages": [
-              "api-reference/job-change-signals/introduction"
-            ]
+            "pages": ["api-reference/job-change-signals/introduction"]
           },
           {
             "group": "Endpoints",
-            "pages": [
-              "api-reference/job-change-signals/endpoint/get"
-            ]
+            "pages": ["api-reference/job-change-signals/endpoint/get"]
           }
         ]
       },
@@ -86,15 +70,11 @@
         "groups": [
           {
             "group": "Hiring Signals API",
-            "pages": [
-              "api-reference/hiring-signals/introduction"
-            ]
+            "pages": ["api-reference/hiring-signals/introduction"]
           },
           {
             "group": "Endpoints",
-            "pages": [
-              "api-reference/hiring-signals/endpoint/get"
-            ]
+            "pages": ["api-reference/hiring-signals/endpoint/get"]
           }
         ]
       },
@@ -103,15 +83,11 @@
         "groups": [
           {
             "group": "Investors API",
-            "pages": [
-              "api-reference/investors/introduction"
-            ]
+            "pages": ["api-reference/investors/introduction"]
           },
           {
             "group": "Endpoints",
-            "pages": [
-              "api-reference/investors/endpoint/get"
-            ]
+            "pages": ["api-reference/investors/endpoint/get"]
           }
         ]
       },
@@ -120,15 +96,11 @@
         "groups": [
           {
             "group": "Companies API",
-            "pages": [
-              "api-reference/companies/introduction"
-            ]
+            "pages": ["api-reference/companies/introduction"]
           },
           {
             "group": "Endpoints",
-            "pages": [
-              "api-reference/companies/endpoint/get"
-            ]
+            "pages": ["api-reference/companies/endpoint/get"]
           }
         ]
       },
@@ -137,14 +109,13 @@
         "groups": [
           {
             "group": "CSV Enrichment API",
-            "pages": [
-              "api-reference/csv-enrichment/introduction"
-            ]
+            "pages": ["api-reference/csv-enrichment/introduction"]
           },
           {
             "group": "Endpoints",
             "pages": [
-              "api-reference/csv-enrichment/endpoint/post"
+              "api-reference/csv-enrichment/endpoint/post",
+              "api-reference/csv-enrichment/endpoint/get"
             ]
           }
         ]

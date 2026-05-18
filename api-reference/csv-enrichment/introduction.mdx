@@ -1,6 +1,6 @@
 ---
-title: 'Introduction'
-description: 'Submit company lists for enrichment with funding, acquisition, hiring, job change, and investor intelligence'
+title: "Introduction"
+description: "Submit company lists for enrichment with funding, acquisition, hiring, job change, and investor intelligence"
 ---
 
 ## Welcome to the CSV Enrichment API
@@ -8,11 +8,19 @@ description: 'Submit company lists for enrichment with funding, acquisition, hir
 The CSV Enrichment API lets clients submit a list of companies and start the same enrichment workflow available in the Signalbase dashboard. Each company is matched by name, website, or LinkedIn URL, then enriched with company profile data and available signals from Signalbase.
 
 <Card
-  title="CSV Enrichment Endpoint"
+  title="Create CSV Enrichment Job"
   icon="file-spreadsheet"
   href="/api-reference/csv-enrichment/endpoint/post"
 >
-  View the complete OpenAPI specification
+  Submit companies for enrichment
+</Card>
+
+<Card
+  title="Get CSV Enrichment Job"
+  icon="rotate-cw"
+  href="/api-reference/csv-enrichment/endpoint/get"
+>
+  Poll status and retrieve paginated results
 </Card>
 
 ## Key Features
@@ -21,6 +29,8 @@ The CSV Enrichment API lets clients submit a list of companies and start the sam
 - **Signal Enrichment**: Enrich matched companies with funding, acquisition, hiring, job change, and investor data
 - **Dashboard Parity**: Uses the same enrichment job pipeline as dashboard CSV enrichment
 - **Asynchronous Processing**: Returns a job ID immediately while enrichment runs in the background
+- **Agent-friendly Retrieval**: Poll a free GET endpoint with strict statuses, summary counts, and paginated results
+- **Synchronous Small-list Mode**: Use `wait=true` for short lists that should complete in one agent turn
 - **Credit-based Usage**: Transparent credit consumption per API request
 
 ## Authentication
@@ -42,20 +52,22 @@ curl -X POST "https://www.trysignalbase.com/api/v2/csv-enrichment" \
   }'
 ```
 
-## Request Body
+## Create Request Body
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `companies` | array | Yes | Companies to enrich. Maximum 1,000 companies per request. |
-| `fileName` | string | No | Optional label stored on the enrichment job. Defaults to `api-companies.json`. |
+| Field       | Type    | Required | Description                                                                                                                |
+| ----------- | ------- | -------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `companies` | array   | Yes      | Companies to enrich. Maximum 1,000 companies per request.                                                                  |
+| `fileName`  | string  | No       | Optional label stored on the enrichment job. Defaults to `api-companies.json`.                                             |
+| `wait`      | boolean | No       | If `true`, the API waits up to `timeout` seconds and returns completed results inline when available. Defaults to `false`. |
+| `timeout`   | integer | No       | Maximum wait time in seconds when `wait=true`. Minimum `1`, maximum `30`, default `30`.                                    |
 
 Each company must include at least one of:
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `company_name` | string | Company name |
-| `website_url` | string | Company website URL or domain |
-| `linkedin_url` | string | Company LinkedIn URL |
+| Field          | Type   | Description                   |
+| -------------- | ------ | ----------------------------- |
+| `company_name` | string | Company name                  |
+| `website_url`  | string | Company website URL or domain |
+| `linkedin_url` | string | Company LinkedIn URL          |
 
 The API also accepts common aliases such as `companyName`, `name`, `websiteUrl`, `website`, `domain`, `linkedinUrl`, `linkedin`, and `company_linkedin_url`.
 
@@ -82,12 +94,92 @@ A successful request creates an enrichment job and returns its ID:
 }
 ```
 
+For small lists, use synchronous mode:
+
+```bash
+curl -X POST "https://www.trysignalbase.com/api/v2/csv-enrichment" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "wait": true,
+    "timeout": 30,
+    "companies": [
+      { "company_name": "Mollie", "website_url": "mollie.com" }
+    ]
+  }'
+```
+
+If the job completes within the timeout, the response includes `status`, `progress`, `summary`, and `results` inline. If it is still `pending` or `running`, the response remains job-ID based and you should poll the GET endpoint.
+
+## Retrieve Results
+
+Polling is free and returns `creditsUsed: 0`.
+
+```bash
+curl "https://www.trysignalbase.com/api/v2/csv-enrichment/7f4b7a34-8d65-4cc3-8ab0-3477f8a967a6?limit=50" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+The response uses strict status values: `pending`, `running`, `completed`, or `failed`.
+
+```json
+{
+  "success": true,
+  "data": {
+    "jobId": "7f4b7a34-8d65-4cc3-8ab0-3477f8a967a6",
+    "status": "completed",
+    "progress": { "processed": 148, "total": 148 },
+    "submittedAt": "2026-05-12T07:25:42.000Z",
+    "completedAt": "2026-05-12T07:27:01.000Z",
+    "summary": {
+      "totalInputs": 148,
+      "matched": 87,
+      "unmatched": 61,
+      "withFundingSignals": 12,
+      "withAcquisitionSignals": 3,
+      "withHiringSignals": 54,
+      "withJobChangeSignals": 0
+    },
+    "results": [],
+    "nextCursor": null
+  },
+  "meta": {
+    "endpoint": "csv.enrichment.get",
+    "creditsUsed": 0
+  }
+}
+```
+
+`results` is paginated. Use `limit` up to `100`; when `nextCursor` is not `null`, request the next page with `?cursor=<nextCursor>&limit=50`.
+
 ## Service Level
 
-- **Rate Limit**: Based on your subscription tier
+- **Processing-time target**: Approximately 30 seconds for 100 companies and approximately 2 minutes for 1,000 companies, depending on match complexity and upstream availability.
+- **Recommended polling cadence**: Poll every 5 seconds for the first 60 seconds, then every 30 seconds. Stop polling after 10 minutes and surface the `jobId`.
+- **Result retention**: Job IDs are retrievable for 30 days. After that, the API returns `410 Gone` with code `job_expired`.
 - **Maximum Companies**: Up to 1,000 companies per request
-- **Processing**: Enrichment runs asynchronously after the job is created
-- **Credit Cost**: 1 API credit per accepted request
+- **Credit Cost**: 1 API credit per accepted submit request; polling costs 0 credits
+
+## Rate Limits
+
+| Tier          | Requests/minute     | Concurrent enrichment jobs | Max companies/job | Jobs/day |
+| ------------- | ------------------- | -------------------------- | ----------------- | -------- |
+| Free          | API access disabled | 0                          | 0                 | 0        |
+| GTM Signals   | 60                  | 3                          | 1,000             | 10       |
+| Workflows     | 60                  | 3                          | 1,000             | 10       |
+| Signal Engine | Custom              | Custom                     | 1,000 by default  | Custom   |
+
+Team-specific limits may be higher when configured contractually.
+
+## Match Rules
+
+Identifier precedence is:
+
+1. `linkedin_url` / `linkedinUrl` / `linkedin` / `company_linkedin_url`
+2. `website_url` / `websiteUrl` / `website` / `domain`
+3. `company_name` / `companyName` / `name`
+
+LinkedIn and website/domain matching require a normalized exact match. If one of those stronger identifiers is provided and no confident match is found, the matcher does not fall back to a fuzzy company-name guess. Company-name matching is used when no LinkedIn or website/domain identifier is provided.
 
 ## Error Handling
 
@@ -97,6 +189,7 @@ The API returns standard HTTP status codes:
 - **400**: Invalid request body or missing company identifiers
 - **401**: Unauthorized - Invalid or missing API key
 - **402**: Insufficient credits
+- **403**: Subscription expired
 - **429**: Rate limit exceeded
 - **500**: Internal server error
 
@@ -105,6 +198,40 @@ Error responses include:
 ```json
 {
   "success": false,
-  "error": "Error message description"
+  "error": "Error message description",
+  "code": "invalid_company_payload"
+}
+```
+
+Known error codes:
+
+| Code                       | HTTP status | Meaning                                                             |
+| -------------------------- | ----------- | ------------------------------------------------------------------- |
+| `invalid_company_payload`  | 400         | The request JSON, company list, cursor, or identifiers are invalid. |
+| `invalid_api_key`          | 401         | The Authorization header is missing or the API key is invalid.      |
+| `insufficient_credits`     | 402         | The team does not have enough API credits to create a job.          |
+| `subscription_expired`     | 403         | The API key belongs to a team without an active subscription.       |
+| `rate_limited`             | 429         | The team exceeded the endpoint rate limit.                          |
+| `job_not_found`            | 404         | The job ID does not exist for the authenticated team.               |
+| `job_expired`              | 410         | The job is older than the 30-day retention window.                  |
+| `match_engine_unavailable` | 500         | The enrichment worker or match engine failed unexpectedly.          |
+
+When a job itself fails, GET returns HTTP 200 with `data.status: "failed"` and an `error` object:
+
+```json
+{
+  "success": true,
+  "data": {
+    "jobId": "7f4b7a34-8d65-4cc3-8ab0-3477f8a967a6",
+    "status": "failed",
+    "error": {
+      "code": "match_engine_unavailable",
+      "message": "CSV enrichment job failed."
+    }
+  },
+  "meta": {
+    "endpoint": "csv.enrichment.get",
+    "creditsUsed": 0
+  }
 }
 ```

@@ -119,6 +119,28 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "Webhooks",
+        "groups": [
+          {
+            "group": "Webhooks API",
+            "pages": ["api-reference/webhooks/introduction"]
+          },
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api-reference/webhooks/endpoint/create",
+              "api-reference/webhooks/endpoint/list",
+              "api-reference/webhooks/endpoint/retrieve",
+              "api-reference/webhooks/endpoint/update",
+              "api-reference/webhooks/endpoint/delete",
+              "api-reference/webhooks/endpoint/test",
+              "api-reference/webhooks/endpoint/deliveries",
+              "api-reference/webhooks/endpoint/retry"
+            ]
+          }
+        ]
       }
     ],
     "global": {}

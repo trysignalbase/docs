@@ -7,7 +7,7 @@ description: "Manage webhook subscriptions as a first-class API resource — cre
 
 Webhooks push real-time signal data to **your own HTTPS endpoint** the moment events happen — funding rounds, acquisitions, job changes, new hires, and newly discovered companies. Instead of polling, your system receives a signed `POST` with the full event payload.
 
-Webhooks are a **first-class API resource**: you can create, list, retrieve, update, rotate the signing secret of, test, and delete them entirely over REST, plus list delivery attempts and replay failed ones. The dashboard Webhooks UI calls these exact endpoints — there is no separate code path, so anything you do in the dashboard is doable via the API and vice versa.
+Webhooks are a **first-class API resource**: you can create, list, retrieve, update, rotate the signing secret of, test, and delete them entirely over REST, plus list delivery attempts and replay failed ones. Anything you do in the dashboard for webhooks is doable via the API now.
 
 <CardGroup cols={2}>
   <Card title="Create Webhook" icon="plus" href="/api-reference/webhooks/endpoint/create">

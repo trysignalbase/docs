@@ -62,7 +62,7 @@ Every endpoint returns a consistent JSON envelope.
   "success": true,
   "data": {},
   "pagination": {},
-  "meta": { "endpoint": "webhooks.create", "creditsUsed": 1 }
+  "meta": { "endpoint": "webhooks.create", "creditsUsed": 0 }
 }
 ```
 
@@ -141,17 +141,17 @@ Two additional event types may appear on the **receiving** side but are not regu
 
 | Item | Value |
 | --- | --- |
-| Create a webhook | 1 API credit |
+| Create a webhook | Free (0 credits) |
 | Successful delivery (including a successful retry) | 1 API credit |
 | List / retrieve / update / delete / test / list deliveries | Free (0 credits) |
 | Max active webhooks per team | 10 |
 | Endpoint URL max length | 500 characters |
-| Allowed protocols | HTTPS |
+| Allowed protocols | HTTP or HTTPS (HTTPS strongly recommended) |
 | Stored response body | First 1000 characters per delivery |
 | Default rate limit | 60 requests/minute per endpoint per team (higher limits available contractually) |
 
 <Note>
-Webhook management and read endpoints are free; only **creating** a webhook and **successful deliveries** consume credits. If your team's API credit balance reaches zero, deliveries stop.
+Webhook management, reads, and creation are all free; only **successful deliveries** (including a successful manual retry) consume credits. If your team's API credit balance reaches zero, deliveries stop.
 </Note>
 
 ## The Delivery Your Endpoint Receives

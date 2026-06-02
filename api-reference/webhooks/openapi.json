@@ -1,0 +1,1015 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Webhooks API",
+    "description": "Manage webhook subscriptions as a first-class API resource. Create, list, retrieve, update, rotate the signing secret of, test, and delete webhooks; list delivery attempts and manually retry failed deliveries. The dashboard Webhooks UI calls these exact endpoints — there is no separate code path.",
+    "license": {
+      "name": "MIT"
+    },
+    "version": "2.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://www.trysignalbase.com/api/v2"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/webhooks": {
+      "post": {
+        "summary": "Create Webhook",
+        "description": "Create a webhook subscription for the authenticated team. The full signing secret is returned exactly once in this response — store it now, because every later read returns only a 4-character preview. Costs 1 API credit. A team may have at most 10 active webhooks.",
+        "operationId": "createWebhook",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookCreateRequest"
+              },
+              "example": {
+                "endpoint_url": "https://example.com/hooks/signalbase",
+                "event_types": ["funding.created", "hiring.created"],
+                "filters": { "countries": "US,GB" }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Webhook created. data includes the full signing secret (shown only on create).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookCreateResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "id": "b1f2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+                    "endpoint_url": "https://example.com/hooks/signalbase",
+                    "event_types": ["funding.created", "hiring.created"],
+                    "filters": { "countries": "US,GB" },
+                    "active": true,
+                    "created_at": "2026-05-29T10:30:00.000Z",
+                    "updated_at": "2026-05-29T10:30:00.000Z",
+                    "last_modified_by": "user_2a9f8c7b6d5e4f3a",
+                    "last_modified_via": "api",
+                    "secret": "3f9a1c7e-2b4d-4e6a-9f1b-8c2d3e4f5a6b",
+                    "stats": {
+                      "total_deliveries": 0,
+                      "successful_deliveries": 0,
+                      "failed_deliveries": 0,
+                      "last_success_at": null,
+                      "last_failure_at": null,
+                      "consecutive_failures": 0
+                    }
+                  },
+                  "meta": { "endpoint": "webhooks.create", "creditsUsed": 1 }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/SubscriptionExpired" },
+          "429": { "$ref": "#/components/responses/RateLimited" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "get": {
+        "summary": "List Webhooks",
+        "description": "List the authenticated team's active webhook subscriptions, newest first. Secrets are never returned here — each item includes only secret_preview. Free (0 credits).",
+        "operationId": "listWebhooks",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Maximum number of webhooks to return. Minimum 1, maximum 100, default 100.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 100
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "description": "Number of webhooks to skip for pagination. Default 0.",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of webhook subscriptions (secret preview only).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookListResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": [
+                    {
+                      "id": "b1f2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+                      "endpoint_url": "https://example.com/hooks/signalbase",
+                      "event_types": ["funding.created", "hiring.created"],
+                      "filters": { "countries": "US,GB" },
+                      "active": true,
+                      "created_at": "2026-05-29T10:30:00.000Z",
+                      "updated_at": "2026-05-29T10:30:00.000Z",
+                      "last_modified_by": "user_2a9f8c7b6d5e4f3a",
+                      "last_modified_via": "api",
+                      "secret_preview": "…5a6b",
+                      "stats": {
+                        "total_deliveries": 42,
+                        "successful_deliveries": 40,
+                        "failed_deliveries": 2,
+                        "last_success_at": "2026-05-29T12:00:00.000Z",
+                        "last_failure_at": "2026-05-28T09:00:00.000Z",
+                        "consecutive_failures": 0
+                      }
+                    }
+                  ],
+                  "pagination": { "limit": 100, "offset": 0, "count": 1 },
+                  "meta": { "endpoint": "webhooks.list", "creditsUsed": 0 }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/SubscriptionExpired" },
+          "429": { "$ref": "#/components/responses/RateLimited" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/webhooks/{id}": {
+      "get": {
+        "summary": "Retrieve Webhook",
+        "description": "Retrieve a single active webhook by ID. Returns secret_preview only (never the full secret). Soft-deleted webhooks return 404. Free (0 credits).",
+        "operationId": "getWebhook",
+        "parameters": [
+          { "$ref": "#/components/parameters/WebhookId" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The webhook subscription (secret preview only).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookGetResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "id": "b1f2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+                    "endpoint_url": "https://example.com/hooks/signalbase",
+                    "event_types": ["funding.created", "hiring.created"],
+                    "filters": { "countries": "US,GB" },
+                    "active": true,
+                    "created_at": "2026-05-29T10:30:00.000Z",
+                    "updated_at": "2026-05-29T10:30:00.000Z",
+                    "last_modified_by": "user_2a9f8c7b6d5e4f3a",
+                    "last_modified_via": "api",
+                    "secret_preview": "…5a6b",
+                    "stats": {
+                      "total_deliveries": 42,
+                      "successful_deliveries": 40,
+                      "failed_deliveries": 2,
+                      "last_success_at": "2026-05-29T12:00:00.000Z",
+                      "last_failure_at": "2026-05-28T09:00:00.000Z",
+                      "consecutive_failures": 0
+                    }
+                  },
+                  "meta": { "endpoint": "webhooks.get", "creditsUsed": 0 }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/SubscriptionExpired" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/RateLimited" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "put": {
+        "summary": "Update Webhook",
+        "description": "Update any subset of a webhook's fields. Set rotate_secret to true to mint a new signing secret — the response then includes the full new secret (shown only on rotation) and the previous secret immediately stops verifying. Set active to true to re-enable a previously deleted webhook. Free (0 credits).",
+        "operationId": "updateWebhook",
+        "parameters": [
+          { "$ref": "#/components/parameters/WebhookId" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookUpdateRequest"
+              },
+              "examples": {
+                "changeEvents": {
+                  "summary": "Change subscribed events and pause",
+                  "value": {
+                    "event_types": ["funding.created"],
+                    "active": false
+                  }
+                },
+                "rotateSecret": {
+                  "summary": "Rotate the signing secret",
+                  "value": { "rotate_secret": true }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated webhook. Includes the full secret only when rotate_secret was true; otherwise secret_preview.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookUpdateResponse"
+                },
+                "examples": {
+                  "updated": {
+                    "summary": "Fields updated (no rotation)",
+                    "value": {
+                      "success": true,
+                      "data": {
+                        "id": "b1f2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+                        "endpoint_url": "https://example.com/hooks/signalbase",
+                        "event_types": ["funding.created"],
+                        "filters": { "countries": "US,GB" },
+                        "active": false,
+                        "created_at": "2026-05-29T10:30:00.000Z",
+                        "updated_at": "2026-05-29T13:00:00.000Z",
+                        "last_modified_by": "user_2a9f8c7b6d5e4f3a",
+                        "last_modified_via": "api",
+                        "secret_preview": "…5a6b",
+                        "stats": {
+                          "total_deliveries": 42,
+                          "successful_deliveries": 40,
+                          "failed_deliveries": 2,
+                          "last_success_at": "2026-05-29T12:00:00.000Z",
+                          "last_failure_at": "2026-05-28T09:00:00.000Z",
+                          "consecutive_failures": 0
+                        }
+                      },
+                      "meta": { "endpoint": "webhooks.update", "creditsUsed": 0 }
+                    }
+                  },
+                  "rotated": {
+                    "summary": "Secret rotated (full secret returned once)",
+                    "value": {
+                      "success": true,
+                      "data": {
+                        "id": "b1f2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+                        "endpoint_url": "https://example.com/hooks/signalbase",
+                        "event_types": ["funding.created", "hiring.created"],
+                        "filters": { "countries": "US,GB" },
+                        "active": true,
+                        "created_at": "2026-05-29T10:30:00.000Z",
+                        "updated_at": "2026-05-29T13:05:00.000Z",
+                        "last_modified_by": "user_2a9f8c7b6d5e4f3a",
+                        "last_modified_via": "api",
+                        "secret": "7d2e9b1a-4c6f-4d8e-9a0b-1c2d3e4f5061",
+                        "stats": {
+                          "total_deliveries": 42,
+                          "successful_deliveries": 40,
+                          "failed_deliveries": 2,
+                          "last_success_at": "2026-05-29T12:00:00.000Z",
+                          "last_failure_at": "2026-05-28T09:00:00.000Z",
+                          "consecutive_failures": 0
+                        }
+                      },
+                      "meta": { "endpoint": "webhooks.update", "creditsUsed": 0 }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/SubscriptionExpired" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/RateLimited" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "delete": {
+        "summary": "Delete Webhook",
+        "description": "Soft-delete a webhook by setting active to false. It stops receiving events and disappears from list/retrieve. The record and its delivery history are retained, and it can be re-enabled with PUT active:true. Free (0 credits).",
+        "operationId": "deleteWebhook",
+        "parameters": [
+          { "$ref": "#/components/parameters/WebhookId" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The webhook was soft-deleted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookDeleteResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "success": true,
+                    "id": "b1f2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+                    "active": false
+                  },
+                  "meta": { "endpoint": "webhooks.delete", "creditsUsed": 0 }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/SubscriptionExpired" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/RateLimited" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/webhooks/{id}/test": {
+      "post": {
+        "summary": "Send Test Event",
+        "description": "Deliver a signed system.test event to the webhook's endpoint immediately, without waiting for a real signal, and record it as a delivery. The request body is ignored. Returns the delivery outcome. Free (0 credits).",
+        "operationId": "testWebhook",
+        "parameters": [
+          { "$ref": "#/components/parameters/WebhookId" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The test event was sent and recorded as a delivery.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookTestResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "success": true,
+                    "delivery_id": "9c8b7a65-4d3e-4f21-8a0b-1c2d3e4f5a60",
+                    "event_id": "1f2e3d4c-5b6a-4790-8a1b-2c3d4e5f6071",
+                    "event_type": "system.test",
+                    "response_status": 200,
+                    "response_body": "ok"
+                  },
+                  "meta": { "endpoint": "webhooks.test", "creditsUsed": 0 }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/SubscriptionExpired" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/RateLimited" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/webhooks/{id}/deliveries": {
+      "get": {
+        "summary": "List Deliveries",
+        "description": "List delivery attempts for a webhook, newest first, using keyset (cursor) pagination. Optionally filter by status. Free (0 credits).",
+        "operationId": "listWebhookDeliveries",
+        "parameters": [
+          { "$ref": "#/components/parameters/WebhookId" },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Deliveries per page. Minimum 1, maximum 100, default 50.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "Filter by delivery status.",
+            "schema": {
+              "$ref": "#/components/schemas/DeliveryStatus"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "Opaque pagination cursor returned as pagination.next_cursor. Pass it back to fetch the next page. A null next_cursor means there are no more rows.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of delivery attempts.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookDeliveriesResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": [
+                    {
+                      "id": "9c8b7a65-4d3e-4f21-8a0b-1c2d3e4f5a60",
+                      "event_type": "funding.created",
+                      "event_id": "1f2e3d4c-5b6a-4790-8a1b-2c3d4e5f6071",
+                      "status": "failed",
+                      "response_status": 500,
+                      "response_body": "internal error",
+                      "attempt_count": 1,
+                      "delivered_at": null,
+                      "failed_at": "2026-05-29T09:00:00.000Z",
+                      "created_at": "2026-05-29T09:00:00.000Z"
+                    }
+                  ],
+                  "pagination": {
+                    "next_cursor": "eyJjcmVhdGVkQXQiOiIyMDI2LTA1LTI5VDA5OjAwOjAwLjAwMFoiLCJpZCI6IjljOGI3YTY1In0",
+                    "limit": 50
+                  },
+                  "meta": { "endpoint": "webhooks.deliveries.list", "creditsUsed": 0 }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/SubscriptionExpired" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/RateLimited" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/webhooks/{id}/deliveries/{deliveryId}/retry": {
+      "post": {
+        "summary": "Retry Delivery",
+        "description": "Replay a failed delivery inline. The retry reuses the original event_id and event_type (so receivers can dedupe) and re-signs the payload with the subscription's current secret. Retrying a delivery that already succeeded returns 409. A successful retry is billed as one delivery (1 credit); a failed retry is free.",
+        "operationId": "retryWebhookDelivery",
+        "parameters": [
+          { "$ref": "#/components/parameters/WebhookId" },
+          {
+            "name": "deliveryId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the delivery to retry (the id field from List Deliveries).",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The retry was attempted. success indicates whether the replay reached the endpoint with a 2xx.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookRetryResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "delivery_id": "0a1b2c3d-4e5f-4061-8273-849506a1b2c3",
+                    "previous_delivery_id": "9c8b7a65-4d3e-4f21-8a0b-1c2d3e4f5a60",
+                    "status": "done",
+                    "response_status": 200,
+                    "attempt_count": 2,
+                    "success": true
+                  },
+                  "meta": { "endpoint": "webhooks.deliveries.retry", "creditsUsed": 1 }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/SubscriptionExpired" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "429": { "$ref": "#/components/responses/RateLimited" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "WebhookId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "The webhook subscription ID.",
+        "schema": { "type": "string" }
+      }
+    },
+    "schemas": {
+      "EventType": {
+        "type": "string",
+        "description": "Event type a subscription can register for. system.test is accepted but only ever delivered by the Send Test Event endpoint; it never fires automatically.",
+        "enum": [
+          "funding.created",
+          "acquisition.created",
+          "job_change.created",
+          "hiring.created",
+          "new_company.created",
+          "system.test"
+        ]
+      },
+      "DeliveryStatus": {
+        "type": "string",
+        "description": "Delivery lifecycle status. done = endpoint returned 2xx; failed = non-2xx or network error; pending = recorded but not yet resolved.",
+        "enum": ["done", "failed", "pending"]
+      },
+      "WebhookStats": {
+        "type": "object",
+        "required": [
+          "total_deliveries",
+          "successful_deliveries",
+          "failed_deliveries",
+          "last_success_at",
+          "last_failure_at",
+          "consecutive_failures"
+        ],
+        "properties": {
+          "total_deliveries": { "type": "integer", "minimum": 0 },
+          "successful_deliveries": { "type": "integer", "minimum": 0 },
+          "failed_deliveries": { "type": "integer", "minimum": 0 },
+          "last_success_at": { "type": ["string", "null"], "format": "date-time" },
+          "last_failure_at": { "type": ["string", "null"], "format": "date-time" },
+          "consecutive_failures": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "Webhook": {
+        "type": "object",
+        "description": "A webhook subscription. List/retrieve/update(no rotation)/delete include secret_preview; create and rotate_secret include the full secret instead.",
+        "required": [
+          "id",
+          "endpoint_url",
+          "event_types",
+          "filters",
+          "active",
+          "created_at",
+          "updated_at",
+          "last_modified_by",
+          "last_modified_via",
+          "stats"
+        ],
+        "properties": {
+          "id": { "type": "string", "description": "Unique webhook ID (UUID)." },
+          "endpoint_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "HTTPS endpoint that receives deliveries."
+          },
+          "event_types": {
+            "type": "array",
+            "description": "Event types this subscription is registered for.",
+            "items": { "$ref": "#/components/schemas/EventType" }
+          },
+          "filters": {
+            "type": "object",
+            "description": "Optional string key/value filters that narrow which events are delivered, using the same filter keys as the dashboard.",
+            "additionalProperties": { "type": "string" }
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Whether the webhook is active. Soft-deleted webhooks are active=false."
+          },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" },
+          "last_modified_by": {
+            "type": ["string", "null"],
+            "description": "ID of the user who last modified the webhook. Null if created before audit columns existed."
+          },
+          "last_modified_via": {
+            "type": ["string", "null"],
+            "description": "Where the last change originated.",
+            "enum": ["api", "dashboard", null]
+          },
+          "secret": {
+            "type": "string",
+            "description": "Full HMAC signing secret (UUID). Returned ONLY on create and on update with rotate_secret:true."
+          },
+          "secret_preview": {
+            "type": "string",
+            "description": "An ellipsis followed by the last 4 characters of the secret (e.g. \"…5a6b\"). Returned on every read instead of the full secret."
+          },
+          "stats": { "$ref": "#/components/schemas/WebhookStats" }
+        }
+      },
+      "Delivery": {
+        "type": "object",
+        "required": [
+          "id",
+          "event_type",
+          "event_id",
+          "status",
+          "response_status",
+          "response_body",
+          "attempt_count",
+          "delivered_at",
+          "failed_at",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Delivery ID. Pass to the retry endpoint as deliveryId."
+          },
+          "event_type": { "$ref": "#/components/schemas/EventType" },
+          "event_id": {
+            "type": "string",
+            "description": "Event ID, stable across the original delivery and any retries — use it to dedupe."
+          },
+          "status": { "$ref": "#/components/schemas/DeliveryStatus" },
+          "response_status": {
+            "type": ["integer", "null"],
+            "description": "HTTP status the endpoint returned, or 0 on a network error, null if not recorded."
+          },
+          "response_body": {
+            "type": ["string", "null"],
+            "description": "First 1000 characters of the endpoint's response body."
+          },
+          "attempt_count": { "type": "integer", "minimum": 1 },
+          "delivered_at": { "type": ["string", "null"], "format": "date-time" },
+          "failed_at": { "type": ["string", "null"], "format": "date-time" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "WebhookCreateRequest": {
+        "type": "object",
+        "required": ["endpoint_url", "event_types"],
+        "description": "Field names accept snake_case (canonical) or camelCase (endpointUrl, eventTypes).",
+        "properties": {
+          "endpoint_url": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 500,
+            "description": "Destination URL. Must be a valid http/https URL of at most 500 characters. In production, localhost and private/link-local addresses are rejected.",
+            "example": "https://example.com/hooks/signalbase"
+          },
+          "event_types": {
+            "type": "array",
+            "minItems": 1,
+            "description": "Event types to subscribe to. Duplicates are removed.",
+            "items": { "$ref": "#/components/schemas/EventType" },
+            "example": ["funding.created", "hiring.created"]
+          },
+          "filters": {
+            "type": "object",
+            "description": "Optional string key/value filters that narrow which events are delivered.",
+            "additionalProperties": { "type": "string" },
+            "example": { "countries": "US,GB" }
+          }
+        }
+      },
+      "WebhookUpdateRequest": {
+        "type": "object",
+        "description": "Send any subset of fields. Field names accept snake_case or camelCase (endpointUrl, eventTypes, rotateSecret).",
+        "properties": {
+          "endpoint_url": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 500,
+            "description": "New destination URL. Same validation as create."
+          },
+          "event_types": {
+            "type": "array",
+            "description": "Replacement list of subscribed event types.",
+            "items": { "$ref": "#/components/schemas/EventType" }
+          },
+          "filters": {
+            "type": "object",
+            "description": "Replacement filter map.",
+            "additionalProperties": { "type": "string" }
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Set false to pause, or true to re-enable a soft-deleted webhook."
+          },
+          "rotate_secret": {
+            "type": "boolean",
+            "description": "If true, generate a new signing secret. The response includes the full new secret once; the old secret stops verifying immediately."
+          }
+        }
+      },
+      "ResponseMeta": {
+        "type": "object",
+        "required": ["endpoint", "creditsUsed"],
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "description": "Endpoint identifier (e.g. webhooks.create)."
+          },
+          "creditsUsed": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "API credits consumed by this request."
+          }
+        }
+      },
+      "OffsetPagination": {
+        "type": "object",
+        "required": ["limit", "offset", "count"],
+        "properties": {
+          "limit": { "type": "integer" },
+          "offset": { "type": "integer" },
+          "count": {
+            "type": "integer",
+            "description": "Number of items returned in this page."
+          }
+        }
+      },
+      "CursorPagination": {
+        "type": "object",
+        "required": ["next_cursor", "limit"],
+        "properties": {
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page, or null when there are no more rows."
+          },
+          "limit": { "type": "integer" }
+        }
+      },
+      "WebhookCreateResponse": {
+        "type": "object",
+        "required": ["success", "data", "meta"],
+        "properties": {
+          "success": { "type": "boolean", "const": true },
+          "data": { "$ref": "#/components/schemas/Webhook" },
+          "meta": { "$ref": "#/components/schemas/ResponseMeta" }
+        }
+      },
+      "WebhookGetResponse": {
+        "type": "object",
+        "required": ["success", "data", "meta"],
+        "properties": {
+          "success": { "type": "boolean", "const": true },
+          "data": { "$ref": "#/components/schemas/Webhook" },
+          "meta": { "$ref": "#/components/schemas/ResponseMeta" }
+        }
+      },
+      "WebhookUpdateResponse": {
+        "type": "object",
+        "required": ["success", "data", "meta"],
+        "properties": {
+          "success": { "type": "boolean", "const": true },
+          "data": { "$ref": "#/components/schemas/Webhook" },
+          "meta": { "$ref": "#/components/schemas/ResponseMeta" }
+        }
+      },
+      "WebhookListResponse": {
+        "type": "object",
+        "required": ["success", "data", "pagination", "meta"],
+        "properties": {
+          "success": { "type": "boolean", "const": true },
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Webhook" }
+          },
+          "pagination": { "$ref": "#/components/schemas/OffsetPagination" },
+          "meta": { "$ref": "#/components/schemas/ResponseMeta" }
+        }
+      },
+      "WebhookDeleteResponse": {
+        "type": "object",
+        "required": ["success", "data", "meta"],
+        "properties": {
+          "success": { "type": "boolean", "const": true },
+          "data": {
+            "type": "object",
+            "required": ["success", "id", "active"],
+            "properties": {
+              "success": { "type": "boolean", "const": true },
+              "id": { "type": "string" },
+              "active": { "type": "boolean", "const": false }
+            }
+          },
+          "meta": { "$ref": "#/components/schemas/ResponseMeta" }
+        }
+      },
+      "WebhookTestResponse": {
+        "type": "object",
+        "required": ["success", "data", "meta"],
+        "properties": {
+          "success": { "type": "boolean", "const": true },
+          "data": {
+            "type": "object",
+            "required": [
+              "success",
+              "delivery_id",
+              "event_id",
+              "event_type",
+              "response_status",
+              "response_body"
+            ],
+            "properties": {
+              "success": {
+                "type": "boolean",
+                "description": "Whether the endpoint accepted the test event with a 2xx."
+              },
+              "delivery_id": { "type": "string" },
+              "event_id": { "type": "string" },
+              "event_type": { "type": "string", "const": "system.test" },
+              "response_status": { "type": "integer" },
+              "response_body": { "type": "string" }
+            }
+          },
+          "meta": { "$ref": "#/components/schemas/ResponseMeta" }
+        }
+      },
+      "WebhookDeliveriesResponse": {
+        "type": "object",
+        "required": ["success", "data", "pagination", "meta"],
+        "properties": {
+          "success": { "type": "boolean", "const": true },
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Delivery" }
+          },
+          "pagination": { "$ref": "#/components/schemas/CursorPagination" },
+          "meta": { "$ref": "#/components/schemas/ResponseMeta" }
+        }
+      },
+      "WebhookRetryResponse": {
+        "type": "object",
+        "required": ["success", "data", "meta"],
+        "properties": {
+          "success": { "type": "boolean", "const": true },
+          "data": {
+            "type": "object",
+            "required": [
+              "delivery_id",
+              "previous_delivery_id",
+              "status",
+              "response_status",
+              "attempt_count",
+              "success"
+            ],
+            "properties": {
+              "delivery_id": {
+                "type": "string",
+                "description": "ID of the new delivery row created by this retry."
+              },
+              "previous_delivery_id": {
+                "type": "string",
+                "description": "ID of the delivery that was retried."
+              },
+              "status": { "$ref": "#/components/schemas/DeliveryStatus" },
+              "response_status": { "type": "integer" },
+              "attempt_count": { "type": "integer", "minimum": 2 },
+              "success": { "type": "boolean" }
+            }
+          },
+          "meta": { "$ref": "#/components/schemas/ResponseMeta" }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["success", "error", "code"],
+        "properties": {
+          "success": { "type": "boolean", "const": false },
+          "error": { "type": "string", "description": "Human-readable error message." },
+          "code": {
+            "type": "string",
+            "enum": [
+              "bad_request",
+              "invalid_api_key",
+              "subscription_expired",
+              "not_found",
+              "conflict",
+              "rate_limited",
+              "internal_server_error",
+              "internal_error"
+            ]
+          },
+          "retryAfter": {
+            "type": "integer",
+            "description": "Seconds until a retry is recommended. Present on rate-limit (429) responses."
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Invalid request body, invalid endpoint URL, invalid event type, or the per-team active webhook limit (10) was reached.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "success": false,
+              "error": "Webhook URL must be a public address",
+              "code": "bad_request"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Missing or invalid API key.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "success": false,
+              "error": "Invalid API key. No key found.",
+              "code": "invalid_api_key"
+            }
+          }
+        }
+      },
+      "SubscriptionExpired": {
+        "description": "The API key belongs to a team without an active subscription.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "success": false,
+              "error": "Subscription expired. Please upgrade your subscription: https://www.trysignalbase.com/#pricing",
+              "code": "subscription_expired"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "No webhook (or delivery) with that ID exists for the authenticated team.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "success": false,
+              "error": "Webhook not found",
+              "code": "not_found"
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "The delivery being retried has already succeeded.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "success": false,
+              "error": "Delivery already succeeded",
+              "code": "conflict"
+            }
+          }
+        }
+      },
+      "RateLimited": {
+        "description": "Rate limit exceeded for this team and endpoint. The response also sets X-RateLimit-Limit, X-RateLimit-Remaining, and X-RateLimit-Reset headers.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "success": false,
+              "error": "Too many requests. Please upgrade your plan or slow down.",
+              "code": "rate_limited",
+              "retryAfter": 60
+            }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "Unexpected server error.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "success": false,
+              "error": "An unknown error occurred",
+              "code": "internal_error"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "API key",
+        "description": "Signalbase API key. Include as a Bearer token in the Authorization header."
+      }
+    }
+  }
+}

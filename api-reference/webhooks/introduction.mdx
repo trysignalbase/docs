@@ -1,0 +1,308 @@
+---
+title: "Introduction"
+description: "Manage webhook subscriptions as a first-class API resource — create, configure, test, and debug real-time signal delivery entirely over REST"
+---
+
+## Welcome to the Webhooks API
+
+Webhooks push real-time signal data to **your own HTTPS endpoint** the moment events happen — funding rounds, acquisitions, job changes, new hires, and newly discovered companies. Instead of polling, your system receives a signed `POST` with the full event payload.
+
+Webhooks are a **first-class API resource**: you can create, list, retrieve, update, rotate the signing secret of, test, and delete them entirely over REST, plus list delivery attempts and replay failed ones. Anything you do in the dashboard for webhooks is doable via the API now.
+
+<CardGroup cols={2}>
+  <Card title="Create Webhook" icon="plus" href="/api-reference/webhooks/endpoint/create">
+    Subscribe an endpoint to event types and receive the signing secret.
+  </Card>
+  <Card title="List Webhooks" icon="list" href="/api-reference/webhooks/endpoint/list">
+    Retrieve every active webhook for your team.
+  </Card>
+  <Card title="Send Test Event" icon="paper-plane" href="/api-reference/webhooks/endpoint/test">
+    Fire a signed <code>system.test</code> event without waiting for a real signal.
+  </Card>
+  <Card title="List Deliveries" icon="clock-rotate-left" href="/api-reference/webhooks/endpoint/deliveries">
+    Inspect recent delivery attempts and their status.
+  </Card>
+</CardGroup>
+
+## Key Features
+
+- **API-first**: Full CRUD plus test, delivery listing, and retry — no dashboard required.
+- **Signed payloads**: Every delivery carries an HMAC-SHA256 signature so you can verify authenticity.
+- **Secret rotation**: Rotate the signing secret in place without recreating the webhook.
+- **Event subscriptions**: Subscribe each webhook to exactly the event types you care about.
+- **Delivery visibility**: List delivery attempts with status, response code, and stored response body.
+- **Manual retry**: Replay a failed delivery; it reuses the original `event_id` so you can dedupe.
+- **Dashboard parity**: The same webhook is fully manageable from the dashboard and the API.
+
+## Authentication
+
+Every request needs an API key (`ff_live_…`) belonging to a team with an active or trialing subscription. Pass it as a Bearer token in the `Authorization` header. Get your key from the dashboard at [trysignalbase.com/workspace/api](https://www.trysignalbase.com/workspace/api).
+
+```bash
+curl -X POST "https://www.trysignalbase.com/api/v2/webhooks" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "endpoint_url": "https://example.com/hooks/signalbase",
+    "event_types": ["funding.created", "hiring.created"],
+    "filters": { "countries": "US,GB" }
+  }'
+```
+
+The base URL for all V2 endpoints is `https://www.trysignalbase.com/api/v2`. A key is bound to one team; all webhooks it creates belong to that team and are visible to every team member. Request bodies may use `snake_case` (canonical) or `camelCase` (`endpointUrl`, `eventTypes`, `rotateSecret`).
+
+## Response Envelope
+
+Every endpoint returns a consistent JSON envelope.
+
+**Success:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "pagination": {},
+  "meta": { "endpoint": "webhooks.create", "creditsUsed": 1 }
+}
+```
+
+`pagination` is present only on list endpoints. `meta.creditsUsed` reflects the credits this request consumed.
+
+**Error:**
+
+```json
+{ "success": false, "error": "Webhook not found", "code": "not_found" }
+```
+
+## The Webhook Resource
+
+```json
+{
+  "id": "b1f2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+  "endpoint_url": "https://example.com/hooks/signalbase",
+  "event_types": ["funding.created", "hiring.created"],
+  "filters": { "countries": "US,GB" },
+  "active": true,
+  "created_at": "2026-05-29T10:30:00.000Z",
+  "updated_at": "2026-05-29T10:30:00.000Z",
+  "last_modified_by": "user_2a9f8c7b6d5e4f3a",
+  "last_modified_via": "api",
+  "secret": "3f9a1c7e-2b4d-4e6a-9f1b-8c2d3e4f5a6b",
+  "secret_preview": "…5a6b",
+  "stats": {
+    "total_deliveries": 42,
+    "successful_deliveries": 40,
+    "failed_deliveries": 2,
+    "last_success_at": "2026-05-29T12:00:00.000Z",
+    "last_failure_at": "2026-05-28T09:00:00.000Z",
+    "consecutive_failures": 0
+  }
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | string | Unique webhook ID (UUID). |
+| `endpoint_url` | string | HTTPS endpoint that receives deliveries. |
+| `event_types` | string[] | Event types this webhook is subscribed to. |
+| `filters` | object | String key/value filters that narrow which events are delivered. |
+| `active` | boolean | `false` for soft-deleted/paused webhooks. |
+| `created_at` / `updated_at` | string | ISO-8601 timestamps. |
+| `last_modified_by` | string \| null | User ID of the last editor. |
+| `last_modified_via` | string \| null | `"api"` or `"dashboard"` — where the last change originated. |
+| `secret` | string | Full signing secret. **Returned only on create and on rotation.** |
+| `secret_preview` | string | Ellipsis + last 4 characters of the secret (e.g. `…5a6b`). Returned on every other read. |
+| `stats` | object | Delivery counters and last success/failure timestamps. |
+
+<Warning>
+The full `secret` is returned **exactly once** — when you create the webhook, and again only if you rotate it (`rotate_secret: true`). Store it securely on receipt. Every other read returns only `secret_preview`; the full secret cannot be retrieved again via the API.
+</Warning>
+
+## Event Types
+
+Subscribe to these in `event_types` when you create or update a webhook:
+
+| Event type | Triggered when |
+| --- | --- |
+| `funding.created` | A tracked company raises a funding round. |
+| `acquisition.created` | A tracked company is acquired or makes an acquisition. |
+| `job_change.created` | A monitored person changes jobs. |
+| `hiring.created` | A tracked company opens a relevant role. |
+| `new_company.created` | A new company matching your filters is discovered. |
+
+Two additional event types may appear on the **receiving** side but are not regular subscriptions:
+
+- `system.test` — delivered only by the [Send Test Event](/api-reference/webhooks/endpoint/test) endpoint. It is accepted in `event_types` for convenience but never fires automatically.
+- `dashboard.push` — delivered when a teammate uses the dashboard **Push** button to send selected companies/investors/contacts to a webhook. Personal data is GDPR-masked (last names masked, personal emails filtered) before delivery.
+
+`filters` are arbitrary string key/value pairs (for example `{ "countries": "US,GB" }`) using the same filter keys as the dashboard. They narrow the firehose *within* each subscribed event type.
+
+## Credits & Limits
+
+| Item | Value |
+| --- | --- |
+| Create a webhook | 1 API credit |
+| Successful delivery (including a successful retry) | 1 API credit |
+| List / retrieve / update / delete / test / list deliveries | Free (0 credits) |
+| Max active webhooks per team | 10 |
+| Endpoint URL max length | 500 characters |
+| Allowed protocols | HTTPS |
+| Stored response body | First 1000 characters per delivery |
+| Default rate limit | 60 requests/minute per endpoint per team (higher limits available contractually) |
+
+<Note>
+Webhook management and read endpoints are free; only **creating** a webhook and **successful deliveries** consume credits. If your team's API credit balance reaches zero, deliveries stop.
+</Note>
+
+## The Delivery Your Endpoint Receives
+
+Each delivery is an HTTP `POST` with `Content-Type: application/json` and `User-Agent: Signalbase-Webhooks/1.0`.
+
+| Header | Value |
+| --- | --- |
+| `X-Webhook-Event` | The event type (e.g. `funding.created`). |
+| `X-Webhook-ID` | The event ID — stable across retries, safe for idempotency. |
+| `X-Webhook-Timestamp` | Unix timestamp in **seconds**. |
+| `X-Webhook-Signature` | Hex-encoded HMAC-SHA256 of the raw request body. No `sha256=` prefix — the bare hex digest. |
+
+**Body:**
+
+```json
+{
+  "data": { "...": "full signal object" },
+  "event_id": "1f2e3d4c-5b6a-4790-8a1b-2c3d4e5f6071",
+  "event_type": "funding.created",
+  "timestamp": "2026-05-29T10:30:00.000Z"
+}
+```
+
+<Note>
+The delivered body is **canonical JSON with object keys sorted alphabetically at every level** (note the `data`, `event_id`, `event_type`, `timestamp` order above). The signature is computed over those exact bytes — so always verify against the **raw request body you received**, never a re-serialized copy.
+</Note>
+
+For `dashboard.push`, `data` contains `companies`, `investors`, and `contacts` arrays (contacts GDPR-masked) plus a `meta` block describing the push.
+
+## Verifying the Signature
+
+The signature is `HMAC-SHA256(raw_body, secret)`, hex-encoded, sent in `X-Webhook-Signature`. The secret is the value returned when you created (or last rotated) the webhook.
+
+<Warning>
+Verify against the **exact raw bytes** of the request body. Parsing the JSON and re-serializing it can change whitespace or key order, which changes the bytes and breaks the HMAC. Capture the raw body before any JSON parsing.
+</Warning>
+
+<CodeGroup>
+
+```js Node.js (Express)
+import express from "express";
+import crypto from "node:crypto";
+
+const app = express();
+const WEBHOOK_SECRET = "your-webhook-secret";
+
+// express.raw keeps req.body as the raw Buffer so the HMAC matches exactly.
+app.post(
+  "/webhook",
+  express.raw({ type: "application/json" }),
+  (req, res) => {
+    const sent = req.get("X-Webhook-Signature") ?? "";
+    const expected = crypto
+      .createHmac("sha256", WEBHOOK_SECRET)
+      .update(req.body) // raw bytes
+      .digest("hex");
+
+    const a = Buffer.from(expected);
+    const b = Buffer.from(sent);
+    if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+      return res.status(401).send("bad signature");
+    }
+
+    const event = JSON.parse(req.body.toString("utf8"));
+    // ...handle event, dedupe on event.event_id...
+    res.json({ ok: true });
+  },
+);
+
+app.listen(3000);
+```
+
+```python Python (FastAPI)
+import hmac, hashlib
+from fastapi import FastAPI, Request, HTTPException
+
+app = FastAPI()
+WEBHOOK_SECRET = "your-webhook-secret"
+
+@app.post("/webhook")
+async def webhook(request: Request):
+    raw_body = await request.body()  # raw bytes, before parsing
+    sent = request.headers.get("X-Webhook-Signature", "")
+    expected = hmac.new(
+        WEBHOOK_SECRET.encode(), raw_body, hashlib.sha256
+    ).hexdigest()
+    if not hmac.compare_digest(expected, sent):
+        raise HTTPException(status_code=401, detail="bad signature")
+
+    event = await request.json()
+    # ...handle event, dedupe on event["event_id"]...
+    return {"ok": True}
+```
+
+</CodeGroup>
+
+## Delivery & Retry Contract
+
+- **Success** = any HTTP `2xx` from your endpoint. Any other status, or a network error, is a **failure** (a network error is recorded with `response_status: 0`).
+- **One attempt per event.** The current release does **not** automatically retry failed deliveries on a schedule. Build idempotent handlers and reconcile gaps yourself.
+- **Manual retry** is available: list failed deliveries with [List Deliveries](/api-reference/webhooks/endpoint/deliveries) (`?status=failed`) and replay them with [Retry Delivery](/api-reference/webhooks/endpoint/retry).
+- **Idempotency:** `event_id` (also sent as `X-Webhook-ID`) is stable across the original delivery and any retries, so you can safely dedupe.
+- **Response storage:** the first **1000 characters** of your response body are stored per delivery for debugging.
+- Respond quickly — acknowledge with `2xx`, then process asynchronously.
+
+## Full Lifecycle Over the API
+
+A vendor can onboard end-to-end without opening the dashboard:
+
+```bash
+# 1. Create (capture the secret from the response — shown only once)
+curl -X POST "https://www.trysignalbase.com/api/v2/webhooks" \
+  -H "Authorization: Bearer $SB_KEY" -H "Content-Type: application/json" \
+  -d '{ "endpoint_url": "https://example.com/hook", "event_types": ["funding.created"] }'
+
+# 2. List
+curl "https://www.trysignalbase.com/api/v2/webhooks" -H "Authorization: Bearer $SB_KEY"
+
+# 3. Fire a test event and verify the signature on your endpoint
+curl -X POST "https://www.trysignalbase.com/api/v2/webhooks/$ID/test" \
+  -H "Authorization: Bearer $SB_KEY"
+
+# 4. Inspect failed deliveries, then retry one
+curl "https://www.trysignalbase.com/api/v2/webhooks/$ID/deliveries?status=failed" \
+  -H "Authorization: Bearer $SB_KEY"
+curl -X POST "https://www.trysignalbase.com/api/v2/webhooks/$ID/deliveries/$DELIVERY_ID/retry" \
+  -H "Authorization: Bearer $SB_KEY"
+
+# 5. Delete (soft-delete)
+curl -X DELETE "https://www.trysignalbase.com/api/v2/webhooks/$ID" \
+  -H "Authorization: Bearer $SB_KEY"
+```
+
+## Dashboard Parity & Migration
+
+Everything above is also available without code under **Workspace → Webhooks** in the dashboard. Because the dashboard and the REST API share one code path, a webhook created in the UI is fully manageable via the API and vice versa.
+
+- **Webhooks are editable in place.** To change a URL or event list, use [Update Webhook](/api-reference/webhooks/endpoint/update) (or the dashboard **Edit** button) — you no longer need to delete and recreate. The signing secret is preserved across edits unless you pass `rotate_secret: true`.
+- **Retrieve existing config:** vendors who configured webhooks through the dashboard can list and manage them immediately via [List Webhooks](/api-reference/webhooks/endpoint/list) — no migration step required. Only `secret_preview` is exposed for pre-existing webhooks; rotate the secret if you need a fresh full value.
+
+## Error Handling
+
+Errors return a non-2xx status with `{ success: false, error, code }`.
+
+| HTTP | `code` | Meaning |
+| --- | --- | --- |
+| 400 | `bad_request` | Invalid body, invalid endpoint URL, invalid event type, or the 10-webhook limit was reached. |
+| 401 | `invalid_api_key` | Missing or invalid API key. |
+| 403 | `subscription_expired` | The key's team has no active subscription. |
+| 404 | `not_found` | Webhook or delivery not found (or not owned by your team). |
+| 409 | `conflict` | Retrying a delivery that already succeeded. |
+| 429 | `rate_limited` | Rate limit exceeded. Includes a `retryAfter` field and `X-RateLimit-*` headers. |
+| 500 | `internal_server_error` / `internal_error` | Unexpected server error. |

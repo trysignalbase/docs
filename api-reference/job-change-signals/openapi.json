@@ -104,13 +104,6 @@
             "example": "https://www.linkedin.com/company/example"
           },
           {
-            "name": "person_name",
-            "in": "query",
-            "description": "Search by person name (partial match)",
-            "schema": { "type": "string" },
-            "example": "Alex"
-          },
-          {
             "name": "company_name",
             "in": "query",
             "description": "Search by company name (partial match)",
@@ -365,7 +358,7 @@
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "bearerFormat": "JWT",
+        "bearerFormat": "API key",
         "description": "API key authentication. Include as Bearer token in Authorization header."
       }
     }

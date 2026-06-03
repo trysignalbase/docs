@@ -135,22 +135,22 @@
           {
             "name": "amount_min",
             "in": "query",
-            "description": "Minimum acquisition amount in USD cents",
+            "description": "Minimum acquisition amount in whole USD (not cents)",
             "schema": { "type": "integer" },
             "example": 10000000
           },
           {
             "name": "amount_max",
             "in": "query",
-            "description": "Maximum acquisition amount in USD cents",
+            "description": "Maximum acquisition amount in whole USD (not cents)",
             "schema": { "type": "integer" },
             "example": 1000000000
           },
           {
             "name": "currency",
             "in": "query",
-            "description": "Currency symbol filter",
-            "schema": { "type": "string" },
+            "description": "Filter by currency. Most acquisition amounts are reported as \"$\"; a small number use ISO codes (USD, EUR). Exact match.",
+            "schema": { "type": "string", "enum": ["$", "USD", "EUR"] },
             "example": "$"
           },
           {
@@ -340,8 +340,8 @@
           "companyDescription": { "type": "string", "nullable": true, "description": "Description of the acquired company" },
           "companyEmployeeCount": { "type": "integer", "nullable": true, "description": "Employee count of the acquired company" },
           "acquiringCompanyId": { "type": "string", "format": "uuid", "nullable": true, "description": "ID of the acquiring company (null if unknown)" },
-          "amount": { "type": "integer", "nullable": true, "description": "Acquisition amount in USD cents" },
-          "currency": { "type": "string", "description": "Currency symbol", "example": "$" },
+          "amount": { "type": "integer", "nullable": true, "description": "Acquisition amount in whole USD (not cents)" },
+          "currency": { "type": "string", "description": "Currency of the amount. Usually \"$\"; some records use ISO codes (USD, EUR).", "example": "$" },
           "percentage": { "type": "string", "nullable": true, "description": "Acquisition percentage (e.g., \"100%\", \"51%\", \"partial\")" },
           "announcedDate": { "type": "string", "format": "date", "nullable": true, "description": "Date when the acquisition was announced" },
           "isFreeAccess": { "type": "boolean", "description": "Whether full data is accessible (always true for authenticated requests)", "example": true },
@@ -416,7 +416,7 @@
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "bearerFormat": "JWT",
+        "bearerFormat": "API key",
         "description": "API key authentication. Include as Bearer token in Authorization header."
       }
     }

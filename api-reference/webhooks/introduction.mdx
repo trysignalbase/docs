@@ -165,11 +165,11 @@ Each delivery is an HTTP `POST` with `Content-Type: application/json` and `User-
 | `X-Webhook-Timestamp` | Unix timestamp in **seconds**. |
 | `X-Webhook-Signature` | Hex-encoded HMAC-SHA256 of the raw request body. No `sha256=` prefix — the bare hex digest. |
 
-**Body:**
+**Body envelope** — every delivery has the same four top-level keys. `data` holds the full signal object, whose shape depends on `event_type` (see [Payload by event type](#payload-by-event-type) below).
 
 ```json
 {
-  "data": { "...": "full signal object" },
+  "data": { "...": "full signal object — shape depends on event_type" },
   "event_id": "1f2e3d4c-5b6a-4790-8a1b-2c3d4e5f6071",
   "event_type": "funding.created",
   "timestamp": "2026-05-29T10:30:00.000Z"
@@ -180,7 +180,283 @@ Each delivery is an HTTP `POST` with `Content-Type: application/json` and `User-
 The delivered body is **canonical JSON with object keys sorted alphabetically at every level** (note the `data`, `event_id`, `event_type`, `timestamp` order above). The signature is computed over those exact bytes — so always verify against the **raw request body you received**, never a re-serialized copy.
 </Note>
 
-For `dashboard.push`, `data` contains `companies`, `investors`, and `contacts` arrays (contacts GDPR-masked) plus a `meta` block describing the push.
+## Payload by event type
+
+Every signal payload shares a common envelope inside `data`:
+
+- `signal` — `{ id, type, externalId, occurredAt, discoveredAt, active }`
+- `company` — the full company object (or `null` for some events); `headquartersCountry` is an ISO-style country code
+- `employees` — array of `{ id, name, title, linkedinUrl, email }` (may be empty)
+- `sources` — array of `{ url, sourceType, author, title, content, validationScore, validationReasoning, publishedAt }`
+
+Each event type then adds one type-specific block. Monetary `amount` fields are **whole US dollars** (integers, not cents); `currency` is the stored symbol (e.g. `"$"`). See [Amounts & Currency](/enums#amounts--currency).
+
+<CodeGroup>
+
+```json funding.created
+{
+  "data": {
+    "signal": {
+      "id": "a3f1c2d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "type": "funding_round",
+      "externalId": "fund_abc123",
+      "occurredAt": "2026-05-29T00:00:00.000Z",
+      "discoveredAt": "2026-05-29T08:15:00.000Z",
+      "active": true
+    },
+    "company": {
+      "id": "c1d2e3f4-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
+      "name": "Acme AI",
+      "slug": "acme-ai",
+      "description": "Realtime fraud detection for fintechs.",
+      "website": "https://acme.ai",
+      "linkedinUrl": "https://www.linkedin.com/company/acme-ai",
+      "twitterUrl": "https://x.com/acmeai",
+      "logoUrl": "https://logo.clearbit.com/acme.ai",
+      "industry": "Software Development",
+      "subcategory": "fraud-detection",
+      "foundedYear": 2021,
+      "headquartersCountry": "US",
+      "employeeCount": 85,
+      "categories": "ai,fintech",
+      "keywords": "fraud,risk,ml",
+      "specialties": "fraud detection,risk scoring"
+    },
+    "employees": [],
+    "sources": [
+      {
+        "url": "https://techcrunch.com/2026/05/29/acme-ai-series-b",
+        "sourceType": "news_article",
+        "author": "Jane Reporter",
+        "title": "Acme AI raises $40M Series B",
+        "content": "Acme AI today announced...",
+        "validationScore": 0.92,
+        "validationReasoning": "Multiple corroborating sources.",
+        "publishedAt": "2026-05-29T07:00:00.000Z"
+      }
+    ],
+    "fundingRound": {
+      "roundType": "series b",
+      "roundFlavor": null,
+      "amount": 40000000,
+      "currency": "USD",
+      "announcedDate": "2026-05-29",
+      "confidenceScore": 0.92,
+      "verificationStatus": "verified",
+      "investors": [
+        { "name": "Sequoia Capital", "type": "vc", "leadInvestor": true },
+        { "name": "Y Combinator", "type": "accelerator", "leadInvestor": false }
+      ]
+    }
+  },
+  "event_id": "1f2e3d4c-5b6a-4790-8a1b-2c3d4e5f6071",
+  "event_type": "funding.created",
+  "timestamp": "2026-05-29T08:15:00.000Z"
+}
+```
+
+```json acquisition.created
+{
+  "data": {
+    "signal": {
+      "id": "b4f2d3e5-6a7b-4c8d-9e0f-1a2b3c4d5e6f",
+      "type": "acquisition",
+      "externalId": "acq_def456",
+      "occurredAt": "2026-05-28T00:00:00.000Z",
+      "discoveredAt": "2026-05-28T14:30:00.000Z",
+      "active": true
+    },
+    "company": {
+      "id": "d2e3f4a5-6b7c-4d8e-9f0a-1b2c3d4e5f6a",
+      "name": "Beta Analytics",
+      "slug": "beta-analytics",
+      "description": "Product analytics platform.",
+      "website": "https://beta-analytics.com",
+      "linkedinUrl": "https://www.linkedin.com/company/beta-analytics",
+      "twitterUrl": null,
+      "logoUrl": "https://logo.clearbit.com/beta-analytics.com",
+      "industry": "Software Development",
+      "subcategory": "analytics",
+      "foundedYear": 2018,
+      "headquartersCountry": "US",
+      "employeeCount": 140,
+      "categories": "analytics,saas",
+      "keywords": "analytics,product",
+      "specialties": "product analytics"
+    },
+    "employees": [],
+    "sources": [],
+    "acquisition": {
+      "acquiringCompanyId": "e3f4a5b6-7c8d-4e9f-0a1b-2c3d4e5f6a7b",
+      "acquiringCompany": {
+        "id": "e3f4a5b6-7c8d-4e9f-0a1b-2c3d4e5f6a7b",
+        "name": "Gamma Corp",
+        "website": "https://gamma.com",
+        "linkedinUrl": "https://www.linkedin.com/company/gamma",
+        "industry": "Software Development",
+        "logoUrl": "https://logo.clearbit.com/gamma.com"
+      },
+      "amount": 250000000,
+      "currency": "$",
+      "percentage": "100",
+      "announcedDate": "2026-05-28"
+    }
+  },
+  "event_id": "2a3b4c5d-6e7f-4809-9a1b-2c3d4e5f6072",
+  "event_type": "acquisition.created",
+  "timestamp": "2026-05-28T14:30:00.000Z"
+}
+```
+
+```json job_change.created
+{
+  "data": {
+    "signal": {
+      "id": "c5f3e4d6-7a8b-4c9d-0e1f-2a3b4c5d6e7f",
+      "type": "job_change",
+      "externalId": "jc_ghi789",
+      "occurredAt": "2026-05-27T00:00:00.000Z",
+      "discoveredAt": "2026-05-27T09:45:00.000Z",
+      "active": true
+    },
+    "company": {
+      "id": "f4a5b6c7-8d9e-4f0a-1b2c-3d4e5f6a7b8c",
+      "name": "Delta Systems",
+      "slug": "delta-systems",
+      "description": "Cloud infrastructure provider.",
+      "website": "https://delta.systems",
+      "linkedinUrl": "https://www.linkedin.com/company/delta-systems",
+      "twitterUrl": null,
+      "logoUrl": "https://logo.clearbit.com/delta.systems",
+      "industry": "IT Services and IT Consulting",
+      "subcategory": "cloud-infra",
+      "foundedYear": 2015,
+      "headquartersCountry": "GB",
+      "employeeCount": 320,
+      "categories": "cloud,devops",
+      "keywords": "cloud,infrastructure",
+      "specialties": "cloud,kubernetes"
+    },
+    "employees": [],
+    "sources": [
+      { "url": "https://www.linkedin.com/posts/...", "sourceType": "social_media", "author": null, "title": null, "content": null, "validationScore": null, "validationReasoning": null, "publishedAt": null }
+    ],
+    "jobChange": {
+      "personName": "Jordan M.",
+      "personLinkedinUrl": "https://www.linkedin.com/in/jordan-m",
+      "newRole": "VP of Engineering",
+      "companyName": "Delta Systems",
+      "companyLinkedinUrl": "https://www.linkedin.com/company/delta-systems",
+      "postContent": "Excited to share that I've joined Delta Systems...",
+      "personCurrentTitle": "VP of Engineering",
+      "personHeadline": "Engineering leader",
+      "personLocation": "London, United Kingdom",
+      "personCity": "London",
+      "personCountry": "GB"
+    }
+  },
+  "event_id": "3b4c5d6e-7f80-4910-9a1b-2c3d4e5f6073",
+  "event_type": "job_change.created",
+  "timestamp": "2026-05-27T09:45:00.000Z"
+}
+```
+
+```json hiring.created
+{
+  "data": {
+    "signal": {
+      "id": "d6f4e5d7-8a9b-4c0d-1e2f-3a4b5c6d7e8f",
+      "type": "hiring",
+      "externalId": "job_jkl012",
+      "occurredAt": "2026-05-26T00:00:00.000Z",
+      "discoveredAt": "2026-05-26T11:00:00.000Z",
+      "active": true
+    },
+    "company": {
+      "id": "a5b6c7d8-9e0f-4a1b-2c3d-4e5f6a7b8c9d",
+      "name": "Epsilon Health",
+      "slug": "epsilon-health",
+      "description": "Digital health platform.",
+      "website": "https://epsilon.health",
+      "linkedinUrl": "https://www.linkedin.com/company/epsilon-health",
+      "twitterUrl": null,
+      "logoUrl": "https://logo.clearbit.com/epsilon.health",
+      "industry": "Hospitals and Health Care",
+      "subcategory": "digital-health",
+      "foundedYear": 2019,
+      "headquartersCountry": "US",
+      "employeeCount": 60,
+      "categories": "healthtech",
+      "keywords": "health,telemedicine",
+      "specialties": "telemedicine"
+    },
+    "employees": [],
+    "sources": [],
+    "hiringDetails": [
+      {
+        "title": "Senior Backend Engineer",
+        "jobUrl": "https://epsilon.health/careers/senior-backend-engineer",
+        "location": "San Francisco, CA",
+        "city": "San Francisco",
+        "country": "US",
+        "employmentType": "Full-time",
+        "seniorityLevel": "Senior",
+        "jobFunction": "Engineering",
+        "datePosted": "2026-05-26T00:00:00.000Z"
+      }
+    ]
+  },
+  "event_id": "4c5d6e7f-8091-4a21-9b2c-3d4e5f6a7074",
+  "event_type": "hiring.created",
+  "timestamp": "2026-05-26T11:00:00.000Z"
+}
+```
+
+```json new_company.created
+{
+  "data": {
+    "signal": {
+      "id": "e7f5e6d8-9a0b-4c1d-2e3f-4a5b6c7d8e9f",
+      "type": "new_company",
+      "externalId": "co_mno345",
+      "occurredAt": "2026-05-25T00:00:00.000Z",
+      "discoveredAt": "2026-05-25T10:00:00.000Z",
+      "active": true
+    },
+    "company": {
+      "id": "b6c7d8e9-0f1a-4b2c-3d4e-5f6a7b8c9d0e",
+      "name": "Zeta Robotics",
+      "slug": "zeta-robotics",
+      "description": "Warehouse automation robots.",
+      "website": "https://zeta-robotics.com",
+      "linkedinUrl": "https://www.linkedin.com/company/zeta-robotics",
+      "twitterUrl": null,
+      "logoUrl": "https://logo.clearbit.com/zeta-robotics.com",
+      "industry": "Automation Machinery Manufacturing",
+      "subcategory": "robotics",
+      "foundedYear": 2024,
+      "headquartersCountry": "DE",
+      "employeeCount": 12,
+      "categories": "robotics,hardware",
+      "keywords": "robotics,automation",
+      "specialties": "warehouse automation"
+    },
+    "employees": [],
+    "sources": []
+  },
+  "event_id": "5d6e7f80-9112-4a31-9b2c-3d4e5f6a7075",
+  "event_type": "new_company.created",
+  "timestamp": "2026-05-25T10:00:00.000Z"
+}
+```
+
+</CodeGroup>
+
+<Note>
+Person names in `job_change.created` payloads are GDPR-masked (first name + last initial, e.g. `"Jordan M."`), matching the masking applied across the REST API. Use `personLinkedinUrl` as the stable identifier for a person.
+</Note>
+
+For `dashboard.push`, `data` instead contains `companies`, `investors`, and `contacts` arrays (contacts GDPR-masked) plus a `meta` block describing the push.
 
 ## Verifying the Signature
 

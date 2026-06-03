@@ -181,6 +181,16 @@ Identifier precedence is:
 
 LinkedIn and website/domain matching require a normalized exact match. If one of those stronger identifiers is provided and no confident match is found, the matcher does not fall back to a fuzzy company-name guess. Company-name matching is used when no LinkedIn or website/domain identifier is provided.
 
+### URL & domain normalization
+
+Website and domain values are normalized before matching, so equivalent forms are treated identically — you do **not** need to pre-clean them:
+
+- The scheme is optional: `https://acme.com`, `http://acme.com`, and `acme.com` are equivalent.
+- A leading `www.` is stripped: `www.acme.com` and `acme.com` match the same company.
+- A full URL with a path (`https://acme.com/about`) is reduced to its host (`acme.com`) for matching.
+
+Provide a website as a full URL or a bare domain via any of `website_url`, `websiteUrl`, `website`, or `domain` — they are interchangeable. LinkedIn company URLs may be supplied via `linkedin_url`, `linkedinUrl`, `linkedin`, or `company_linkedin_url`.
+
 ## Error Handling
 
 The API returns standard HTTP status codes:

@@ -76,6 +76,20 @@
             "example": "Software,Technology"
           },
           {
+            "name": "categories",
+            "in": "query",
+            "description": "Pipe-separated list of company industry categories to filter by",
+            "schema": { "type": "string" },
+            "example": "Technology|Software"
+          },
+          {
+            "name": "subcategories",
+            "in": "query",
+            "description": "Comma-separated list of subcategory IDs to filter by",
+            "schema": { "type": "string" },
+            "example": "ai,fintech,saas"
+          },
+          {
             "name": "employee_count_min",
             "in": "query",
             "description": "Minimum employee count",
@@ -215,7 +229,8 @@
                   },
                   "meta": {
                     "endpoint": "companies.list",
-                    "creditsUsed": 1
+                    "creditsUsed": 1,
+                    "creditsRemaining": 4999
                   }
                 }
               }
@@ -231,6 +246,20 @@
                 "example": {
                   "success": false,
                   "error": "Invalid API key"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "out of credits, please contact support to increase your usage"
                 }
               }
             }
@@ -489,6 +518,12 @@
             "description": "Number of API credits consumed by this request",
             "minimum": 0,
             "example": 1
+          },
+          "creditsRemaining": {
+            "type": "number",
+            "description": "API credits remaining on the team's balance after this request",
+            "minimum": 0,
+            "example": 4999
           }
         }
       },
@@ -513,7 +548,7 @@
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "bearerFormat": "JWT",
+        "bearerFormat": "API key",
         "description": "API key for Companies API authentication. Include as Bearer token in Authorization header."
       }
     }

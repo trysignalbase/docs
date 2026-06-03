@@ -28,7 +28,7 @@ The three signal types available in the API:
 
 ## Date Presets
 
-Industry-standard relative date filters supported across all endpoints. When provided, `date_preset` takes precedence over `dateFrom` / `dateTo`.
+Industry-standard relative date filters supported across the **signal endpoints** — funding, acquisitions, hiring, job changes, and investors. When provided, `date_preset` takes precedence over `dateFrom` / `dateTo`. The **Companies** endpoint does not support date filtering (`date_preset`, `dateFrom`, and `dateTo` are ignored there).
 
 ```json copy
 [
@@ -57,24 +57,34 @@ Industry-standard relative date filters supported across all endpoints. When pro
 
 ### Funding Round Types
 
+The most common funding round types, ordered by prevalence. Values are stored
+and returned in **lowercase**.
+
 ```json copy
 [
-  "Pre-Seed",
-  "Seed",
-  "Series A",
-  "Series B",
-  "Series C",
-  "Series D",
-  "Series E",
-  "Series F",
-  "Series G",
-  "Growth",
-  "Debt",
-  "Grant",
-  "IPO",
-  "Undisclosed"
+  "seed",
+  "series a",
+  "pre-seed",
+  "series b",
+  "grant",
+  "series c",
+  "series d",
+  "angel",
+  "series e",
+  "equity",
+  "series f",
+  "debt financing",
+  "fund",
+  "debt",
+  "ipo"
 ]
 ```
+
+<Note>
+The `round` filter is an **exact, case-insensitive match** — `Series A`,
+`series a`, and `SERIES A` all match the same rows, so you don't need to match
+the exact capitalization.
+</Note>
 
 ### Round Flavors
 
@@ -96,26 +106,30 @@ Filter signals by their verification status:
 
 #### How `amount`, `amount_min`, `amount_max`, and `currency` work
 
-All funding and acquisition amounts are **converted to USD during ingestion** and stored as **whole US dollars** (integer, not cents and not a float). For example, a $5M round is stored as `5000000`.
+Funding and acquisition amounts are **whole units of the deal's currency** (an integer — not cents and not a float). For example, a $5M round is `5000000`. The `currency` field tells you which currency each `amount` is in.
 
 | Field | Description |
 |-------|-------------|
-| `amount` (response) | Integer amount in whole USD. `null` when the amount is undisclosed. |
-| `amount_min` (filter) | Minimum amount in whole USD. Inclusive (`>=`). |
-| `amount_max` (filter) | Maximum amount in whole USD. Inclusive (`<=`). |
-| `currency` (filter) | Filters rows by the stored currency string. **Does not convert** between currencies — it is a simple exact-match filter on the currency field. |
+| `amount` (response) | Integer amount in whole currency units (see `currency`). `null` when the amount is undisclosed. |
+| `amount_min` (filter) | Minimum amount, inclusive (`>=`). Compared directly against `amount`. |
+| `amount_max` (filter) | Maximum amount, inclusive (`<=`). Compared directly against `amount`. |
+| `currency` (filter) | Filters rows by their `currency` value. **Does not convert** between currencies — it's a simple exact match on the currency field. |
 
-**There is no server-side currency conversion at query time.** The ingestion pipeline converts all amounts to USD before storage, so the vast majority of records have `currency` set to `"USD"`. Passing `currency` as a filter narrows results to only rows that were stored with that exact currency value.
+<Warning>
+Amounts are **not converted to a common currency** — each `amount` is expressed in its own `currency` (most are `$`). If your results span multiple currencies, an `amount_min` / `amount_max` filter compares the raw numbers regardless of currency, so add a `currency` filter (e.g. `currency=$`) when you need an apples-to-apples range.
+</Warning>
 
 #### Currency Values
 
-The `currency` field on each record stores an ISO code:
+Currency is recorded differently on the two endpoints, so filter accordingly:
 
-```json copy
-["USD", "EUR", "GBP", "JPY", "INR", "AUD", "CAD", "CHF", "SEK", "NOK", "DKK", "SGD", "HKD", "BRL", "KRW", "CNY", "NZD", "ZAR", "MXN", "ILS", "PLN", "TRY", "AED", "SAR"]
-```
+- **Funding** uses **ISO 4217 codes**. Most records are `USD`; the rest are mostly `EUR` and `GBP`. Filter with the exact code, e.g. `?currency=USD`. Common values:
 
-Most records use `"USD"`. When filtering, pass the exact string you want to match.
+  ```json copy
+  ["USD", "EUR", "GBP", "CHF", "JPY", "INR", "CAD", "AUD", "SEK", "CNY", "NZD", "KRW", "SGD", "DKK", "BRL"]
+  ```
+
+- **Acquisitions** report the currency as **`$`** for most records, with a small number using `USD` or `EUR`. Filter with `?currency=$`.
 
 ### Funding Sort Fields
 

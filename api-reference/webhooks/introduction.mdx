@@ -189,7 +189,7 @@ Every signal payload shares a common envelope inside `data`:
 - `employees` — array of `{ id, name, title, linkedinUrl, email }` (may be empty)
 - `sources` — array of `{ url, sourceType, author, title, content, validationScore, validationReasoning, publishedAt }`
 
-Each event type then adds one type-specific block. Monetary `amount` fields are **whole US dollars** (integers, not cents); `currency` is the stored symbol (e.g. `"$"`). See [Amounts & Currency](/enums#amounts--currency).
+Each event type then adds one type-specific block. Monetary `amount` fields are **whole currency units** (integers, not cents); `currency` tells you which currency — funding uses ISO codes like `USD`, acquisitions use `$`. See [Amounts & Currency](/enums#amounts--currency).
 
 <CodeGroup>
 

@@ -118,7 +118,7 @@
           {
             "name": "round",
             "in": "query",
-            "description": "Comma-separated list of funding round types to filter by. Exact, case-insensitive match ('Series A', 'series a', and 'SERIES A' all match). See the Enums page for the list of round types.",
+            "description": "Comma-separated list of funding round types to filter by. Exact, case-insensitive match ('Series A', 'series a', and 'SERIES A' all match). A value not in the accepted list returns 400 Bad Request. See the Enums page for the accepted values.",
             "schema": {
               "type": "string"
             },
@@ -223,7 +223,7 @@
           {
             "name": "amount_min",
             "in": "query",
-            "description": "Minimum funding amount in whole USD (not cents)",
+            "description": "Minimum funding amount in whole units of the deal's currency (not cents)",
             "schema": {
               "type": "integer"
             },
@@ -232,7 +232,7 @@
           {
             "name": "amount_max",
             "in": "query",
-            "description": "Maximum funding amount in whole USD (not cents)",
+            "description": "Maximum funding amount in whole units of the deal's currency (not cents)",
             "schema": {
               "type": "integer"
             },
@@ -413,6 +413,20 @@
                     "creditsUsed": 1,
                     "creditsRemaining": 999
                   }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - an invalid filter value was supplied (e.g. an unrecognized `round` value)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Invalid round value: foobar. Accepted values (case-insensitive): pre-seed, seed, series a, series b, series c, series d, series e, series f, series g, series h, angel, grant, crowdfunding, growth, debt, debt financing, equity, fund, ipo."
                 }
               }
             }
@@ -610,24 +624,7 @@
           "roundType": {
             "type": "string",
             "nullable": true,
-            "description": "Funding round type (lowercase). See the Enums page for the list of round types.",
-            "enum": [
-              "seed",
-              "series a",
-              "pre-seed",
-              "series b",
-              "grant",
-              "series c",
-              "series d",
-              "angel",
-              "series e",
-              "equity",
-              "series f",
-              "debt financing",
-              "fund",
-              "debt",
-              "ipo"
-            ],
+            "description": "Funding round type (lowercase). Commonly one of the accepted `round` filter values (see the Enums page), but responses may include other, less common round types.",
             "example": "series a"
           },
           "roundFlavor": {

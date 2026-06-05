@@ -57,7 +57,7 @@ Industry-standard relative date filters supported across the **signal endpoints*
 
 ### Funding Round Types
 
-The most common funding round types, ordered by prevalence. Values are stored
+Values accepted by the `round` filter, ordered by prevalence. Values are stored
 and returned in **lowercase**.
 
 ```json copy
@@ -76,14 +76,21 @@ and returned in **lowercase**.
   "debt financing",
   "fund",
   "debt",
-  "ipo"
+  "ipo",
+  "crowdfunding",
+  "growth",
+  "series g",
+  "series h"
 ]
 ```
 
 <Note>
 The `round` filter is an **exact, case-insensitive match** — `Series A`,
 `series a`, and `SERIES A` all match the same rows, so you don't need to match
-the exact capitalization.
+the exact capitalization. Passing a value **not** in the list above returns
+**`400 Bad Request`** (rather than silently empty results), so you get a clear
+error on a typo. Responses may still contain other, less common round types for
+rows matched by your other filters.
 </Note>
 
 ### Round Flavors

@@ -135,7 +135,38 @@ Two additional event types may appear on the **receiving** side but are not regu
 - `system.test` — delivered only by the [Send Test Event](/api-reference/webhooks/endpoint/test) endpoint. It is accepted in `event_types` for convenience but never fires automatically.
 - `dashboard.push` — delivered when a teammate uses the dashboard **Push** button to send selected companies/investors/contacts to a webhook. Personal data is GDPR-masked (last names masked, personal emails filtered) before delivery.
 
-`filters` are arbitrary string key/value pairs (for example `{ "countries": "US,GB" }`) using the same filter keys as the dashboard. They narrow the firehose *within* each subscribed event type.
+### Filters
+
+`filters` is an optional string-to-string map that narrows which events are delivered, applied to every `*.created` event the subscription is registered for. Only the keys below are recognized — **any other key is silently ignored** (it does not narrow anything), so the key names matter. All values are strings.
+
+| Key | Applies to | Value format | Matches when |
+| --- | --- | --- | --- |
+| `countries` | all signal types | Comma-separated ISO 3166-1 alpha-2 codes, e.g. `"US,GB"` | the company HQ country is in the list |
+| `categories` | all signal types | Pipe-separated industry labels, e.g. `"Software Development\|Financial Services"` | the company industry/categories match (case-insensitive) |
+| `search` | all signal types | Free text, e.g. `"fintech"` | the substring appears in the company name or industry |
+| `teamSize` | all signal types | Comma-separated ranges `min-max` or `1000-plus`, e.g. `"11-50,51-200"` | the company employee count falls in any range |
+| `dateFrom` / `dateTo` | all signal types | ISO-8601 date, e.g. `"2026-01-01"` | the signal's `occurredAt` is within the range |
+| `funding` | `funding.created` only | Comma-separated round types, e.g. `"seed,series a"` | the round type matches (case-insensitive) |
+| `roundFlavor` | `funding.created` only | Comma-separated flavors: `bridge`, `extension`, `secondary` | the round flavor matches |
+| `fundingAmount` | `funding.created` only | Comma-separated amount ranges, e.g. `"1m-5m,5m-20m"` (also `">$100m"`) | the funding amount falls in any range |
+| `acquisitionAmount` | `acquisition.created` only | Comma-separated amount ranges, e.g. `"10m-50m"` | the acquisition amount falls in any range |
+| `healthScore` | `funding.created` only | A single number `0`–`100`, e.g. `"40"` | the round's confidence score is ≥ that value |
+
+**Important behaviours:**
+
+- **Use `funding` (not `round`) to filter funding rounds.** The webhook filter key names differ from the REST query params — e.g. the round-type key here is `funding`, and amount uses `fundingAmount`/`acquisitionAmount` ranges rather than `amount_min`/`amount_max`. A wrong key like `{ "round": "seed" }` is ignored and you'll receive the full firehose.
+- **Multiple keys combine with AND** — an event must satisfy every filter to be delivered.
+- **Type-specific keys drop other types.** If a subscription listens to several event types and you set a `funding`-only key (`funding`, `roundFlavor`, `fundingAmount`, `healthScore`), non-funding events (e.g. `hiring.created`) won't match and won't be delivered. Prefer one webhook per event type when using type-specific filters.
+
+Example — only US/GB seed & Series A rounds above $1M:
+
+```json
+{
+  "countries": "US,GB",
+  "funding": "seed,series a",
+  "fundingAmount": "1m-100m"
+}
+```
 
 ## Credits & Limits
 

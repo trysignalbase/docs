@@ -5471,7 +5471,7 @@
           },
           "filters": {
             "type": "object",
-            "description": "Optional string key/value filters that narrow which events are delivered, using the same filter keys as the dashboard.",
+            "description": "Optional string key/value filters that narrow which events are delivered. Recognized keys: countries, categories, search, teamSize, dateFrom, dateTo, funding, roundFlavor, fundingAmount, acquisitionAmount, healthScore. Unrecognized keys are silently ignored — note the round-type key is `funding`, not `round`. See the Webhooks overview 'Filters' section for value formats.",
             "additionalProperties": {
               "type": "string"
             }
@@ -5615,12 +5615,13 @@
           },
           "filters": {
             "type": "object",
-            "description": "Optional string key/value filters that narrow which events are delivered.",
+            "description": "Optional string key/value filters that narrow which events are delivered. Recognized keys: countries, categories, search, teamSize, dateFrom, dateTo, funding, roundFlavor, fundingAmount, acquisitionAmount, healthScore. Unrecognized keys are silently ignored — note the round-type key is `funding`, not `round`. See the Webhooks overview 'Filters' section for value formats.",
             "additionalProperties": {
               "type": "string"
             },
             "example": {
-              "countries": "US,GB"
+              "countries": "US,GB",
+              "funding": "seed,series a"
             }
           }
         }
@@ -5644,7 +5645,7 @@
           },
           "filters": {
             "type": "object",
-            "description": "Replacement filter map.",
+            "description": "Replacement filter map. Same recognized keys as on create (countries, categories, search, teamSize, dateFrom, dateTo, funding, roundFlavor, fundingAmount, acquisitionAmount, healthScore); unrecognized keys are ignored.",
             "additionalProperties": {
               "type": "string"
             }

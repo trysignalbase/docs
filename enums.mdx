@@ -28,7 +28,7 @@ The three signal types available in the API:
 
 ## Date Presets
 
-Industry-standard relative date filters supported across all endpoints. When provided, `date_preset` takes precedence over `dateFrom` / `dateTo`.
+Industry-standard relative date filters supported across the **signal endpoints** — funding, acquisitions, hiring, job changes, and investors. When provided, `date_preset` takes precedence over `dateFrom` / `dateTo`. The **Companies** endpoint does not support date filtering (`date_preset`, `dateFrom`, and `dateTo` are ignored there).
 
 ```json copy
 [
@@ -57,24 +57,41 @@ Industry-standard relative date filters supported across all endpoints. When pro
 
 ### Funding Round Types
 
+Values accepted by the `round` filter, ordered by prevalence. Values are stored
+and returned in **lowercase**.
+
 ```json copy
 [
-  "Pre-Seed",
-  "Seed",
-  "Series A",
-  "Series B",
-  "Series C",
-  "Series D",
-  "Series E",
-  "Series F",
-  "Series G",
-  "Growth",
-  "Debt",
-  "Grant",
-  "IPO",
-  "Undisclosed"
+  "seed",
+  "series a",
+  "pre-seed",
+  "series b",
+  "grant",
+  "series c",
+  "series d",
+  "angel",
+  "series e",
+  "equity",
+  "series f",
+  "debt financing",
+  "fund",
+  "debt",
+  "ipo",
+  "crowdfunding",
+  "growth",
+  "series g",
+  "series h"
 ]
 ```
+
+<Note>
+The `round` filter is an **exact, case-insensitive match** — `Series A`,
+`series a`, and `SERIES A` all match the same rows, so you don't need to match
+the exact capitalization. Passing a value **not** in the list above returns
+**`400 Bad Request`** (rather than silently empty results), so you get a clear
+error on a typo. Responses may still contain other, less common round types for
+rows matched by your other filters.
+</Note>
 
 ### Round Flavors
 
@@ -96,26 +113,30 @@ Filter signals by their verification status:
 
 #### How `amount`, `amount_min`, `amount_max`, and `currency` work
 
-All funding and acquisition amounts are **converted to USD during ingestion** and stored as **whole US dollars** (integer, not cents and not a float). For example, a $5M round is stored as `5000000`.
+Funding and acquisition amounts are **whole units of the deal's currency** (an integer — not cents and not a float). For example, a $5M round is `5000000`. The `currency` field tells you which currency each `amount` is in.
 
 | Field | Description |
 |-------|-------------|
-| `amount` (response) | Integer amount in whole USD. `null` when the amount is undisclosed. |
-| `amount_min` (filter) | Minimum amount in whole USD. Inclusive (`>=`). |
-| `amount_max` (filter) | Maximum amount in whole USD. Inclusive (`<=`). |
-| `currency` (filter) | Filters rows by the stored currency string. **Does not convert** between currencies — it is a simple exact-match filter on the currency field. |
+| `amount` (response) | Integer amount in whole currency units (see `currency`). `null` when the amount is undisclosed. |
+| `amount_min` (filter) | Minimum amount, inclusive (`>=`). Compared directly against `amount`. |
+| `amount_max` (filter) | Maximum amount, inclusive (`<=`). Compared directly against `amount`. |
+| `currency` (filter) | Filters rows by their `currency` value. **Does not convert** between currencies — it's a simple exact match on the currency field. |
 
-**There is no server-side currency conversion at query time.** The ingestion pipeline converts all amounts to USD before storage, so the vast majority of records have `currency` set to `"USD"`. Passing `currency` as a filter narrows results to only rows that were stored with that exact currency value.
+<Warning>
+Amounts are **not converted to a common currency** — each `amount` is expressed in its own `currency` (most are `USD`). If your results span multiple currencies, an `amount_min` / `amount_max` filter compares the raw numbers regardless of currency, so add a `currency` filter (e.g. `currency=USD`) when you need an apples-to-apples range.
+</Warning>
 
 #### Currency Values
 
-The `currency` field on each record stores an ISO code:
+Both endpoints record `currency` as **ISO 4217 codes** (exact match, case-sensitive):
 
-```json copy
-["USD", "EUR", "GBP", "JPY", "INR", "AUD", "CAD", "CHF", "SEK", "NOK", "DKK", "SGD", "HKD", "BRL", "KRW", "CNY", "NZD", "ZAR", "MXN", "ILS", "PLN", "TRY", "AED", "SAR"]
-```
+- **Funding** — most records are `USD`; the rest are mostly `EUR` and `GBP`. Filter with the exact code, e.g. `?currency=USD`. Common values:
 
-Most records use `"USD"`. When filtering, pass the exact string you want to match.
+  ```json copy
+  ["USD", "EUR", "GBP", "CHF", "JPY", "INR", "CAD", "AUD", "SEK", "CNY", "NZD", "KRW", "SGD", "DKK", "BRL"]
+  ```
+
+- **Acquisitions** — almost all records are `USD`, with a small number of `EUR`. Filter with `?currency=USD`.
 
 ### Funding Sort Fields
 
@@ -223,6 +244,8 @@ Types of sources a signal may originate from:
 
 ### Investor Types
 
+Values accepted by the `type` filter:
+
 ```json copy
 [
   "vc",
@@ -236,6 +259,20 @@ Types of sources a signal may originate from:
   "crowdfunding"
 ]
 ```
+
+<Note>
+The underlying `type` field is **free-text** (scraped values like `VC`, `VC firm`,
+`Venture Capital`, `venture_capital`, `Corporate VC`, `Solo angel`, `PE fund`).
+These slugs are **convenience groupings**: each is matched **case-insensitively**
+against the common real-world variants — e.g. `vc` matches `VC` / `VC firm` /
+`Venture Capital` / `venture_capital` / `Corporate VC`, and `angel` matches
+`Angel` / `Solo angel` / `Angel network`. To filter by a value outside this list,
+use the `search` parameter, which also matches the `type` field.
+
+The `type` field **in the response is the original scraped value** (e.g. `Corporate VC`),
+not the slug you filtered by — so a single `type=vc` query returns rows whose `type`
+reads `VC`, `Venture Capital`, `Corporate VC`, and so on.
+</Note>
 
 ### Investor Sort Fields
 

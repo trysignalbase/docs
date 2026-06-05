@@ -118,7 +118,7 @@
           {
             "name": "round",
             "in": "query",
-            "description": "Comma-separated list of funding round types to filter by",
+            "description": "Comma-separated list of funding round types to filter by. Exact, case-insensitive match ('Series A', 'series a', and 'SERIES A' all match). A value not in the accepted list returns 400 Bad Request. See the Enums page for the accepted values.",
             "schema": {
               "type": "string"
             },
@@ -223,7 +223,7 @@
           {
             "name": "amount_min",
             "in": "query",
-            "description": "Minimum funding amount in USD cents",
+            "description": "Minimum funding amount in whole units of the deal's currency (not cents)",
             "schema": {
               "type": "integer"
             },
@@ -232,7 +232,7 @@
           {
             "name": "amount_max",
             "in": "query",
-            "description": "Maximum funding amount in USD cents",
+            "description": "Maximum funding amount in whole units of the deal's currency (not cents)",
             "schema": {
               "type": "integer"
             },
@@ -241,12 +241,12 @@
           {
             "name": "currency",
             "in": "query",
-            "description": "Currency symbol filter",
+            "description": "Filter by currency, as an ISO 4217 code (e.g. USD, EUR, GBP). Most records are USD. Exact match.",
             "schema": {
               "type": "string",
-              "enum": ["$", "€", "£", "¥", "₹", "A$", "C$", "CHF", "SEK", "NOK", "DKK", "SGD", "HKD", "BRL", "KRW"]
+              "enum": ["USD", "EUR", "GBP", "CHF", "JPY", "INR", "CAD", "AUD", "SEK", "CNY", "NZD", "KRW", "SGD", "DKK", "BRL"]
             },
-            "example": "$"
+            "example": "USD"
           },
           {
             "name": "verification_status",
@@ -364,10 +364,10 @@
                       "companyCategories": "[\"Financial Services\",\"Payments\"]",
                       "companyDescription": "dtcpay is a regulated payment service provider enabling seamless digital payments.",
                       "companyEmployeeCount": 125,
-                      "roundType": "Series A",
+                      "roundType": "series a",
                       "roundFlavor": null,
                       "amount": 10000000,
-                      "currency": "$",
+                      "currency": "USD",
                       "announcedDate": "2026-03-17",
                       "confidenceScore": 0.95,
                       "verificationStatus": "verified",
@@ -413,6 +413,20 @@
                     "creditsUsed": 1,
                     "creditsRemaining": 999
                   }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - an invalid filter value was supplied (e.g. an unrecognized `round` value)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Invalid round value: foobar. Accepted values (case-insensitive): pre-seed, seed, series a, series b, series c, series d, series e, series f, series g, series h, angel, grant, crowdfunding, growth, debt, debt financing, equity, fund, ipo."
                 }
               }
             }
@@ -610,24 +624,8 @@
           "roundType": {
             "type": "string",
             "nullable": true,
-            "description": "Type of funding round",
-            "enum": [
-              "Pre-Seed",
-              "Seed",
-              "Series A",
-              "Series B",
-              "Series C",
-              "Series D",
-              "Series E",
-              "Series F",
-              "Series G",
-              "Growth",
-              "Debt",
-              "Grant",
-              "IPO",
-              "Undisclosed"
-            ],
-            "example": "Series A"
+            "description": "Funding round type (lowercase). Commonly one of the accepted `round` filter values (see the Enums page), but responses may include other, less common round types.",
+            "example": "series a"
           },
           "roundFlavor": {
             "type": "string",
@@ -639,13 +637,13 @@
           "amount": {
             "type": "integer",
             "nullable": true,
-            "description": "Funding amount in USD cents",
+            "description": "Funding amount in whole units of the deal's currency (not cents); see the Enums page for currency handling",
             "example": 10000000
           },
           "currency": {
             "type": "string",
-            "description": "Currency symbol for the funding amount",
-            "example": "$"
+            "description": "ISO 4217 currency code for the funding amount (e.g. USD, EUR)",
+            "example": "USD"
           },
           "announcedDate": {
             "type": "string",
@@ -842,7 +840,7 @@
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "bearerFormat": "JWT",
+        "bearerFormat": "API key",
         "description": "API key for Funding Signals API authentication. Include as Bearer token in Authorization header."
       }
     }

@@ -50,7 +50,7 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/funding?count=true&cou
 
 - **Real-time Signals**: Funding signals are aggregated continuously from web sources
 - **Advanced Filtering**: Filter by countries, categories, subcategories, funding rounds, date ranges, and search terms
-- **Funding Round Types**: Filter by Pre-Seed, Seed, Series A through G, Growth, Debt, Grant, IPO, and more
+- **Funding Round Types**: Filter by round type (e.g. `seed`, `series a`, `pre-seed`, `grant`) — case-insensitive. See [Round Types](/enums#funding-round-types)
 - **Round Flavors**: Distinguish between bridge, extension, and secondary rounds
 - **Numeric Range Filters**: Filter by amount, employee count, and founded year
 - **Flexible Sorting**: Sort by date, amount, employee count, or founded year
@@ -110,8 +110,8 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/funding?page=1&limit=2
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `amount_min` | integer | Minimum funding amount in USD cents |
-| `amount_max` | integer | Maximum funding amount in USD cents |
+| `amount_min` | integer | Minimum funding amount in whole units of the deal's currency (not cents) |
+| `amount_max` | integer | Maximum funding amount in whole units of the deal's currency (not cents) |
 | `employee_count_min` | integer | Minimum company employee count |
 | `employee_count_max` | integer | Maximum company employee count |
 | `founded_year_min` | integer | Minimum company founded year |
@@ -123,7 +123,7 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/funding?page=1&limit=2
 |-----------|------|-------------|
 | `round` | string | Comma-separated round types. See [Round Types](/enums#funding-round-types) |
 | `round_flavor` | string | Comma-separated round flavors: `bridge`, `extension`, `secondary` |
-| `currency` | string | Currency symbol filter (e.g., `$`, `€`, `£`) |
+| `currency` | string | Filter by ISO 4217 currency code (e.g., `USD`, `EUR`, `GBP`). See [Currency Values](/enums#currency-values) |
 | `verification_status` | string | Comma-separated statuses: `verified`, `unverified`, `pending` |
 | `investor_name` | string | Search by investor name (partial match) |
 
@@ -136,18 +136,16 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/funding?page=1&limit=2
 
 ## Funding Round Types
 
-The API supports filtering by these funding round stages:
+Round types are matched **case-insensitively** (`Series A`, `series a`, and `SERIES A` all work) and returned in lowercase. The most common values:
 
-- **Pre-Seed**: Very early stage funding
-- **Seed**: Early-stage funding
-- **Series A**: First significant round of venture capital
-- **Series B**: Second round of funding for scaling
-- **Series C – G**: Later-stage funding rounds
-- **Growth**: Growth-stage capital
-- **Debt**: Non-equity debt financing
-- **Grant**: Non-dilutive funding
-- **IPO**: Initial Public Offering
-- **Undisclosed**: Funding round with undisclosed details
+- `seed`, `pre-seed` — early-stage funding
+- `series a` … `series f` — priced venture rounds (later letters also occur)
+- `angel` — angel/individual investment
+- `grant` — non-dilutive funding
+- `equity`, `fund`, `debt financing`, `debt` — other financing types
+- `ipo` — initial public offering
+
+See [Round Types](/enums#funding-round-types) for the full common list.
 
 ## Response Structure
 
@@ -160,7 +158,7 @@ All successful responses follow this structure:
     {
       "signalId": "uuid-here",
       "companyName": "TechStartup Inc",
-      "roundType": "Series A",
+      "roundType": "series a",
       "fundingAmount": 10000000,
       "investorNames": ["VC Fund 1", "Angel Investor 2"],
       ...

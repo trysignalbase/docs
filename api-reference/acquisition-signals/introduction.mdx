@@ -109,8 +109,8 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/acquisitions?page=1&li
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `amount_min` | integer | Minimum acquisition amount in USD cents |
-| `amount_max` | integer | Maximum acquisition amount in USD cents |
+| `amount_min` | integer | Minimum acquisition amount in whole dollars (not cents) |
+| `amount_max` | integer | Maximum acquisition amount in whole dollars (not cents) |
 | `employee_count_min` | integer | Minimum company employee count |
 | `employee_count_max` | integer | Maximum company employee count |
 | `founded_year_min` | integer | Minimum company founded year |
@@ -120,7 +120,7 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/acquisitions?page=1&li
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `currency` | string | Currency symbol filter (e.g., `$`, `€`, `£`) |
+| `currency` | string | Filter by currency (ISO 4217 code). Almost all acquisitions are `USD`; a few are `EUR`. See [Currency Values](/enums#currency-values) |
 | `verification_status` | string | Comma-separated statuses: `verified`, `unverified`, `pending` |
 | `acquiring_company` | string | Search by acquiring company name (partial match) |
 

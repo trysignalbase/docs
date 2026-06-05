@@ -111,10 +111,13 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/job-changes?page=1&lim
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `person_name` | string | Search by person name |
 | `company_name` | string | Search by company name |
 | `new_role` | string | Search by new role / job title |
 | `keyword` | string | Search by keyword tag |
+
+<Note>
+There is no `person_name` filter. For privacy (GDPR), people are queryable only by `personLinkedinUrl`, and `personName` is returned masked (first name + last initial). To locate a specific person, filter by their LinkedIn URL.
+</Note>
 
 ### Role Category Filters
 

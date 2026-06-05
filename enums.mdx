@@ -123,20 +123,20 @@ Funding and acquisition amounts are **whole units of the deal's currency** (an i
 | `currency` (filter) | Filters rows by their `currency` value. **Does not convert** between currencies — it's a simple exact match on the currency field. |
 
 <Warning>
-Amounts are **not converted to a common currency** — each `amount` is expressed in its own `currency` (most are `$`). If your results span multiple currencies, an `amount_min` / `amount_max` filter compares the raw numbers regardless of currency, so add a `currency` filter (e.g. `currency=$`) when you need an apples-to-apples range.
+Amounts are **not converted to a common currency** — each `amount` is expressed in its own `currency` (most are `USD`). If your results span multiple currencies, an `amount_min` / `amount_max` filter compares the raw numbers regardless of currency, so add a `currency` filter (e.g. `currency=USD`) when you need an apples-to-apples range.
 </Warning>
 
 #### Currency Values
 
-Currency is recorded differently on the two endpoints, so filter accordingly:
+Both endpoints record `currency` as **ISO 4217 codes** (exact match, case-sensitive):
 
-- **Funding** uses **ISO 4217 codes**. Most records are `USD`; the rest are mostly `EUR` and `GBP`. Filter with the exact code, e.g. `?currency=USD`. Common values:
+- **Funding** — most records are `USD`; the rest are mostly `EUR` and `GBP`. Filter with the exact code, e.g. `?currency=USD`. Common values:
 
   ```json copy
   ["USD", "EUR", "GBP", "CHF", "JPY", "INR", "CAD", "AUD", "SEK", "CNY", "NZD", "KRW", "SGD", "DKK", "BRL"]
   ```
 
-- **Acquisitions** report the currency as **`$`** for most records, with a small number using `USD` or `EUR`. Filter with `?currency=$`.
+- **Acquisitions** — almost all records are `USD`, with a small number of `EUR`. Filter with `?currency=USD`.
 
 ### Funding Sort Fields
 

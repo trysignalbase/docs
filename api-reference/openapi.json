@@ -684,16 +684,15 @@
           {
             "name": "currency",
             "in": "query",
-            "description": "Filter by currency. Most acquisition amounts are reported as \"$\"; a small number use ISO codes (USD, EUR). Exact match.",
+            "description": "Filter by currency, as an ISO 4217 code. Acquisition amounts are stored as USD by convention (the vast majority); a few records are EUR. Exact match.",
             "schema": {
               "type": "string",
               "enum": [
-                "$",
                 "USD",
                 "EUR"
               ]
             },
-            "example": "$"
+            "example": "USD"
           },
           {
             "name": "verification_status",
@@ -818,7 +817,7 @@
                       "companyEmployeeCount": 85,
                       "acquiringCompanyId": "e5f6a7b8-c9d0-1234-efgh-i56789012345",
                       "amount": 250000000,
-                      "currency": "$",
+                      "currency": "USD",
                       "percentage": "100%",
                       "announcedDate": "2026-02-10",
                       "isFreeAccess": true,
@@ -3641,8 +3640,8 @@
           },
           "currency": {
             "type": "string",
-            "description": "Currency of the amount. Usually \"$\"; some records use ISO codes (USD, EUR).",
-            "example": "$"
+            "description": "Currency of the amount, as an ISO 4217 code. Usually \"USD\"; a few records are \"EUR\".",
+            "example": "USD"
           },
           "percentage": {
             "type": "string",

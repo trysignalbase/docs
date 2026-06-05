@@ -149,9 +149,9 @@
           {
             "name": "currency",
             "in": "query",
-            "description": "Filter by currency. Most acquisition amounts are reported as \"$\"; a small number use ISO codes (USD, EUR). Exact match.",
-            "schema": { "type": "string", "enum": ["$", "USD", "EUR"] },
-            "example": "$"
+            "description": "Filter by currency, as an ISO 4217 code. Acquisition amounts are stored as USD by convention (the vast majority); a few records are EUR. Exact match.",
+            "schema": { "type": "string", "enum": ["USD", "EUR"] },
+            "example": "USD"
           },
           {
             "name": "verification_status",
@@ -242,7 +242,7 @@
                       "companyEmployeeCount": 85,
                       "acquiringCompanyId": "e5f6a7b8-c9d0-1234-efgh-i56789012345",
                       "amount": 250000000,
-                      "currency": "$",
+                      "currency": "USD",
                       "percentage": "100%",
                       "announcedDate": "2026-02-10",
                       "isFreeAccess": true,
@@ -341,7 +341,7 @@
           "companyEmployeeCount": { "type": "integer", "nullable": true, "description": "Employee count of the acquired company" },
           "acquiringCompanyId": { "type": "string", "format": "uuid", "nullable": true, "description": "ID of the acquiring company (null if unknown)" },
           "amount": { "type": "integer", "nullable": true, "description": "Acquisition amount in whole USD (not cents)" },
-          "currency": { "type": "string", "description": "Currency of the amount. Usually \"$\"; some records use ISO codes (USD, EUR).", "example": "$" },
+          "currency": { "type": "string", "description": "Currency of the amount, as an ISO 4217 code. Usually \"USD\"; a few records are \"EUR\".", "example": "USD" },
           "percentage": { "type": "string", "nullable": true, "description": "Acquisition percentage (e.g., \"100%\", \"51%\", \"partial\")" },
           "announcedDate": { "type": "string", "format": "date", "nullable": true, "description": "Date when the acquisition was announced" },
           "isFreeAccess": { "type": "boolean", "description": "Whether full data is accessible (always true for authenticated requests)", "example": true },

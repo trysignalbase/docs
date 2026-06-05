@@ -127,6 +127,8 @@ The API supports filtering by the following investor types:
 - **hedge_fund**: Hedge funds
 - **crowdfunding**: Crowdfunding platforms
 
+These are **case-insensitive groupings** over a free-text `type` field, so e.g. `vc` matches `VC`, `VC firm`, `Venture Capital`, `venture_capital`, and `Corporate VC`. The `type` value returned in the response is the original scraped string (not the slug), so a single `type=vc` query returns rows with mixed `type` values. For values outside this list, use `search`.
+
 ## Response Structure
 
 All successful responses follow this structure:

@@ -244,6 +244,8 @@ Types of sources a signal may originate from:
 
 ### Investor Types
 
+Values accepted by the `type` filter:
+
 ```json copy
 [
   "vc",
@@ -257,6 +259,20 @@ Types of sources a signal may originate from:
   "crowdfunding"
 ]
 ```
+
+<Note>
+The underlying `type` field is **free-text** (scraped values like `VC`, `VC firm`,
+`Venture Capital`, `venture_capital`, `Corporate VC`, `Solo angel`, `PE fund`).
+These slugs are **convenience groupings**: each is matched **case-insensitively**
+against the common real-world variants — e.g. `vc` matches `VC` / `VC firm` /
+`Venture Capital` / `venture_capital` / `Corporate VC`, and `angel` matches
+`Angel` / `Solo angel` / `Angel network`. To filter by a value outside this list,
+use the `search` parameter, which also matches the `type` field.
+
+The `type` field **in the response is the original scraped value** (e.g. `Corporate VC`),
+not the slug you filtered by — so a single `type=vc` query returns rows whose `type`
+reads `VC`, `Venture Capital`, `Corporate VC`, and so on.
+</Note>
 
 ### Investor Sort Fields
 

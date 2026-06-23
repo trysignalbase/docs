@@ -126,6 +126,20 @@
             "example": "stripe"
           },
           {
+            "name": "company_domain",
+            "in": "query",
+            "description": "**Recommended.** Company website domain, e.g. `novartis.com`. Strict match — if no company has this domain the result is empty; never falls back to fuzzy name matching. Variants are equivalent: `novartis.com`, `www.novartis.com` and `https://novartis.com/` all match the same company. Malformed values return 400. Takes priority over `company_name`; combined identifiers must agree or the result is empty.",
+            "schema": { "type": "string" },
+            "example": "novartis.com"
+          },
+          {
+            "name": "company_linkedin_url",
+            "in": "query",
+            "description": "**Recommended.** LinkedIn company URL, e.g. `linkedin.com/company/novartis`. Strict match — if no company has this LinkedIn page the result is empty; never falls back to fuzzy name matching. `http`/`https`, optional `www.` and trailing slash are equivalent. Non-company LinkedIn URLs (e.g. personal `/in/` profiles) return 400. Takes priority over `company_name`; combined identifiers must agree or the result is empty.",
+            "schema": { "type": "string" },
+            "example": "linkedin.com/company/novartis"
+          },
+          {
             "name": "acquiring_company",
             "in": "query",
             "description": "Search by acquiring company name (partial match)",
@@ -225,6 +239,7 @@
                     {
                       "signalId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
                       "signalType": "acquisition",
+                      "match_confidence": "exact",
                       "occurredAt": "2026-02-10T12:00:00.000Z",
                       "discoveredAt": "2026-02-10T14:30:00.000Z",
                       "companyId": "d4e5f6a7-b8c9-0123-defg-h45678901234",
@@ -324,6 +339,7 @@
         "properties": {
           "signalId": { "type": "string", "format": "uuid", "description": "Unique identifier for the acquisition signal" },
           "signalType": { "type": "string", "description": "Type of signal (always \"acquisition\" for this endpoint)", "example": "acquisition" },
+          "match_confidence": { "type": "string", "enum": ["exact", "fuzzy", "none"], "description": "How this row's company was matched: \"exact\" (via `company_domain` / `company_linkedin_url`), \"fuzzy\" (via `company_name` partial match), or \"none\" (no company identifier in the query)." },
           "occurredAt": { "type": "string", "format": "date-time", "description": "When the acquisition occurred" },
           "discoveredAt": { "type": "string", "format": "date-time", "description": "When the signal was discovered" },
           "companyId": { "type": "string", "format": "uuid", "description": "Unique identifier for the acquired company" },

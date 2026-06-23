@@ -76,6 +76,35 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/job-changes?page=1&lim
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
+## Matching by Company URL (Recommended)
+
+If you know a company's website domain or LinkedIn page, query by URL instead of by name. Name search is fuzzy and can return lookalikes (`Novartis` also matches `Novartis UK`); URL identifiers match exactly one company.
+
+```bash
+# By website domain
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/job-changes?company_domain=novartis.com" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+# By LinkedIn company page
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/job-changes?company_linkedin_url=linkedin.com/company/novartis" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+**Accepted input formats.** URL identifiers are normalized before matching, so equivalent variants return the same results:
+
+- `company_domain`: `novartis.com`, `www.novartis.com`, `https://www.novartis.com/`, `https://novartis.com/any/path` — scheme, `www.`, port, path and trailing slash are ignored. Values that can't be reduced to a domain return `400`.
+- `company_linkedin_url`: `linkedin.com/company/novartis`, `https://www.linkedin.com/company/Novartis/` — `http`/`https`, `www.` and trailing slash are ignored, the slug is case-insensitive. URLs that aren't LinkedIn *company* pages (e.g. personal `/in/` profiles) return `400`.
+
+**Strict matching.** When a URL identifier is provided, the API never falls back to fuzzy name matching: if no company matches, the result is empty. Identifiers combine with `AND` — `company_domain=novartis.com&company_name=Acme` returns empty because they disagree.
+
+**Match confidence.** Every result row includes `match_confidence`:
+
+| Value | Meaning |
+|-------|---------|
+| `exact` | Matched via `company_domain` or `company_linkedin_url` |
+| `fuzzy` | Matched via `company_name` partial match only |
+| `none` | No company identifier was part of the query |
+
 ## Query Parameters
 
 ### Pagination
@@ -104,14 +133,15 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/job-changes?page=1&lim
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `personLinkedinUrl` | string | Exact LinkedIn URL for a person |
-| `companyLinkedinUrl` | string | Exact LinkedIn URL for a company |
+| `company_linkedin_url` | string | **Recommended.** LinkedIn company URL (e.g. `linkedin.com/company/novartis`). Strict match — see [Matching by company URL](#matching-by-company-url-recommended). Legacy alias: `companyLinkedinUrl` |
+| `company_domain` | string | **Recommended.** Company website domain (e.g. `novartis.com`), matched via the linked company record. Strict match |
 | `source` | string | Exact match on source: `linkedin`, `press_release`, `other` |
 
 ### Field-specific Search (partial match)
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `company_name` | string | Search by company name |
+| `company_name` | string | Search by company name (partial match, fuzzy). Prefer `company_domain` or `company_linkedin_url` for strict matching |
 | `new_role` | string | Search by new role / job title |
 | `keyword` | string | Search by keyword tag |
 
@@ -223,6 +253,6 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/job-changes?new_role=V
 ### Target by LinkedIn URLs
 
 ```bash
-curl -X GET "https://www.trysignalbase.com/api/v2/signals/job-changes?personLinkedinUrl=https://www.linkedin.com/in/example&companyLinkedinUrl=https://www.linkedin.com/company/example" \
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/job-changes?personLinkedinUrl=https://www.linkedin.com/in/example&company_linkedin_url=linkedin.com/company/example" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```

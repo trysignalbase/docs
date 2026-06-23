@@ -97,11 +97,11 @@
             "example": "https://www.linkedin.com/in/example"
           },
           {
-            "name": "companyLinkedinUrl",
+            "name": "company_linkedin_url",
             "in": "query",
-            "description": "Exact LinkedIn company page URL",
+            "description": "**Recommended.** LinkedIn company URL, e.g. `linkedin.com/company/novartis`. Strict match — if no company has this LinkedIn page the result is empty; never falls back to fuzzy name matching. `http`/`https`, optional `www.` and trailing slash are equivalent. Non-company LinkedIn URLs (e.g. personal `/in/` profiles) return 400. Takes priority over `company_name`; combined identifiers must agree or the result is empty. (Legacy alias: `companyLinkedinUrl`.)",
             "schema": { "type": "string" },
-            "example": "https://www.linkedin.com/company/example"
+            "example": "linkedin.com/company/novartis"
           },
           {
             "name": "company_name",
@@ -109,6 +109,13 @@
             "description": "Search by company name (partial match)",
             "schema": { "type": "string" },
             "example": "Google"
+          },
+          {
+            "name": "company_domain",
+            "in": "query",
+            "description": "**Recommended.** Company website domain, e.g. `novartis.com`. Strict match — if no company has this domain the result is empty; never falls back to fuzzy name matching. Variants are equivalent: `novartis.com`, `www.novartis.com` and `https://novartis.com/` all match the same company. Malformed values return 400. Takes priority over `company_name`; combined identifiers must agree or the result is empty.",
+            "schema": { "type": "string" },
+            "example": "novartis.com"
           },
           {
             "name": "new_role",
@@ -189,6 +196,7 @@
                     {
                       "signalId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
                       "signalType": "job_change",
+                      "match_confidence": "exact",
                       "occurredAt": "2026-03-01T00:00:00.000Z",
                       "discoveredAt": "2026-03-02T12:00:00.000Z",
                       "personName": "Alex J.",
@@ -281,6 +289,7 @@
         "properties": {
           "signalId": { "type": "string", "format": "uuid", "description": "Unique identifier for the signal" },
           "signalType": { "type": "string", "description": "Type of signal (always \"job_change\")", "example": "job_change" },
+          "match_confidence": { "type": "string", "enum": ["exact", "fuzzy", "none"], "description": "How this row's company was matched: \"exact\" (via `company_domain` / `company_linkedin_url`), \"fuzzy\" (via `company_name` partial match), or \"none\" (no company identifier in the query)." },
           "occurredAt": { "type": "string", "format": "date-time", "description": "When the job change occurred" },
           "discoveredAt": { "type": "string", "format": "date-time", "description": "When the signal was discovered" },
           "personName": { "type": "string", "description": "Person's name (GDPR-masked: first name + last initial only)", "example": "Alex J." },

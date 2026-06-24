@@ -77,6 +77,35 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/acquisitions?page=1&li
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
+## Matching by Company URL (Recommended)
+
+If you know a company's website domain or LinkedIn page, query by URL instead of by name. Name search is fuzzy and can return lookalikes (`Novartis` also matches `Novartis UK`); URL identifiers match exactly one company.
+
+```bash
+# By website domain
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/acquisitions?company_domain=novartis.com" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+# By LinkedIn company page
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/acquisitions?company_linkedin_url=linkedin.com/company/novartis" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+**Accepted input formats.** URL identifiers are normalized before matching, so equivalent variants return the same results:
+
+- `company_domain`: `novartis.com`, `www.novartis.com`, `https://www.novartis.com/`, `https://novartis.com/any/path` — scheme, `www.`, port, path and trailing slash are ignored. Values that can't be reduced to a domain return `400`.
+- `company_linkedin_url`: `linkedin.com/company/novartis`, `https://www.linkedin.com/company/Novartis/` — `http`/`https`, `www.` and trailing slash are ignored, the slug is case-insensitive. URLs that aren't LinkedIn *company* pages (e.g. personal `/in/` profiles) return `400`.
+
+**Strict matching.** When a URL identifier is provided, the API never falls back to fuzzy name matching: if no company matches, the result is empty. Identifiers combine with `AND` — `company_domain=novartis.com&company_name=Acme` returns empty because they disagree.
+
+**Match confidence.** Every result row includes `match_confidence`:
+
+| Value | Meaning |
+|-------|---------|
+| `exact` | Matched via `company_domain` or `company_linkedin_url` |
+| `fuzzy` | Matched via `company_name` partial match only |
+| `none` | No company identifier was part of the query |
+
 ## Query Parameters
 
 ### Pagination
@@ -102,7 +131,9 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/acquisitions?page=1&li
 | `categories` | string | Pipe-separated company categories / industries |
 | `subcategories` | string | Comma-separated subcategory IDs (e.g., `ai,fintech,saas`) |
 | `industry` | string | Comma-separated exact industry names |
-| `company_name` | string | Search by acquired company name (partial match) |
+| `company_domain` | string | **Recommended.** Acquired company website domain (e.g. `novartis.com`). Strict match — see [Matching by company URL](#matching-by-company-url-recommended) |
+| `company_linkedin_url` | string | **Recommended.** Acquired company LinkedIn URL (e.g. `linkedin.com/company/novartis`). Strict match |
+| `company_name` | string | Search by acquired company name (partial match, fuzzy). Prefer the URL identifiers above |
 | `search` | string | Free-text search across company name & industry |
 
 ### Numeric Range Filters

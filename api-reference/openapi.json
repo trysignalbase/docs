@@ -222,6 +222,24 @@
             "example": "stripe"
           },
           {
+            "name": "company_domain",
+            "in": "query",
+            "description": "**Recommended.** Company website domain, e.g. `novartis.com`. Strict match — if no company has this domain the result is empty; never falls back to fuzzy name matching. Variants are equivalent: `novartis.com`, `www.novartis.com` and `https://novartis.com/` all match the same company. Malformed values return 400. Takes priority over `company_name`; combined identifiers must agree or the result is empty.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "novartis.com"
+          },
+          {
+            "name": "company_linkedin_url",
+            "in": "query",
+            "description": "**Recommended.** LinkedIn company URL, e.g. `linkedin.com/company/novartis`. Strict match — if no company has this LinkedIn page the result is empty; never falls back to fuzzy name matching. `http`/`https`, optional `www.` and trailing slash are equivalent. Non-company LinkedIn URLs (e.g. personal `/in/` profiles) return 400. Takes priority over `company_name`; combined identifiers must agree or the result is empty.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "linkedin.com/company/novartis"
+          },
+          {
             "name": "amount_min",
             "in": "query",
             "description": "Minimum funding amount in whole units of the deal's currency (not cents)",
@@ -381,6 +399,7 @@
                     {
                       "signalId": "f9422f20-bcdc-4d38-8049-4cda561bc9dd",
                       "signalType": "funding_round",
+                      "match_confidence": "exact",
                       "occurredAt": "2026-03-17T04:05:52.903Z",
                       "discoveredAt": "2026-03-17T05:06:08.184Z",
                       "companyId": "3bba1b2e-fb85-485e-80d5-5cc4617cfe13",
@@ -655,6 +674,24 @@
             "example": "stripe"
           },
           {
+            "name": "company_domain",
+            "in": "query",
+            "description": "**Recommended.** Company website domain, e.g. `novartis.com`. Strict match — if no company has this domain the result is empty; never falls back to fuzzy name matching. Variants are equivalent: `novartis.com`, `www.novartis.com` and `https://novartis.com/` all match the same company. Malformed values return 400. Takes priority over `company_name`; combined identifiers must agree or the result is empty.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "novartis.com"
+          },
+          {
+            "name": "company_linkedin_url",
+            "in": "query",
+            "description": "**Recommended.** LinkedIn company URL, e.g. `linkedin.com/company/novartis`. Strict match — if no company has this LinkedIn page the result is empty; never falls back to fuzzy name matching. `http`/`https`, optional `www.` and trailing slash are equivalent. Non-company LinkedIn URLs (e.g. personal `/in/` profiles) return 400. Takes priority over `company_name`; combined identifiers must agree or the result is empty.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "linkedin.com/company/novartis"
+          },
+          {
             "name": "acquiring_company",
             "in": "query",
             "description": "Search by acquiring company name (partial match)",
@@ -800,6 +837,7 @@
                     {
                       "signalId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
                       "signalType": "acquisition",
+                      "match_confidence": "exact",
                       "occurredAt": "2026-02-10T12:00:00.000Z",
                       "discoveredAt": "2026-02-10T14:30:00.000Z",
                       "companyId": "d4e5f6a7-b8c9-0123-defg-h45678901234",
@@ -1035,13 +1073,13 @@
             "example": "https://www.linkedin.com/in/example"
           },
           {
-            "name": "companyLinkedinUrl",
+            "name": "company_linkedin_url",
             "in": "query",
-            "description": "Exact LinkedIn company page URL",
+            "description": "**Recommended.** LinkedIn company URL, e.g. `linkedin.com/company/novartis`. Strict match — if no company has this LinkedIn page the result is empty; never falls back to fuzzy name matching. `http`/`https`, optional `www.` and trailing slash are equivalent. Non-company LinkedIn URLs (e.g. personal `/in/` profiles) return 400. Takes priority over `company_name`; combined identifiers must agree or the result is empty. (Legacy alias: `companyLinkedinUrl`.)",
             "schema": {
               "type": "string"
             },
-            "example": "https://www.linkedin.com/company/example"
+            "example": "linkedin.com/company/novartis"
           },
           {
             "name": "company_name",
@@ -1051,6 +1089,15 @@
               "type": "string"
             },
             "example": "Google"
+          },
+          {
+            "name": "company_domain",
+            "in": "query",
+            "description": "**Recommended.** Company website domain, e.g. `novartis.com`. Strict match — if no company has this domain the result is empty; never falls back to fuzzy name matching. Variants are equivalent: `novartis.com`, `www.novartis.com` and `https://novartis.com/` all match the same company. Malformed values return 400. Takes priority over `company_name`; combined identifiers must agree or the result is empty.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "novartis.com"
           },
           {
             "name": "new_role",
@@ -1167,6 +1214,7 @@
                     {
                       "signalId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
                       "signalType": "job_change",
+                      "match_confidence": "exact",
                       "occurredAt": "2026-03-01T00:00:00.000Z",
                       "discoveredAt": "2026-03-02T12:00:00.000Z",
                       "personName": "Alex J.",
@@ -1458,6 +1506,33 @@
             "example": "0-25,26-50"
           },
           {
+            "name": "company_name",
+            "in": "query",
+            "description": "Search by company name (partial match, fuzzy). Prefer `company_domain` or `company_linkedin_url` for strict matching.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "stripe"
+          },
+          {
+            "name": "company_domain",
+            "in": "query",
+            "description": "**Recommended.** Company website domain, e.g. `novartis.com`. Strict match — if no company has this domain the result is empty; never falls back to fuzzy name matching. Variants are equivalent: `novartis.com`, `www.novartis.com` and `https://novartis.com/` all match the same company. Malformed values return 400. Takes priority over `company_name`; combined identifiers must agree or the result is empty.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "novartis.com"
+          },
+          {
+            "name": "company_linkedin_url",
+            "in": "query",
+            "description": "**Recommended.** LinkedIn company URL, e.g. `linkedin.com/company/novartis`. Strict match — if no company has this LinkedIn page the result is empty; never falls back to fuzzy name matching. `http`/`https`, optional `www.` and trailing slash are equivalent. Non-company LinkedIn URLs (e.g. personal `/in/` profiles) return 400. Takes priority over `company_name`; combined identifiers must agree or the result is empty.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "linkedin.com/company/novartis"
+          },
+          {
             "name": "sort_by",
             "in": "query",
             "description": "Field to sort by",
@@ -1513,6 +1588,7 @@
                   "data": [
                     {
                       "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                      "match_confidence": "exact",
                       "jobId": "123456789",
                       "jobUrl": "https://www.linkedin.com/jobs/view/123456789",
                       "title": "Senior Software Engineer",
@@ -3161,6 +3237,15 @@
             "description": "Unique identifier for the funding signal",
             "example": "f9422f20-bcdc-4d38-8049-4cda561bc9dd"
           },
+          "match_confidence": {
+            "type": "string",
+            "enum": [
+              "exact",
+              "fuzzy",
+              "none"
+            ],
+            "description": "How this row's company was matched: \"exact\" (via `company_domain` / `company_linkedin_url`), \"fuzzy\" (via `company_name` partial match), or \"none\" (no company identifier in the query)."
+          },
           "signalType": {
             "type": "string",
             "description": "Type of signal (always \"funding_round\" for this endpoint)",
@@ -3554,6 +3639,15 @@
             "description": "Type of signal (always \"acquisition\" for this endpoint)",
             "example": "acquisition"
           },
+          "match_confidence": {
+            "type": "string",
+            "enum": [
+              "exact",
+              "fuzzy",
+              "none"
+            ],
+            "description": "How this row's company was matched: \"exact\" (via `company_domain` / `company_linkedin_url`), \"fuzzy\" (via `company_name` partial match), or \"none\" (no company identifier in the query)."
+          },
           "occurredAt": {
             "type": "string",
             "format": "date-time",
@@ -3884,6 +3978,15 @@
             "description": "Type of signal (always \"job_change\")",
             "example": "job_change"
           },
+          "match_confidence": {
+            "type": "string",
+            "enum": [
+              "exact",
+              "fuzzy",
+              "none"
+            ],
+            "description": "How this row's company was matched: \"exact\" (via `company_domain` / `company_linkedin_url`), \"fuzzy\" (via `company_name` partial match), or \"none\" (no company identifier in the query)."
+          },
           "occurredAt": {
             "type": "string",
             "format": "date-time",
@@ -4178,6 +4281,15 @@
             "type": "string",
             "format": "uuid",
             "description": "Unique identifier for the hiring signal"
+          },
+          "match_confidence": {
+            "type": "string",
+            "enum": [
+              "exact",
+              "fuzzy",
+              "none"
+            ],
+            "description": "How this row's company was matched: \"exact\" (via `company_domain` / `company_linkedin_url`), \"fuzzy\" (via `company_name` partial match), or \"none\" (no company identifier in the query)."
           },
           "jobId": {
             "type": "string",

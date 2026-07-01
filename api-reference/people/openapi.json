@@ -1,0 +1,567 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "People API",
+    "description": "ICP-style people discovery across Signalbase's signal-driven dataset. Every result carries a `matched_signal` inline (funding round, acquisition, or job change) so each person tells you why now — the timing reason to reach out, not just who matches your ICP. People whose company has no active signal in the requested window are excluded by design. This is a search endpoint: it never triggers enrichment.",
+    "license": {
+      "name": "MIT"
+    },
+    "version": "2.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://www.trysignalbase.com/api/v2"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/people": {
+      "get": {
+        "summary": "Search People",
+        "description": "Discover people across employees and job-change subjects, filtered by title, function, seniority, geography, company attributes, and signal activity. Each result includes an inline `matched_signal` — the latest signal that matched your filters — plus `is_latest_signal`, which reports whether that matched signal is also the person's newest overall signal.\n\nDifferent filters combine with AND; comma-separated values within a single filter combine with OR. A person qualifies if any of their signals match the filters, and the latest matching one is surfaced as `matched_signal`. Results are deduplicated by normalized person LinkedIn URL (falling back to normalized name + company identity) before pagination. Default sort is `matched_signal.date` descending.",
+        "operationId": "searchPeople",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number for pagination",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "example": 1
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of results per page (maximum 100)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 100
+            },
+            "example": 100
+          },
+          {
+            "name": "title",
+            "in": "query",
+            "description": "Job title or comma-separated list (e.g. `CTO,VP of Engineering`). Matched with word boundaries via taxonomy/pattern logic — `COO` will not match `Cook` or `Coordinator`, and `Assistant to the CEO` is excluded from `CEO`.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "CTO,VP of Engineering"
+          },
+          {
+            "name": "function",
+            "in": "query",
+            "description": "Comma-separated function ids. Accepted values: `marketing`, `sales`, `engineering`, `product`, `design`, `operations`, `finance`, `people`, `data`, `customer_success`, `growth`, `legal`. Unknown values return 400.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "engineering,product"
+          },
+          {
+            "name": "seniority",
+            "in": "query",
+            "description": "Comma-separated seniority ids. Accepted values: `founder`, `c_level`, `vp`, `director`, `head`, `lead`, `manager`. Unknown values return 400.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "c_level,vp"
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "description": "ISO 3166-1 alpha-2 country code or comma-separated list (e.g. `US,NL`). Matches either the company's country or the person's country.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "US,NL"
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "description": "Free-text city match (partial, case-insensitive). Only job-change people carry city data today; employee-sourced people have no city and are excluded when this filter is set.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "Amsterdam"
+          },
+          {
+            "name": "company_size",
+            "in": "query",
+            "description": "Comma-separated company size bands, matched against the company's employee count. Accepted values: `1-10`, `11-50`, `51-100`, `101-250`, `251-500`, `501-1000`, `1000-plus`. People whose record has no linked company with a known headcount are excluded when this filter is set. Unknown values return 400.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "51-100,101-250"
+          },
+          {
+            "name": "industry",
+            "in": "query",
+            "description": "Industry name or comma-separated list (case-insensitive exact match on the company's industry).",
+            "schema": {
+              "type": "string"
+            },
+            "example": "SaaS,Fintech"
+          },
+          {
+            "name": "signal_type",
+            "in": "query",
+            "description": "Comma-separated signal type(s) to pin `matched_signal` to. Accepted values: `funding_round`, `acquisition`, `job_change`. When omitted, `matched_signal` is the person's newest qualifying signal of any supported type, so types can mix across a page. Unknown values return 400.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "funding_round"
+          },
+          {
+            "name": "signal_date_range",
+            "in": "query",
+            "description": "Lookback window for the matched signal, as `<n><unit>` where unit is `d` (days), `w` (weeks), `m` (months), or `y` (years) — e.g. `30d`, `6m`, `12m`, `2y`. People whose latest matching signal falls outside this window are excluded. Malformed or out-of-range values return 400.",
+            "schema": {
+              "type": "string",
+              "default": "12m"
+            },
+            "example": "6m"
+          },
+          {
+            "name": "include_former",
+            "in": "query",
+            "description": "Whether to include former employees. Currently only `false` is supported — passing `true` returns 400 because job-change records have no current/former semantics yet. The endpoint is active-only (current employees).",
+            "schema": {
+              "type": "string",
+              "enum": ["false"],
+              "default": "false"
+            },
+            "example": "false"
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "If set to `true`, returns only the total count without data rows and without deducting credits.",
+            "schema": {
+              "type": "string",
+              "enum": ["true"]
+            },
+            "example": "true"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response with people",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PeopleResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": [
+                    {
+                      "name": "Sarah K.",
+                      "linkedin_url": "https://www.linkedin.com/in/sarah-k",
+                      "title": "Chief Technology Officer",
+                      "status": "active",
+                      "city": null,
+                      "company": {
+                        "name": "NextGen Software",
+                        "domain": "nextgensoftware.com",
+                        "linkedin_url": "https://www.linkedin.com/company/nextgensoftware",
+                        "country": "NL",
+                        "city": null,
+                        "size_band": "101-250",
+                        "industry": "Technology"
+                      },
+                      "is_latest_signal": true,
+                      "matched_signal": {
+                        "type": "funding_round",
+                        "date": "2026-05-12",
+                        "summary": "Series B, $40M led by Accel",
+                        "source_url": "https://techcrunch.com/2026/05/12/nextgen-series-b"
+                      }
+                    },
+                    {
+                      "name": "Michael R.",
+                      "linkedin_url": "https://www.linkedin.com/in/michael-r",
+                      "title": "VP of Engineering",
+                      "status": "active",
+                      "city": "Berlin",
+                      "company": {
+                        "name": "HealthTech Solutions",
+                        "domain": "healthtechsolutions.co.uk",
+                        "linkedin_url": "https://www.linkedin.com/company/healthtechsolutions",
+                        "country": "GB",
+                        "city": null,
+                        "size_band": "51-100",
+                        "industry": "Healthcare Technology"
+                      },
+                      "is_latest_signal": false,
+                      "matched_signal": {
+                        "type": "job_change",
+                        "date": "2026-04-02",
+                        "summary": "Michael R. started as VP of Engineering at HealthTech Solutions",
+                        "source_url": "https://www.linkedin.com/in/michael-r"
+                      }
+                    }
+                  ],
+                  "pagination": {
+                    "currentPage": 1,
+                    "totalPages": 12,
+                    "totalCount": 1183,
+                    "hasNextPage": true,
+                    "hasPreviousPage": false
+                  },
+                  "meta": {
+                    "endpoint": "people.list",
+                    "creditsUsed": 1,
+                    "creditsRemaining": 4999
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid filter value (e.g. unknown function/seniority/company_size/signal_type, malformed signal_date_range, or include_former=true)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Invalid seniority value: exec. Accepted values: founder, c_level, vp, director, head, lead, manager."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Invalid API key"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "out of credits, please contact support to increase your usage"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Rate limit exceeded. Please try again later."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Failed to search people"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PeopleResponse": {
+        "type": "object",
+        "required": ["success", "data", "pagination", "meta"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indicates if the request was successful",
+            "example": true
+          },
+          "data": {
+            "type": "array",
+            "description": "Array of matched people",
+            "items": {
+              "$ref": "#/components/schemas/Person"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        }
+      },
+      "Person": {
+        "type": "object",
+        "required": [
+          "name",
+          "linkedin_url",
+          "title",
+          "status",
+          "city",
+          "company",
+          "is_latest_signal",
+          "matched_signal"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "description": "Person's name, masked for privacy (first name + last initial), e.g. `Sarah K.`",
+            "example": "Sarah K."
+          },
+          "linkedin_url": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "Person's LinkedIn profile URL",
+            "example": "https://www.linkedin.com/in/sarah-k"
+          },
+          "title": {
+            "type": "string",
+            "nullable": true,
+            "description": "Person's job title",
+            "example": "Chief Technology Officer"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active"],
+            "description": "Employment status. Always `active` — the endpoint is active-only until `include_former` is supported.",
+            "example": "active"
+          },
+          "city": {
+            "type": "string",
+            "nullable": true,
+            "description": "Person's city. Only populated for job-change-sourced people; `null` for employee-sourced people.",
+            "example": "Berlin"
+          },
+          "company": {
+            "$ref": "#/components/schemas/PersonCompany"
+          },
+          "is_latest_signal": {
+            "type": "boolean",
+            "description": "Whether `matched_signal` is also the person's newest overall signal. `false` means an older signal matched your filters while a more recent (non-matching) signal exists.",
+            "example": true
+          },
+          "matched_signal": {
+            "$ref": "#/components/schemas/MatchedSignal"
+          }
+        }
+      },
+      "PersonCompany": {
+        "type": "object",
+        "description": "The company associated with the person and matched signal. Fields may be null when the source record has no linked company identity.",
+        "required": [
+          "name",
+          "domain",
+          "linkedin_url",
+          "country",
+          "city",
+          "size_band",
+          "industry"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "description": "Company name",
+            "example": "NextGen Software"
+          },
+          "domain": {
+            "type": "string",
+            "nullable": true,
+            "description": "Company website domain (scheme and `www.` stripped)",
+            "example": "nextgensoftware.com"
+          },
+          "linkedin_url": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "LinkedIn company page URL",
+            "example": "https://www.linkedin.com/company/nextgensoftware"
+          },
+          "country": {
+            "type": "string",
+            "nullable": true,
+            "description": "Company headquarters country (ISO 3166-1 alpha-2)",
+            "example": "NL"
+          },
+          "city": {
+            "type": "string",
+            "nullable": true,
+            "description": "Company city. Always `null` today — companies do not carry a city field yet.",
+            "example": null
+          },
+          "size_band": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "1-10",
+              "11-50",
+              "51-100",
+              "101-250",
+              "251-500",
+              "501-1000",
+              "1000-plus"
+            ],
+            "description": "Company size band derived from employee count. `null` when headcount is unknown.",
+            "example": "101-250"
+          },
+          "industry": {
+            "type": "string",
+            "nullable": true,
+            "description": "Company industry",
+            "example": "Technology"
+          }
+        }
+      },
+      "MatchedSignal": {
+        "type": "object",
+        "description": "The latest signal that matched the query filters — the person's why-now, always consistent with the filters (not necessarily their newest overall signal; see `is_latest_signal`).",
+        "required": ["type", "date", "summary", "source_url"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["funding_round", "acquisition", "job_change"],
+            "description": "Signal type",
+            "example": "funding_round"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "description": "Signal date (YYYY-MM-DD)",
+            "example": "2026-05-12"
+          },
+          "summary": {
+            "type": "string",
+            "description": "Human-readable summary of the signal",
+            "example": "Series B, $40M led by Accel"
+          },
+          "source_url": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "URL of the primary source for the signal, when available",
+            "example": "https://techcrunch.com/2026/05/12/nextgen-series-b"
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "required": ["currentPage", "totalPages", "totalCount", "hasNextPage", "hasPreviousPage"],
+        "properties": {
+          "currentPage": {
+            "type": "integer",
+            "description": "Current page number",
+            "minimum": 1,
+            "example": 1
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "Total number of pages available",
+            "minimum": 0,
+            "example": 12
+          },
+          "totalCount": {
+            "type": "integer",
+            "description": "Total number of distinct people matching the query",
+            "minimum": 0,
+            "example": 1183
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a next page",
+            "example": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a previous page",
+            "example": false
+          }
+        }
+      },
+      "Meta": {
+        "type": "object",
+        "required": ["endpoint", "creditsUsed"],
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "description": "The endpoint that was called",
+            "example": "people.list"
+          },
+          "creditsUsed": {
+            "type": "number",
+            "description": "Number of API credits consumed by this request (0 in count mode)",
+            "minimum": 0,
+            "example": 1
+          },
+          "creditsRemaining": {
+            "type": "number",
+            "description": "API credits remaining on the team's balance after this request. Omitted in count mode.",
+            "minimum": 0,
+            "example": 4999
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["success", "error"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indicates if the request was successful (always false for errors)",
+            "example": false
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message describing what went wrong",
+            "example": "Invalid API key"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "API key",
+        "description": "API key for People API authentication. Include as Bearer token in Authorization header."
+      }
+    }
+  }
+}

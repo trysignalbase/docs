@@ -223,6 +223,66 @@ Available sort fields for the job changes endpoint:
 ["occurred_at", "discovered_at", "person_name", "company_name"]
 ```
 
+## People Search Enums
+
+Values for the [People API](/api-reference/people/introduction) (`GET /api/v2/people`). These use their own taxonomy — matched by word boundaries on job titles — and are distinct from the Job Change position/department enums above.
+
+### People Functions
+
+Filter people by function (`function` parameter):
+
+```json copy
+[
+  "marketing",
+  "sales",
+  "engineering",
+  "product",
+  "design",
+  "operations",
+  "finance",
+  "people",
+  "data",
+  "customer_success",
+  "growth",
+  "legal"
+]
+```
+
+### People Seniorities
+
+Filter people by seniority level (`seniority` parameter):
+
+```json copy
+["founder", "c_level", "vp", "director", "head", "lead", "manager"]
+```
+
+### People Company Size Bands
+
+Filter people by their company's headcount (`company_size` parameter):
+
+```json copy
+["1-10", "11-50", "51-100", "101-250", "251-500", "501-1000", "1000-plus"]
+```
+
+### People Signal Types
+
+Signal types that can back a person's `matched_signal` (`signal_type` parameter):
+
+```json copy
+["funding_round", "acquisition", "job_change"]
+```
+
+### People Signal Date Range
+
+The `signal_date_range` parameter is a relative lookback window written as `<n><unit>`, where unit is one of:
+
+| Unit | Meaning | Example |
+|------|---------|---------|
+| `d` | days | `30d` |
+| `w` | weeks | `6w` |
+| `m` | months | `12m` (default) |
+| `y` | years | `2y` |
+
 ## Signal Source Types
 
 Types of sources a signal may originate from:

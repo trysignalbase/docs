@@ -1,0 +1,271 @@
+---
+title: 'Introduction'
+description: 'Find the right people to reach out to — every result carries the signal that explains why now'
+---
+
+## Welcome to the People API
+
+The People API is ICP-style people discovery across Signalbase's signal-driven dataset. Filter by title, function, seniority, geography, and company attributes to build a target list — and every person you get back arrives with a `matched_signal` inline (a funding round, acquisition, or job change) that tells you **why now**: the timing reason to reach out, not just who matches your ICP.
+
+This is not a static contact database. People whose company has no active signal within the requested window are excluded by design. It is also a **search** endpoint — it reads existing records and never triggers the enrichment pipeline.
+
+<Card
+  title="Search People Endpoint"
+  icon="users"
+  href="/api-reference/people/endpoint/get"
+>
+  View the complete OpenAPI specification
+</Card>
+
+## Why now: `matched_signal` and `is_latest_signal`
+
+Every result includes a `matched_signal` — the **latest signal that matched your filters**. Because Signalbase filters first and then surfaces the latest *matching* signal, `matched_signal` is always consistent with your query, but it is not necessarily the person's newest overall signal.
+
+The `is_latest_signal` boolean tells you which case you're in:
+
+- `true` — the matched signal is also the person's most recent signal.
+- `false` — an older signal matched your filters, and the person has a more recent signal that did not match.
+
+When you don't pass `signal_type`, `matched_signal` is the person's newest qualifying signal of **any** supported type (`funding_round`, `acquisition`, `job_change`), so types can mix across a page. Pass `signal_type` to pin the surface to specific type(s).
+
+## Count Mode
+
+You can get the total number of people matching any filter combination **without consuming credits** by adding `count=true` to your request. This returns an empty `data` array with full pagination metadata, including `totalCount`.
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/people?count=true&seniority=c_level&signal_type=funding_round&signal_date_range=6m" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": [],
+  "pagination": {
+    "currentPage": 1,
+    "totalPages": 12,
+    "totalCount": 1183,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  },
+  "meta": {
+    "endpoint": "people.list",
+    "creditsUsed": 0
+  }
+}
+```
+
+<Tip>Use count mode to preview how many people match your filters before fetching results. This is useful for building filter UIs, showing result counts, or validating queries — all at zero credit cost.</Tip>
+
+## Key Features
+
+- **Signal-backed results**: Every person carries a `matched_signal` explaining the timing to reach out
+- **Taxonomy-aware filters**: Filter by title, function, and seniority with word-boundary matching (no `COO` → `Coordinator` false positives)
+- **Company targeting**: Narrow by company size band and industry
+- **Geography**: Filter by country (person or company) and city (job-change people)
+- **Flexible lookback**: Control the signal window with `signal_date_range` (e.g. `30d`, `6m`, `2y`)
+- **Pagination support**: Up to 100 results per page
+- **Credit-based usage**: Transparent credit consumption per API call, with a free count mode
+
+## How Filtering Works
+
+- **Different filters AND together**; comma-separated values **within one filter OR together**. For example, `seniority=c_level,vp&country=US` returns people who are (C-level OR VP) AND in the US.
+- A person qualifies if **any** of their signals matches the filters; the latest matching one is surfaced as `matched_signal`.
+- Results merge two sources (current company employees and job-change subjects) and are **deduplicated before pagination** by normalized person LinkedIn URL, falling back to normalized name + company domain/LinkedIn/name.
+- **Default sort**: `matched_signal.date` descending (most recent why-now first).
+
+## Source-dependent Fields
+
+Some fields are only populated from one of the two underlying sources:
+
+| Field | Behavior |
+|-------|----------|
+| `city` (person) | Only job-change-sourced people carry a city. Setting the `city` filter excludes employee-sourced people. |
+| `company.size_band` | Requires a linked company with a known headcount. Setting `company_size` excludes people whose company headcount is unknown. |
+| `company.city` | Always `null` today — companies do not carry a city field yet. |
+
+## Active vs. Former
+
+The endpoint is currently **active-only** (current employees). `include_former=true` returns a `400` because job-change records have no current/former semantics yet, so honoring the flag would silently mix records. Until that data dependency is defined, every result has `status: "active"`.
+
+## Privacy
+
+Person names are **masked** in responses (first name + last initial, e.g. `Sarah K.`), consistent with the Job Change and Employees endpoints. Use `linkedin_url` to identify a specific person.
+
+## Authentication
+
+All API endpoints require a Bearer token in the `Authorization` header.
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/people?page=1&limit=50" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+## Query Parameters
+
+### Pagination
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `page` | integer | 1 | Page number |
+| `limit` | integer | 100 | Results per page (max: 100) |
+
+### Person Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `title` | string | Title or comma-separated list (e.g. `CTO,VP of Engineering`). Word-boundary taxonomy match |
+| `function` | string | Comma-separated function ids. See [People Functions](/enums#people-functions) |
+| `seniority` | string | Comma-separated seniority ids. See [People Seniorities](/enums#people-seniorities) |
+
+### Geography
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `country` | string | ISO 3166-1 alpha-2 code or comma-separated list (e.g. `US,NL`). Matches person or company country |
+| `city` | string | Free-text city (partial match). Job-change people only — see [Source-dependent fields](#source-dependent-fields) |
+
+### Company Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `company_size` | string | Comma-separated size bands. See [Company Size Bands](/enums#people-company-size-bands) |
+| `industry` | string | Industry or comma-separated list (case-insensitive exact match) |
+
+### Signal Filters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `signal_type` | string | — | Comma-separated signal type(s): `funding_round`, `acquisition`, `job_change`. Pins `matched_signal` to these types |
+| `signal_date_range` | string | `12m` | Lookback window as `<n><unit>` with unit `d`/`w`/`m`/`y` — e.g. `30d`, `6m`, `12m`, `2y` |
+
+### Active / Former
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `include_former` | boolean | `false` | Currently only `false` is supported. `true` returns `400` — see [Active vs. Former](#active-vs-former) |
+
+### Count Mode
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `count` | string | Set to `true` to return only the total count, without data rows and without consuming credits |
+
+## Enum Values
+
+**Functions**
+
+```
+marketing, sales, engineering, product, design, operations,
+finance, people, data, customer_success, growth, legal
+```
+
+**Seniorities**
+
+```
+founder, c_level, vp, director, head, lead, manager
+```
+
+**Company Size Bands**
+
+```
+1-10, 11-50, 51-100, 101-250, 251-500, 501-1000, 1000-plus
+```
+
+**Signal Types**
+
+```
+funding_round, acquisition, job_change
+```
+
+## Response Structure
+
+Each result includes the person, their company, `is_latest_signal`, and the inline `matched_signal`:
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "name": "Sarah K.",
+      "linkedin_url": "https://www.linkedin.com/in/sarah-k",
+      "title": "Chief Technology Officer",
+      "status": "active",
+      "city": null,
+      "company": {
+        "name": "NextGen Software",
+        "domain": "nextgensoftware.com",
+        "linkedin_url": "https://www.linkedin.com/company/nextgensoftware",
+        "country": "NL",
+        "city": null,
+        "size_band": "101-250",
+        "industry": "Technology"
+      },
+      "is_latest_signal": true,
+      "matched_signal": {
+        "type": "funding_round",
+        "date": "2026-05-12",
+        "summary": "Series B, $40M led by Accel",
+        "source_url": "https://techcrunch.com/2026/05/12/nextgen-series-b"
+      }
+    }
+  ],
+  "pagination": {
+    "currentPage": 1,
+    "totalPages": 12,
+    "totalCount": 1183,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  },
+  "meta": {
+    "endpoint": "people.list",
+    "creditsUsed": 1,
+    "creditsRemaining": 4999
+  }
+}
+```
+
+## Error Handling
+
+The API returns standard HTTP status codes:
+
+- **200**: Success
+- **400**: Bad request — invalid filter value (unknown `function`/`seniority`/`company_size`/`signal_type`, malformed `signal_date_range`, or `include_former=true`)
+- **401**: Unauthorized — invalid or missing API key
+- **402**: Insufficient credits
+- **429**: Rate limit exceeded
+- **500**: Internal server error
+
+Error responses include:
+
+```json
+{
+  "success": false,
+  "error": "Invalid seniority value: exec. Accepted values: founder, c_level, vp, director, head, lead, manager."
+}
+```
+
+## Example Usage
+
+### CTOs in the Netherlands at mid-size companies
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/people?title=CTO&country=NL&company_size=51-100,101-250" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### C-level people at recently funded companies
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/people?seniority=c_level&signal_type=funding_round&signal_date_range=6m" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Engineering leaders in SaaS
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/people?function=engineering&industry=SaaS&limit=50" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```

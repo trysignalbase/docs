@@ -105,6 +105,19 @@
         ]
       },
       {
+        "tab": "People",
+        "groups": [
+          {
+            "group": "People API",
+            "pages": ["api-reference/people/introduction"]
+          },
+          {
+            "group": "Endpoints",
+            "pages": ["api-reference/people/endpoint/get"]
+          }
+        ]
+      },
+      {
         "tab": "CSV Enrichment",
         "groups": [
           {

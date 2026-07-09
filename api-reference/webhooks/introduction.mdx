@@ -5,7 +5,7 @@ description: "Manage webhook subscriptions as a first-class API resource — cre
 
 ## Welcome to the Webhooks API
 
-Webhooks push real-time signal data to **your own HTTPS endpoint** the moment events happen — funding rounds, acquisitions, job changes, new hires, and newly discovered companies. Instead of polling, your system receives a signed `POST` with the full event payload.
+Webhooks push real-time signal data to **your own HTTPS endpoint** the moment events happen — funding rounds, acquisitions, job changes, new hires, newly discovered companies, and newly discovered investors. Instead of polling, your system receives a signed `POST` with the full event payload.
 
 Webhooks are a **first-class API resource**: you can create, list, retrieve, update, rotate the signing secret of, test, and delete them entirely over REST, plus list delivery attempts and replay failed ones. Anything you do in the dashboard for webhooks is doable via the API now.
 
@@ -129,6 +129,7 @@ Subscribe to these in `event_types` when you create or update a webhook:
 | `job_change.created` | A monitored person changes jobs. |
 | `hiring.created` | A tracked company opens a relevant role. |
 | `new_company.created` | A new company matching your filters is discovered. |
+| `investor.created` | A new investor (VC, angel, PE, …) is discovered. |
 
 Two additional event types may appear on the **receiving** side but are not regular subscriptions:
 
@@ -151,6 +152,8 @@ Two additional event types may appear on the **receiving** side but are not regu
 | `fundingAmount` | `funding.created` only | Comma-separated amount ranges, e.g. `"1m-5m,5m-20m"` (also `">$100m"`) | the funding amount falls in any range |
 | `acquisitionAmount` | `acquisition.created` only | Comma-separated amount ranges, e.g. `"10m-50m"` | the acquisition amount falls in any range |
 | `healthScore` | `funding.created` only | A single number `0`–`100`, e.g. `"40"` | the round's confidence score is ≥ that value |
+
+**`investor.created` is filtered differently.** Investor events carry an investor profile, not a company signal, so only two keys apply — `countries` (matched against the investor's operating countries) and `search` (substring match on the investor's **name or type**, e.g. `"vc"` or `"sequoia"`). Every other key (`categories`, `teamSize`, `funding`, date ranges, …) is ignored for investor events and does not narrow them.
 
 **Important behaviours:**
 
@@ -213,14 +216,14 @@ The delivered body is **canonical JSON with object keys sorted alphabetically at
 
 ## Payload by event type
 
-Every signal payload shares a common envelope inside `data`:
+Every **company signal** payload shares a common envelope inside `data`:
 
 - `signal` — `{ id, type, externalId, occurredAt, discoveredAt, active }`
 - `company` — the full company object (or `null` for some events); `headquartersCountry` is an ISO-style country code
 - `employees` — array of `{ id, name, title, linkedinUrl, email }` (may be empty)
 - `sources` — array of `{ url, sourceType, author, title, content, validationScore, validationReasoning, publishedAt }`
 
-Each event type then adds one type-specific block. Monetary `amount` fields are **whole currency units** (integers, not cents); `currency` tells you which currency, as an ISO 4217 code (e.g. `USD`, `EUR`). See [Amounts & Currency](/enums#amounts--currency).
+Each event type then adds one type-specific block. The exception is `investor.created`: investors are profiles, not company signals, so its `data` contains a single `investor` object and none of the envelope keys above (see its tab below). Monetary `amount` fields are **whole currency units** (integers, not cents); `currency` tells you which currency, as an ISO 4217 code (e.g. `USD`, `EUR`). See [Amounts & Currency](/enums#amounts--currency).
 
 <CodeGroup>
 
@@ -481,11 +484,37 @@ Each event type then adds one type-specific block. Monetary `amount` fields are 
 }
 ```
 
+```json investor.created
+{
+  "data": {
+    "investor": {
+      "id": "f8a6b7c9-1d2e-4f3a-4b5c-6d7e8f9a0b1c",
+      "name": "Nova Ventures",
+      "type": "VC",
+      "website": "https://nova.vc",
+      "linkedinUrl": "https://www.linkedin.com/company/nova-ventures",
+      "twitterUrl": null,
+      "logoUrl": "https://logo.clearbit.com/nova.vc",
+      "countries": ["US", "GB"],
+      "ticketSizeMin": 250000,
+      "ticketSizeMax": 2000000,
+      "headquarters": "San Francisco, CA",
+      "createdAt": "2026-07-09T10:00:00.000Z"
+    }
+  },
+  "event_id": "6e7f8091-a223-4b41-9c2d-4e5f6a7b8076",
+  "event_type": "investor.created",
+  "timestamp": "2026-07-09T10:00:00.000Z"
+}
+```
+
 </CodeGroup>
 
 <Note>
 Person names in `job_change.created` payloads are GDPR-masked (first name + last initial, e.g. `"Jordan M."`), matching the masking applied across the REST API. Use `personLinkedinUrl` as the stable identifier for a person.
 </Note>
+
+In `investor.created` payloads, `type` is the original scraped value (free text, e.g. `VC`, `Corporate VC`, `Solo angel` — see [Investor Types](/enums#investor-types)), `countries` is an array of ISO 3166-1 alpha-2 codes, and `ticketSizeMin` / `ticketSizeMax` are whole USD amounts. Nullable fields are `null`, and `countries` may be empty.
 
 For `dashboard.push`, `data` instead contains `companies`, `investors`, and `contacts` arrays (contacts GDPR-masked) plus a `meta` block describing the push.
 

@@ -531,6 +531,7 @@
           "job_change.created",
           "hiring.created",
           "new_company.created",
+          "investor.created",
           "system.test"
         ]
       },
@@ -587,7 +588,7 @@
           },
           "filters": {
             "type": "object",
-            "description": "Optional string key/value filters that narrow which events are delivered. Recognized keys: countries, categories, search, teamSize, dateFrom, dateTo, funding, roundFlavor, fundingAmount, acquisitionAmount, healthScore. Unrecognized keys are silently ignored — note the round-type key is `funding`, not `round`. See the Webhooks overview 'Filters' section for value formats.",
+            "description": "Optional string key/value filters that narrow which events are delivered. Recognized keys: countries, categories, search, teamSize, dateFrom, dateTo, funding, roundFlavor, fundingAmount, acquisitionAmount, healthScore. Unrecognized keys are silently ignored — note the round-type key is `funding`, not `round`. For investor.created events only countries and search apply. See the Webhooks overview 'Filters' section for value formats.",
             "additionalProperties": { "type": "string" }
           },
           "active": {
@@ -675,7 +676,7 @@
           },
           "filters": {
             "type": "object",
-            "description": "Optional string key/value filters that narrow which events are delivered. Recognized keys: countries, categories, search, teamSize, dateFrom, dateTo, funding, roundFlavor, fundingAmount, acquisitionAmount, healthScore. Unrecognized keys are silently ignored — note the round-type key is `funding`, not `round`. See the Webhooks overview 'Filters' section for value formats.",
+            "description": "Optional string key/value filters that narrow which events are delivered. Recognized keys: countries, categories, search, teamSize, dateFrom, dateTo, funding, roundFlavor, fundingAmount, acquisitionAmount, healthScore. Unrecognized keys are silently ignored — note the round-type key is `funding`, not `round`. For investor.created events only countries and search apply. See the Webhooks overview 'Filters' section for value formats.",
             "additionalProperties": { "type": "string" },
             "example": { "countries": "US,GB", "funding": "seed,series a" }
           }

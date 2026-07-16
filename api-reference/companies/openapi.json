@@ -58,6 +58,24 @@
             "example": "AI"
           },
           {
+            "name": "domain",
+            "in": "query",
+            "description": "Resolve a specific company by its website domain (exact match, not fuzzy). Accepted URL variants — scheme, `www.`, port, path and trailing slash — are normalized. Invalid syntax returns 400; a valid domain with no match returns an empty data set. ANDed with any other filters.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "novartis.com"
+          },
+          {
+            "name": "linkedin_url",
+            "in": "query",
+            "description": "Resolve a specific company by its LinkedIn URL (exact match, not fuzzy). Scheme, `www.` and a trailing slash are normalized. Invalid syntax returns 400; a valid URL with no match returns an empty data set. ANDed with any other filters.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "https://www.linkedin.com/company/novartis"
+          },
+          {
             "name": "countries",
             "in": "query",
             "description": "Comma-separated list of country codes to filter by",

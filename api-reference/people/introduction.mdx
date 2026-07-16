@@ -9,6 +9,8 @@ The People API is ICP-style people discovery across Signalbase's signal-driven d
 
 This is not a static contact database. People whose company has no active signal within the requested window are excluded by design. It is also a **search** endpoint — it reads existing records and never triggers the enrichment pipeline.
 
+You can also use it as a **precise lookup** rather than an ICP browse: pass an identifier — a person's `linkedin_url` or `email`, or a `company_domain` / `company_linkedin_url` — to resolve a specific record and return its people with their signals. See [Identifier Lookup](#identifier-lookup) below.
+
 <Card
   title="Search People Endpoint"
   icon="users"
@@ -27,6 +29,31 @@ The `is_latest_signal` boolean tells you which case you're in:
 - `false` — an older signal matched your filters, and the person has a more recent signal that did not match.
 
 When you don't pass `signal_type`, `matched_signal` is the person's newest qualifying signal of **any** supported type (`funding_round`, `acquisition`, `job_change`), so types can mix across a page. Pass `signal_type` to pin the surface to specific type(s).
+
+## Identifier Lookup
+
+Instead of browsing an ICP, you can resolve a **specific** person or company and return its people with their signals. Any of these identifiers matches the source record by canonical (exact) equality — all accepted URL variants (scheme, `www.`, trailing slash) are normalized before matching:
+
+| Parameter | Matches | Notes |
+|-----------|---------|-------|
+| `linkedin_url` | A specific person | Personal profile URL (`/in/` or legacy `/pub/`). Matches current employees and job-change subjects. Pass a company page to `company_linkedin_url` instead. |
+| `company_domain` | People at a company | Company website domain, e.g. `novartis.com` |
+| `company_linkedin_url` | People at a company | Company LinkedIn URL, e.g. `linkedin.com/company/novartis` |
+| `email` | A specific person | Resolves **current employees only** today — job-change records carry no email. Returns an empty set when no employee holds that address. |
+
+**All-time by default.** When any identifier is set, `signal_date_range` defaults to **all-time** rather than `12m` — a lookup means "everything on record for this person/company", not "matched something in the last 12 months". Pass `signal_date_range` explicitly to still narrow the window.
+
+**Behavior.** Invalid identifier syntax returns `400`. A valid identifier that resolves to nothing returns an empty `data` set with a `200`. Identifiers AND with any other filters you pass.
+
+```bash
+# Everything on record for one person
+curl -X GET "https://www.trysignalbase.com/api/v2/people?linkedin_url=https://www.linkedin.com/in/jane-doe" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+# All people at a company, by domain
+curl -X GET "https://www.trysignalbase.com/api/v2/people?company_domain=novartis.com" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
 
 ## Count Mode
 
@@ -134,12 +161,23 @@ curl -X GET "https://www.trysignalbase.com/api/v2/people?page=1&limit=50" \
 | `company_size` | string | Comma-separated size bands. See [Company Size Bands](/enums#people-company-size-bands) |
 | `industry` | string | Industry or comma-separated list (case-insensitive exact match) |
 
+### Identifier Lookup
+
+Resolve a specific person or company instead of browsing an ICP — see [Identifier Lookup](#identifier-lookup). Setting any of these defaults `signal_date_range` to all-time.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `linkedin_url` | string | Person LinkedIn profile URL (`/in/` or `/pub/`). Matches employees and job-change subjects |
+| `company_domain` | string | Company website domain (e.g. `novartis.com`) — returns the people at that company |
+| `company_linkedin_url` | string | Company LinkedIn URL (e.g. `linkedin.com/company/novartis`) |
+| `email` | string | Person email — resolves current employees only today |
+
 ### Signal Filters
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `signal_type` | string | — | Comma-separated signal type(s): `funding_round`, `acquisition`, `job_change`. Pins `matched_signal` to these types |
-| `signal_date_range` | string | `12m` | Lookback window as `<n><unit>` with unit `d`/`w`/`m`/`y` — e.g. `30d`, `6m`, `12m`, `2y` |
+| `signal_date_range` | string | `12m` * | Lookback window as `<n><unit>` with unit `d`/`w`/`m`/`y` — e.g. `30d`, `6m`, `12m`, `2y`. \*Defaults to all-time when an identifier lookup is set |
 
 ### Active / Former
 
@@ -232,7 +270,7 @@ Each result includes the person, their company, `is_latest_signal`, and the inli
 The API returns standard HTTP status codes:
 
 - **200**: Success
-- **400**: Bad request — invalid filter value (unknown `function`/`seniority`/`company_size`/`signal_type`, malformed `signal_date_range`, or `include_former=true`)
+- **400**: Bad request — invalid filter value (unknown `function`/`seniority`/`company_size`/`signal_type`, malformed `signal_date_range`, `include_former=true`, or invalid identifier syntax in `linkedin_url`/`company_domain`/`company_linkedin_url`/`email`). Note: a *valid* identifier that resolves to no records returns `200` with an empty `data` set, not `400`
 - **401**: Unauthorized — invalid or missing API key
 - **402**: Insufficient credits
 - **429**: Rate limit exceeded
@@ -267,5 +305,26 @@ curl -X GET "https://www.trysignalbase.com/api/v2/people?seniority=c_level&signa
 
 ```bash
 curl -X GET "https://www.trysignalbase.com/api/v2/people?function=engineering&industry=SaaS&limit=50" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Look up one person by LinkedIn URL
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/people?linkedin_url=https://www.linkedin.com/in/jane-doe" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### All people at a company, by domain
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/people?company_domain=novartis.com" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Look up a person by email
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/people?email=jane@novartis.com" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```

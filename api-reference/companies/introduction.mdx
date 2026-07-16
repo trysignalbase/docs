@@ -46,6 +46,22 @@ curl -X GET "https://www.trysignalbase.com/api/v2/companies?count=true&countries
 
 <Tip>Use count mode to preview how many results match your filters before fetching actual data. This is useful for building filter UIs, showing result counts, or validating queries — all at zero credit cost.</Tip>
 
+## Identifier Lookup
+
+Beyond browsing, you can resolve a **specific** company by its canonical identifier (exact match, not fuzzy search). Accepted URL variants — scheme, `www.`, port, path and trailing slash — are normalized before matching:
+
+| Parameter | Description |
+|-----------|-------------|
+| `domain` | Company website domain (e.g. `novartis.com`) |
+| `linkedin_url` | Company LinkedIn URL (e.g. `linkedin.com/company/novartis`) |
+
+Invalid identifier syntax returns `400`. A valid identifier that resolves to nothing returns an empty `data` set with a `200`. Identifiers AND with any other filters, so a conflicting `domain` + `linkedin_url` returns empty rather than merging.
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/companies?domain=novartis.com" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
 ## Key Features
 
 - **Independent Querying**: Browse companies without needing signal data
@@ -88,6 +104,15 @@ curl -X GET "https://www.trysignalbase.com/api/v2/companies?page=1&limit=20" \
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `search` | string | Free-text search across company name, industry, description, keywords, and specialties |
+
+### Identifier Lookup
+
+Resolve a specific company by its canonical identifier — see [Identifier Lookup](#identifier-lookup).
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `domain` | string | Company website domain — exact match (e.g. `novartis.com`) |
+| `linkedin_url` | string | Company LinkedIn URL — exact match (e.g. `linkedin.com/company/novartis`) |
 
 ### Filters
 
@@ -165,6 +190,7 @@ All successful responses follow this structure:
 The API returns standard HTTP status codes:
 
 - **200**: Success
+- **400**: Bad request — invalid `domain` or `linkedin_url` identifier syntax. Note: a *valid* identifier that resolves to no company returns `200` with an empty `data` set, not `400`
 - **401**: Unauthorized - Invalid or missing API key
 - **429**: Rate limit exceeded
 - **500**: Internal server error
@@ -179,6 +205,20 @@ Error responses include:
 ```
 
 ## Example Usage
+
+### Look up a company by domain
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/companies?domain=novartis.com" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Look up a company by LinkedIn URL
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/companies?linkedin_url=https://www.linkedin.com/company/novartis" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
 
 ### Search by Keyword and Country
 

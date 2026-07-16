@@ -112,6 +112,42 @@
             "example": "SaaS,Fintech"
           },
           {
+            "name": "linkedin_url",
+            "in": "query",
+            "description": "Person LinkedIn profile URL — resolves a specific person instead of browsing an ICP. Matches current employees and job-change subjects by canonical equality; scheme, `www.` and a trailing slash are accepted and ignored. Must be a personal profile URL (`/in/` or legacy `/pub/`) — pass a company page to `company_linkedin_url` instead. Invalid syntax returns 400; a valid URL with no match returns an empty data set. When set, `signal_date_range` defaults to all-time.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "https://www.linkedin.com/in/jane-doe"
+          },
+          {
+            "name": "company_domain",
+            "in": "query",
+            "description": "Company website domain — returns the people at that company. Exact (canonicalized) match; scheme, `www.`, port, path and trailing slash are normalized. Invalid syntax returns 400; no match returns an empty data set. When set, `signal_date_range` defaults to all-time.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "novartis.com"
+          },
+          {
+            "name": "company_linkedin_url",
+            "in": "query",
+            "description": "Company LinkedIn URL — returns the people at that company. Exact (canonicalized) match; scheme, `www.` and trailing slash are normalized. Invalid syntax returns 400; no match returns an empty data set. When set, `signal_date_range` defaults to all-time.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "https://www.linkedin.com/company/novartis"
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "description": "Person email — resolves current employees only today (job-change records carry no email). Returns an empty data set when we hold no employee with that address. Invalid syntax returns 400. When set, `signal_date_range` defaults to all-time.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "jane@novartis.com"
+          },
+          {
             "name": "signal_type",
             "in": "query",
             "description": "Comma-separated signal type(s) to pin `matched_signal` to. Accepted values: `funding_round`, `acquisition`, `job_change`. When omitted, `matched_signal` is the person's newest qualifying signal of any supported type, so types can mix across a page. Unknown values return 400.",
@@ -123,7 +159,7 @@
           {
             "name": "signal_date_range",
             "in": "query",
-            "description": "Lookback window for the matched signal, as `<n><unit>` where unit is `d` (days), `w` (weeks), `m` (months), or `y` (years) — e.g. `30d`, `6m`, `12m`, `2y`. People whose latest matching signal falls outside this window are excluded. Malformed or out-of-range values return 400.",
+            "description": "Lookback window for the matched signal, as `<n><unit>` where unit is `d` (days), `w` (weeks), `m` (months), or `y` (years) — e.g. `30d`, `6m`, `12m`, `2y`. People whose latest matching signal falls outside this window are excluded. Malformed or out-of-range values return 400. Default: `12m` for a normal ICP browse, but all-time when an identifier lookup (`linkedin_url`, `company_domain`, `company_linkedin_url`, or `email`) is set — pass an explicit value to still narrow the window.",
             "schema": {
               "type": "string",
               "default": "12m"

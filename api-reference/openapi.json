@@ -1418,11 +1418,20 @@
           {
             "name": "countries",
             "in": "query",
-            "description": "Comma-separated list of country codes to filter by",
+            "description": "Comma-separated list of country codes to filter by. Matches the job listing country OR the company HQ country. To match the job location only, use job_countries instead.",
             "schema": {
               "type": "string"
             },
             "example": "US,GB,DE"
+          },
+          {
+            "name": "job_countries",
+            "in": "query",
+            "description": "Comma-separated country codes matching the job listing location ONLY (ignores company HQ). Use this to filter by where the job is, not where the company is based. Note: countries and job_countries are ANDed if both are supplied, so use one or the other, not both.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "US,GB"
           },
           {
             "name": "states",

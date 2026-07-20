@@ -93,7 +93,8 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/investors?page=1&limit
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `countries` | string | Comma-separated country codes (e.g., `US,GB,DE`) |
+| `countries` | string | Comma-separated country codes (e.g., `US,GB,DE`). Allowlist; matches the investor's countries |
+| `exclude_countries` | string | Comma-separated country codes to **exclude** (denylist, e.g. `CN`). Investors with no listed countries are kept |
 | `type` | string | Comma-separated investor types. See [Investor Types](/enums#investor-types) |
 | `categories` | string | Legacy: pipe-separated investor types (same values as `type`) |
 | `headquarters` | string | Search by HQ location (partial match) |

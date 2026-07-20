@@ -107,6 +107,15 @@
             "example": "US,GB,CA"
           },
           {
+            "name": "exclude_countries",
+            "in": "query",
+            "description": "Comma-separated list of country names or codes to EXCLUDE (denylist), e.g. `China` or `CN`. Complements `countries`. Companies with an unknown/NULL HQ country are kept, not excluded.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "CN"
+          },
+          {
             "name": "categories",
             "in": "query",
             "description": "Pipe-separated list of company categories / industries to filter by",

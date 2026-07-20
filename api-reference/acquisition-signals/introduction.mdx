@@ -127,7 +127,10 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/acquisitions?company_l
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `countries` | string | Comma-separated country codes (e.g., `US,GB,DE`) |
+| `countries` | string | **Acquired** company HQ. Comma-separated country codes (e.g., `US,GB,DE`). Allowlist |
+| `exclude_countries` | string | **Acquired** company HQ denylist. Comma-separated country names or codes to **exclude** (e.g. `China` or `CN`). Deals whose acquired company has an unknown HQ are kept |
+| `acquirer_countries` | string | **Acquiring** company HQ. Comma-separated country codes (allowlist). Independent of `countries`/`exclude_countries`, which target the acquired company |
+| `exclude_acquirer_countries` | string | **Acquiring** company HQ denylist. Comma-separated country names or codes to **exclude**. Deals with an unknown acquirer HQ are kept |
 | `categories` | string | Pipe-separated company categories / industries |
 | `subcategories` | string | Comma-separated subcategory IDs (e.g., `ai,fintech,saas`) |
 | `industry` | string | Comma-separated exact industry names |

@@ -353,6 +353,8 @@ Used across all endpoints:
 
 Both country categories and country codes can be used to filter results via the `countries` parameter.
 
+Every endpoint that accepts `countries` also accepts **`exclude_countries`** — a denylist that removes rows whose country matches any listed value (country names such as `China` or codes such as `CN`). It complements `countries`, and rows with an unknown/NULL country are kept, not excluded. The acquisition-signals endpoint additionally exposes **`acquirer_countries`** and **`exclude_acquirer_countries`**, which apply the same allowlist/denylist logic to the **acquiring** company's HQ (the `countries`/`exclude_countries` pair targets the **acquired** company). The people endpoint uses the singular `country` for its allowlist alongside `exclude_countries`.
+
 ### Country Categories
 
 ```json copy

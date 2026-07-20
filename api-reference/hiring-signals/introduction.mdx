@@ -131,7 +131,8 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/hiring?company_linkedi
 |-----------|------|-------------|
 | `search` | string | Free-text search across company name, industry, job title, location, and city |
 | `city` | string | Free-text search on city, location, and region |
-| `countries` | string | Comma-separated country codes (e.g., `US,GB,DE`). Matches the job listing country **or** the company HQ country |
+| `countries` | string | Comma-separated country codes (e.g., `US,GB,DE`). Allowlist; matches the job listing country **or** the company HQ country |
+| `exclude_countries` | string | Comma-separated country names or codes to **exclude** (denylist, e.g. `China`). A signal is excluded when **either** the job listing country or the company HQ matches; rows with an unknown country on a side are kept |
 | `job_countries` | string | Comma-separated country codes matching the job listing location **only**, ignoring company HQ (e.g., `US,GB`) |
 | `states` | string | Comma-separated US state codes (e.g., `CA,NY,TX`) |
 

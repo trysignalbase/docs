@@ -128,6 +128,13 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/job-changes?company_li
 |-----------|------|-------------|
 | `search` | string | Free-text search across company name, industry, person name, and role |
 
+### Country Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `countries` | string | Comma-separated country codes (e.g., `US,GB,DE`). Allowlist; matches the person country **or** the company HQ country |
+| `exclude_countries` | string | Comma-separated country names or codes to **exclude** (denylist, e.g. `China` or `CN`). A signal is excluded when **either** the person country or the company HQ matches; rows with an unknown country on a side are kept |
+
 ### Exact Match Filters
 
 | Parameter | Type | Description |

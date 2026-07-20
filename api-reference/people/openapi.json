@@ -85,6 +85,15 @@
             "example": "US,NL"
           },
           {
+            "name": "exclude_countries",
+            "in": "query",
+            "description": "Comma-separated list of country codes to EXCLUDE (denylist), e.g. `CN`. A person is excluded when EITHER their company country or their own person country matches; rows with an unknown country on a side are kept.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "CN"
+          },
+          {
             "name": "city",
             "in": "query",
             "description": "Free-text city match (partial, case-insensitive). Only job-change people carry city data today; employee-sourced people have no city and are excluded when this filter is set.",

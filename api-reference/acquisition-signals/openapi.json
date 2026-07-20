@@ -91,6 +91,13 @@
             "example": "US,GB"
           },
           {
+            "name": "exclude_countries",
+            "in": "query",
+            "description": "Comma-separated list of country names or codes to EXCLUDE for the ACQUIRED company's HQ (denylist), e.g. `China` or `CN`. Complements `countries`. Deals whose acquired company has an unknown/NULL HQ are kept.",
+            "schema": { "type": "string" },
+            "example": "CN"
+          },
+          {
             "name": "categories",
             "in": "query",
             "description": "Pipe-separated list of company categories / industries to filter by",
@@ -145,6 +152,20 @@
             "description": "Search by acquiring company name (partial match)",
             "schema": { "type": "string" },
             "example": "Google"
+          },
+          {
+            "name": "acquirer_countries",
+            "in": "query",
+            "description": "Comma-separated list of country codes for the ACQUIRING company's HQ (allowlist). Independent of `countries`/`exclude_countries`, which target the acquired company.",
+            "schema": { "type": "string" },
+            "example": "US,GB"
+          },
+          {
+            "name": "exclude_acquirer_countries",
+            "in": "query",
+            "description": "Comma-separated list of country names or codes to EXCLUDE for the ACQUIRING company's HQ (denylist), e.g. `China` or `CN`. Deals with an unknown/NULL acquirer HQ are kept.",
+            "schema": { "type": "string" },
+            "example": "CN"
           },
           {
             "name": "amount_min",

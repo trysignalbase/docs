@@ -128,7 +128,8 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/funding?company_linked
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `countries` | string | Comma-separated country codes (e.g., `US,GB,DE`) |
+| `countries` | string | Comma-separated country codes (e.g., `US,GB,DE`). Allowlist |
+| `exclude_countries` | string | Comma-separated country names or codes to **exclude** (denylist, e.g. `China` or `CN`). Complements `countries`; companies with an unknown HQ country are kept |
 | `categories` | string | Pipe-separated company categories / industries |
 | `subcategories` | string | Comma-separated subcategory IDs (e.g., `ai,fintech,saas`) |
 | `industry` | string | Comma-separated exact industry names |

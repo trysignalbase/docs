@@ -118,7 +118,8 @@ Resolve a specific company by its canonical identifier — see [Identifier Looku
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `countries` | string | Comma-separated country codes (e.g., `US,GB,DE`) |
+| `countries` | string | Comma-separated country codes (e.g., `US,GB,DE`). Allowlist |
+| `exclude_countries` | string | Comma-separated country names or codes to **exclude** (denylist, e.g. `China` or `CN`). Complements `countries`; companies with an unknown HQ country are kept |
 | `industry` | string | Comma-separated industry names — exact match (e.g., `Software,Technology`) |
 | `categories` | string | Pipe-separated industry categories (e.g., `Technology\|Software`) |
 | `subcategories` | string | Comma-separated subcategory IDs (e.g., `ai,fintech,saas`). See [Subcategories](/enums#subcategories) |

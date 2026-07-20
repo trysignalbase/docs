@@ -151,6 +151,7 @@ curl -X GET "https://www.trysignalbase.com/api/v2/people?page=1&limit=50" \
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `country` | string | ISO 3166-1 alpha-2 code or comma-separated list (e.g. `US,NL`). Matches person or company country |
+| `exclude_countries` | string | Comma-separated country codes to **exclude** (denylist, e.g. `CN`). A person is excluded when **either** their company country or their own person country matches; rows with an unknown country on a side are kept |
 | `city` | string | Free-text city (partial match). Job-change people only — see [Source-dependent fields](#source-dependent-fields) |
 
 ### Company Filters

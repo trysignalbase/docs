@@ -104,6 +104,15 @@
             "example": "US,GB,CA"
           },
           {
+            "name": "exclude_countries",
+            "in": "query",
+            "description": "Comma-separated list of country names or codes to EXCLUDE (denylist), e.g. `China` or `CN`. Complements `countries`. Companies with an unknown/NULL HQ country are kept, not excluded.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "CN"
+          },
+          {
             "name": "categories",
             "in": "query",
             "description": "Pipe-separated list of company categories / industries to filter by",
@@ -629,6 +638,15 @@
             "example": "US,GB"
           },
           {
+            "name": "exclude_countries",
+            "in": "query",
+            "description": "Comma-separated list of country names or codes to EXCLUDE for the ACQUIRED company's HQ (denylist), e.g. `China` or `CN`. Complements `countries`. Deals whose acquired company has an unknown/NULL HQ are kept.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "CN"
+          },
+          {
             "name": "categories",
             "in": "query",
             "description": "Pipe-separated list of company categories / industries to filter by",
@@ -699,6 +717,24 @@
               "type": "string"
             },
             "example": "Google"
+          },
+          {
+            "name": "acquirer_countries",
+            "in": "query",
+            "description": "Comma-separated list of country codes for the ACQUIRING company's HQ (allowlist). Independent of `countries`/`exclude_countries`, which target the acquired company.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "US,GB"
+          },
+          {
+            "name": "exclude_acquirer_countries",
+            "in": "query",
+            "description": "Comma-separated list of country names or codes to EXCLUDE for the ACQUIRING company's HQ (denylist), e.g. `China` or `CN`. Deals with an unknown/NULL acquirer HQ are kept.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "CN"
           },
           {
             "name": "amount_min",
@@ -1053,6 +1089,15 @@
               "type": "string"
             },
             "example": "US,GB"
+          },
+          {
+            "name": "exclude_countries",
+            "in": "query",
+            "description": "Comma-separated list of country names or codes to EXCLUDE (denylist), e.g. `China`. A signal is excluded when EITHER the person country or the company HQ matches; rows with a NULL field on a side are kept.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "CN"
           },
           {
             "name": "city",
@@ -1423,6 +1468,15 @@
               "type": "string"
             },
             "example": "US,GB,DE"
+          },
+          {
+            "name": "exclude_countries",
+            "in": "query",
+            "description": "Comma-separated list of country names or codes to EXCLUDE (denylist), e.g. `China`. A signal is excluded when EITHER the job-listing country or the company HQ matches; rows with a NULL field on a side are kept.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "CN"
           },
           {
             "name": "job_countries",
@@ -1802,6 +1856,15 @@
             "example": "US,GB"
           },
           {
+            "name": "exclude_countries",
+            "in": "query",
+            "description": "Comma-separated list of country codes to EXCLUDE (denylist), e.g. `CN`. Investors with no listed countries are kept, not excluded.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "CN"
+          },
+          {
             "name": "type",
             "in": "query",
             "description": "Comma-separated list of investor types to filter by. The underlying `type` data is free-text, so these values are convenience groupings matched case-insensitively against many real-world variants (e.g. `vc` matches \"VC\", \"VC firm\", \"Venture Capital\", \"venture_capital\", \"Corporate VC\"; `angel` matches \"Angel\", \"Solo angel\", \"Angel network\"). For anything outside this list, use the `search` parameter, which also matches the type field. Note: the `type` value in the response is the original scraped string (e.g. \"Corporate VC\"), not the slug you filtered by, so a single `type=vc` query returns rows with mixed `type` values.",
@@ -2060,6 +2123,15 @@
               "type": "string"
             },
             "example": "US,GB,DE"
+          },
+          {
+            "name": "exclude_countries",
+            "in": "query",
+            "description": "Comma-separated list of country names or codes to EXCLUDE (denylist), e.g. `China` or `CN`. Complements `countries`. Companies with an unknown/NULL HQ country are kept, not excluded.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "CN"
           },
           {
             "name": "industry",

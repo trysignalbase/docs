@@ -83,6 +83,13 @@
             "example": "US,GB,DE"
           },
           {
+            "name": "exclude_countries",
+            "in": "query",
+            "description": "Comma-separated list of country names or codes to EXCLUDE (denylist), e.g. `China`. A signal is excluded when EITHER the job-listing country or the company HQ matches; rows with a NULL field on a side are kept.",
+            "schema": { "type": "string" },
+            "example": "CN"
+          },
+          {
             "name": "job_countries",
             "in": "query",
             "description": "Comma-separated country codes matching the job listing location ONLY (ignores company HQ). Use this to filter by where the job is, not where the company is based. Note: countries and job_countries are ANDed if both are supplied, so use one or the other, not both.",

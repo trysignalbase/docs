@@ -1461,6 +1461,15 @@
             "example": "engineering"
           },
           {
+            "name": "description",
+            "in": "query",
+            "description": "Full-text keyword search over the job description body only. Opt-in and separate from `search` — use it to find postings mentioning specific keywords, skills, or tools. Matches whole words (not substrings) and supports websearch-style syntax: space-separated terms are ANDed, \"quoted phrases\" match in order, and OR / leading - (exclude) are honored (e.g. `kubernetes OR terraform -intern`).",
+            "schema": {
+              "type": "string"
+            },
+            "example": "Kubernetes"
+          },
+          {
             "name": "countries",
             "in": "query",
             "description": "Comma-separated list of country codes to filter by. Matches the job listing country OR the company HQ country. To match the job location only, use job_countries instead.",

@@ -139,7 +139,7 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/job-changes?company_li
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `personLinkedinUrl` | string | Exact LinkedIn URL for a person |
+| `personLinkedinUrl` | string | Exact LinkedIn URL for a person (`person_linkedin_url` is accepted as an alias) |
 | `company_linkedin_url` | string | **Recommended.** LinkedIn company URL (e.g. `linkedin.com/company/novartis`). Strict match — see [Matching by company URL](#matching-by-company-url-recommended). Legacy alias: `companyLinkedinUrl` |
 | `company_domain` | string | **Recommended.** Company website domain (e.g. `novartis.com`), matched via the linked company record. Strict match |
 | `source` | string | Exact match on source: `linkedin`, `press_release`, `other` |

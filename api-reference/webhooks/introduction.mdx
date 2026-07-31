@@ -142,7 +142,8 @@ Two additional event types may appear on the **receiving** side but are not regu
 
 | Key | Applies to | Value format | Matches when |
 | --- | --- | --- | --- |
-| `countries` | all signal types | Comma-separated ISO 3166-1 alpha-2 codes, e.g. `"US,GB"` | the company HQ country is in the list |
+| `countries` | all signal types | Comma-separated ISO 3166-1 alpha-2 codes, e.g. `"US,GB"` | the company HQ country is in the list; for `hiring.created` events the job listing country also counts (job country OR HQ country, mirroring the REST hiring endpoint) |
+| `jobCountries` | `hiring.created` only | Comma-separated ISO 3166-1 alpha-2 codes, e.g. `"US,GB"` | the job listing country is in the list (ignores company HQ — mirrors the REST `job_countries` param) |
 | `categories` | all signal types | Pipe-separated industry labels, e.g. `"Software Development\|Financial Services"` | the company industry/categories match (case-insensitive) |
 | `search` | all signal types | Free text, e.g. `"fintech"` | the substring appears in the company name or industry |
 | `teamSize` | all signal types | Comma-separated ranges `min-max` or `1000-plus`, e.g. `"11-50,51-200"` | the company employee count falls in any range |
@@ -159,7 +160,7 @@ Two additional event types may appear on the **receiving** side but are not regu
 
 - **Use `funding` (not `round`) to filter funding rounds.** The webhook filter key names differ from the REST query params — e.g. the round-type key here is `funding`, and amount uses `fundingAmount`/`acquisitionAmount` ranges rather than `amount_min`/`amount_max`. A wrong key like `{ "round": "seed" }` is ignored and you'll receive the full firehose.
 - **Multiple keys combine with AND** — an event must satisfy every filter to be delivered.
-- **Type-specific keys drop other types.** If a subscription listens to several event types and you set a `funding`-only key (`funding`, `roundFlavor`, `fundingAmount`, `healthScore`), non-funding events (e.g. `hiring.created`) won't match and won't be delivered. Prefer one webhook per event type when using type-specific filters.
+- **Type-specific keys drop other types.** If a subscription listens to several event types and you set a `funding`-only key (`funding`, `roundFlavor`, `fundingAmount`, `healthScore`) or the hiring-only `jobCountries`, events of other types (e.g. `hiring.created` for a funding key, `funding.created` for `jobCountries`) won't match and won't be delivered. Prefer one webhook per event type when using type-specific filters.
 
 Example — only US/GB seed & Series A rounds above $1M:
 

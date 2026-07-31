@@ -85,6 +85,15 @@
             "example": "US,NL"
           },
           {
+            "name": "person_countries",
+            "in": "query",
+            "description": "ISO 3166-1 alpha-2 country code or comma-separated list (e.g. `GB,IE`). Matches the person's own country only — no company-country fallback, unlike `country`. Person location is currently available on a minority of records (job-change sourced), so this filter favors precision over recall; combine with `country` if you need maximum coverage.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "GB,IE"
+          },
+          {
             "name": "exclude_countries",
             "in": "query",
             "description": "Comma-separated list of country codes to EXCLUDE (denylist), e.g. `CN`. A person is excluded when EITHER their company country or their own person country matches; rows with an unknown country on a side are kept.",
@@ -205,6 +214,7 @@
                       "title": "Chief Technology Officer",
                       "status": "active",
                       "city": null,
+                      "country": null,
                       "company": {
                         "name": "NextGen Software",
                         "domain": "nextgensoftware.com",
@@ -228,6 +238,7 @@
                       "title": "VP of Engineering",
                       "status": "active",
                       "city": "Berlin",
+                      "country": "DE",
                       "company": {
                         "name": "HealthTech Solutions",
                         "domain": "healthtechsolutions.co.uk",
@@ -370,6 +381,7 @@
           "title",
           "status",
           "city",
+          "country",
           "company",
           "is_latest_signal",
           "matched_signal"
@@ -405,6 +417,12 @@
             "nullable": true,
             "description": "Person's city. Only populated for job-change-sourced people; `null` for employee-sourced people.",
             "example": "Berlin"
+          },
+          "country": {
+            "type": "string",
+            "nullable": true,
+            "description": "Person's country (ISO 3166-1 alpha-2). Only populated for job-change-sourced people; `null` for employee-sourced people. This is the field the `person_countries` filter matches.",
+            "example": "DE"
           },
           "company": {
             "$ref": "#/components/schemas/PersonCompany"

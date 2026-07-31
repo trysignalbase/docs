@@ -28,6 +28,7 @@ const SPECS = {
   "hiring-signals": "Hiring",
   investors: "Investors",
   companies: "Companies",
+  people: "People",
   "csv-enrichment": "Csv",
   webhooks: "Webhook",
 };
@@ -37,8 +38,8 @@ const merged = {
   info: {
     title: "Signalbase API",
     description:
-      "Complete Signalbase V2 API: signal endpoints (funding, acquisitions, job changes, hiring, investors), companies, CSV enrichment, and webhooks. Generated from the per-page specs under api-reference/*/openapi.json (run scripts/build-openapi.mjs).",
-    version: "2.2.0",
+      "Complete Signalbase V2 API: signal endpoints (funding, acquisitions, job changes, hiring, investors), companies, people, CSV enrichment, and webhooks. Generated from the per-page specs under api-reference/*/openapi.json (run scripts/build-openapi.mjs).",
+    version: "2.3.0",
   },
   servers: [{ url: "https://www.trysignalbase.com/api/v2" }],
   security: [{ bearerAuth: [] }],

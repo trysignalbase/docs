@@ -97,6 +97,13 @@
             "example": "CN"
           },
           {
+            "name": "company_countries",
+            "in": "query",
+            "description": "Comma-separated country codes matching the company HQ country ONLY (ignores job listing location). The HQ-only counterpart of job_countries; use countries to match either side. The three country scopes AND together if combined, so pick one.",
+            "schema": { "type": "string" },
+            "example": "GB"
+          },
+          {
             "name": "job_countries",
             "in": "query",
             "description": "Comma-separated country codes matching the job listing location ONLY (ignores company HQ). Use this to filter by where the job is, not where the company is based. Note: countries and job_countries are ANDed if both are supplied, so use one or the other, not both.",

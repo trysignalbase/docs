@@ -90,7 +90,7 @@ curl -X GET "https://www.trysignalbase.com/api/v2/people?count=true&seniority=c_
 - **Signal-backed results**: Every person carries a `matched_signal` explaining the timing to reach out
 - **Taxonomy-aware filters**: Filter by title, function, and seniority with word-boundary matching (no `COO` → `Coordinator` false positives)
 - **Company targeting**: Narrow by company size band and industry
-- **Geography**: Filter by country (person or company) and city (job-change people)
+- **Geography**: Filter by country (person or company), person-only country (`person_countries`), and city (job-change people)
 - **Flexible lookback**: Control the signal window with `signal_date_range` (e.g. `30d`, `6m`, `2y`)
 - **Pagination support**: Up to 100 results per page
 - **Credit-based usage**: Transparent credit consumption per API call, with a free count mode
@@ -109,6 +109,7 @@ Some fields are only populated from one of the two underlying sources:
 | Field | Behavior |
 |-------|----------|
 | `city` (person) | Only job-change-sourced people carry a city. Setting the `city` filter excludes employee-sourced people. |
+| `country` (person) | Only job-change-sourced people carry their own country. Setting the `person_countries` filter excludes employee-sourced people and job-change people without a known person country. |
 | `company.size_band` | Requires a linked company with a known headcount. Setting `company_size` excludes people whose company headcount is unknown. |
 | `company.city` | Always `null` today — companies do not carry a city field yet. |
 
@@ -131,6 +132,8 @@ curl -X GET "https://www.trysignalbase.com/api/v2/people?page=1&limit=50" \
 
 ## Query Parameters
 
+<Note>Parameter **names** are validated strictly: an unrecognized query parameter returns a `400` listing the supported names. Spellings from the signal endpoints get a pointer to the equivalent here — e.g. `countries` → `country`, `team_size` → `company_size`, `type` → `signal_type`, `person_country` → `person_countries`. Previously unknown names were silently ignored, so a typo'd filter returned the full unfiltered dataset.</Note>
+
 ### Pagination
 
 | Parameter | Type | Default | Description |
@@ -151,6 +154,7 @@ curl -X GET "https://www.trysignalbase.com/api/v2/people?page=1&limit=50" \
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `country` | string | ISO 3166-1 alpha-2 code or comma-separated list (e.g. `US,NL`). Matches person or company country |
+| `person_countries` | string | ISO 3166-1 alpha-2 code or comma-separated list (e.g. `GB,IE`). Matches the **person's own country only** — no company fallback. Person location exists on a minority of records (job-change sourced), so this favors precision over recall — see [Source-dependent fields](#source-dependent-fields) |
 | `exclude_countries` | string | Comma-separated country codes to **exclude** (denylist, e.g. `CN`). A person is excluded when **either** their company country or their own person country matches; rows with an unknown country on a side are kept |
 | `city` | string | Free-text city (partial match). Job-change people only — see [Source-dependent fields](#source-dependent-fields) |
 
@@ -231,6 +235,7 @@ Each result includes the person, their company, `is_latest_signal`, and the inli
       "title": "Chief Technology Officer",
       "status": "active",
       "city": null,
+      "country": null,
       "company": {
         "name": "NextGen Software",
         "domain": "nextgensoftware.com",

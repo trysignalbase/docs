@@ -61,7 +61,7 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/hiring?count=true&posi
 
 Each row includes **`companyCountry`** (employer HQ) and **`jobCountry`** (listing location). Signal rows also include **`companySubcategory`** when the company has been classified. See [Company fields in signal responses](/enums#company-fields-in-signal-responses) for naming conventions shared across signal APIs.
 
-The same distinction applies to filtering: the `countries` parameter matches either country (job listing **or** company HQ), while `job_countries` matches the job listing country only. Use `job_countries` when you care about where the job is, not where the company is based — e.g. a Berlin listing from a US-headquartered company matches `job_countries=DE` but not `job_countries=US`.
+The same distinction applies to filtering, with three country scopes: `countries` matches either country (job listing **or** company HQ), `job_countries` matches the job listing country only, and `company_countries` matches the company HQ only. Use `job_countries` when you care about where the job is, not where the company is based — e.g. a Berlin listing from a US-headquartered company matches `job_countries=DE` but not `job_countries=US` — and `company_countries` for the reverse.
 
 ## Service Level
 
@@ -110,6 +110,8 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/hiring?company_linkedi
 
 ## Query Parameters
 
+<Note>Parameter **names** are validated strictly: an unrecognized query parameter returns a `400` listing the supported names, with a did-you-mean hint for near-misses (e.g. `job_country` → `job_countries`). Previously unknown names were silently ignored, which made a typo'd filter look like a filtered result. Malformed range values for `team_size` and `applicants` also return `400`.</Note>
+
 ### Pagination
 
 | Parameter | Type | Default | Description |
@@ -135,9 +137,10 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/hiring?company_linkedi
 | `countries` | string | Comma-separated country codes (e.g., `US,GB,DE`). Allowlist; matches the job listing country **or** the company HQ country |
 | `exclude_countries` | string | Comma-separated country names or codes to **exclude** (denylist, e.g. `China`). A signal is excluded when **either** the job listing country or the company HQ matches; rows with an unknown country on a side are kept |
 | `job_countries` | string | Comma-separated country codes matching the job listing location **only**, ignoring company HQ (e.g., `US,GB`) |
+| `company_countries` | string | Comma-separated country codes matching the company HQ **only**, ignoring job listing location (e.g., `GB`) |
 | `states` | string | Comma-separated US state codes (e.g., `CA,NY,TX`) |
 
-<Warning>`countries` and `job_countries` are ANDed if both are supplied — `countries=US&job_countries=GB` is almost always empty. Use one or the other, not both.</Warning>
+<Warning>The three country scopes (`countries`, `job_countries`, `company_countries`) are ANDed if combined — `countries=US&job_countries=GB` is almost always empty. Pick the one scope that matches your question.</Warning>
 
 ### Category Filters
 

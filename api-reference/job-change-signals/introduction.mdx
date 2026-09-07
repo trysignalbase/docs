@@ -134,6 +134,7 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/job-changes?company_li
 |-----------|------|-------------|
 | `countries` | string | Comma-separated country codes (e.g., `US,GB,DE`). Allowlist; matches the person country **or** the company HQ country |
 | `exclude_countries` | string | Comma-separated country names or codes to **exclude** (denylist, e.g. `China` or `CN`). A signal is excluded when **either** the person country or the company HQ matches; rows with an unknown country on a side are kept |
+| `city` | string | Free-text match on the person's city and location (e.g. `San Francisco`) |
 
 ### Exact Match Filters
 
@@ -221,6 +222,7 @@ All successful responses follow this structure:
 The API returns standard HTTP status codes:
 
 - **200**: Success
+- **400**: Bad request - an unknown query parameter name (the error lists the supported parameters and suggests near-misses) or an invalid filter value. `person_name` is refused with an explanatory message (GDPR) — use `personLinkedinUrl`
 - **401**: Unauthorized - Invalid or missing API key
 - **429**: Rate limit exceeded
 - **500**: Internal server error

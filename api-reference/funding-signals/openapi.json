@@ -295,6 +295,15 @@
             "example": "Sequoia"
           },
           {
+            "name": "investors",
+            "in": "query",
+            "description": "Comma-separated investor names matched exactly (case- and whitespace-insensitive) against the round's investors, with OR semantics: returns rounds where ANY listed investor participated. Use this instead of `investor_name` when you need precision — `investor_name=Sequoia` also matches `Sequoia Capital China`, `investors=Sequoia Capital` does not. If both are supplied they are ANDed.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "a16z,Sequoia Capital"
+          },
+          {
             "name": "employee_count_min",
             "in": "query",
             "description": "Minimum company employee count",
@@ -446,7 +455,7 @@
             }
           },
           "400": {
-            "description": "Bad request - an invalid filter value was supplied (e.g. an unrecognized `round` value)",
+            "description": "Bad request - an invalid filter value was supplied (e.g. an unrecognized `round` value), or an unknown query parameter name (unknown names are rejected rather than silently ignored; the error lists the supported parameters and suggests near-misses)",
             "content": {
               "application/json": {
                 "schema": {

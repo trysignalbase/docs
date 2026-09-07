@@ -9,7 +9,7 @@ The People API is ICP-style people discovery across Signalbase's signal-driven d
 
 This is not a static contact database. People whose company has no active signal within the requested window are excluded by design. It is also a **search** endpoint — it reads existing records and never triggers the enrichment pipeline.
 
-You can also use it as a **precise lookup** rather than an ICP browse: pass an identifier — a person's `linkedin_url`, or a `company_domain` / `company_linkedin_url` — to resolve a specific record and return its people with their signals. See [Identifier Lookup](#identifier-lookup) below.
+You can also use it as a **precise lookup** rather than an ICP browse: pass an identifier — a person's `linkedin_url` or `email`, or a `company_domain` / `company_linkedin_url` — to resolve a specific record and return its people with their signals. See [Identifier Lookup](#identifier-lookup) below.
 
 <Card
   title="Search People Endpoint"
@@ -37,6 +37,7 @@ Instead of browsing an ICP, you can resolve a **specific** person or company and
 | Parameter | Matches | Notes |
 |-----------|---------|-------|
 | `linkedin_url` | A specific person | Personal profile URL (`/in/` or legacy `/pub/`). Matches current employees and job-change subjects. Pass a company page to `company_linkedin_url` instead. |
+| `email` | A specific person | Exact, case-insensitive email match. **Current employees only** — job-change records carry no email, so a person known only from a job change is not found this way. Malformed addresses return `400`. |
 | `company_domain` | People at a company | Company website domain, e.g. `novartis.com` |
 | `company_linkedin_url` | People at a company | Company LinkedIn URL, e.g. `linkedin.com/company/novartis` |
 
@@ -51,6 +52,10 @@ curl -X GET "https://www.trysignalbase.com/api/v2/people?linkedin_url=https://ww
 
 # All people at a company, by domain
 curl -X GET "https://www.trysignalbase.com/api/v2/people?company_domain=novartis.com" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+# One current employee, by email
+curl -X GET "https://www.trysignalbase.com/api/v2/people?email=jane@novartis.com" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
@@ -172,6 +177,7 @@ Resolve a specific person or company instead of browsing an ICP — see [Identif
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `linkedin_url` | string | Person LinkedIn profile URL (`/in/` or `/pub/`). Matches employees and job-change subjects |
+| `email` | string | Person email address (e.g. `jane@novartis.com`). Exact, case-insensitive; current employees only |
 | `company_domain` | string | Company website domain (e.g. `novartis.com`) — returns the people at that company |
 | `company_linkedin_url` | string | Company LinkedIn URL (e.g. `linkedin.com/company/novartis`) |
 

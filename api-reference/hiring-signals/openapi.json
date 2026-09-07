@@ -250,6 +250,7 @@
                       "companyId": "d4e5f6a7-b8c9-0123-defg-h45678901234",
                       "companyName": "NextGen Software",
                       "companyWebsite": "https://www.nextgensoftware.com",
+                      "companyLinkedin": "https://www.linkedin.com/company/nextgen-software",
                       "companyIndustry": "Technology",
                       "companyCountry": "US",
                       "companySubcategory": "saas",
@@ -275,6 +276,20 @@
                     "creditsUsed": 1,
                     "creditsRemaining": 999
                   }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - an unknown query parameter name (unknown names are rejected rather than silently ignored; the error lists the supported parameters and suggests near-misses), or an invalid `team_size` / `applicants` range (entries must be `min-max` or the open-ended token, e.g. `51-200` or `1000-plus`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Unknown query parameter: job_country (did you mean \"job_countries\"?). Supported parameters: count, page, limit, dateFrom, dateTo, date_preset, search, countries, company_countries, exclude_countries, job_countries, states, categories, subcategories, city, description, company_name, company_domain, company_linkedin_url, positions, departments, seniorities, applicants, team_size, sort_by, sort_order."
                 }
               }
             }
@@ -336,6 +351,7 @@
           "companyId": { "type": "string", "format": "uuid", "description": "Unique identifier for the company" },
           "companyName": { "type": "string", "description": "Name of the hiring company" },
           "companyWebsite": { "type": "string", "nullable": true, "description": "Company website URL" },
+          "companyLinkedin": { "type": "string", "nullable": true, "description": "Company LinkedIn page URL", "example": "https://www.linkedin.com/company/nextgen-software" },
           "companyIndustry": { "type": "string", "nullable": true, "description": "Industry of the company" },
           "companyCountry": { "type": "string", "nullable": true, "description": "Country code of company HQ" },
           "companySubcategory": { "type": "string", "nullable": true, "description": "Assigned company subcategory (same vocabulary as the `subcategories` filter)" },

@@ -322,6 +322,20 @@
               }
             }
           },
+          "400": {
+            "description": "Bad request - an unknown query parameter name (unknown names are rejected rather than silently ignored; the error lists the supported parameters and suggests near-misses)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Unknown query parameter: acquirer_country (did you mean \"acquirer_countries\"?). Supported parameters: count, page, limit, dateFrom, dateTo, date_preset, countries, exclude_countries, categories, subcategories, search, industry, company_name, company_domain, company_linkedin_url, employee_count_min, employee_count_max, founded_year_min, founded_year_max, amount_min, amount_max, currency, verification_status, acquiring_company, acquirer_countries, exclude_acquirer_countries, sort_by, sort_order."
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized - Invalid or missing API key",
             "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "example": { "success": false, "error": "Invalid API key" } } }

@@ -157,6 +157,16 @@
             "example": "https://www.linkedin.com/company/novartis"
           },
           {
+            "name": "email",
+            "in": "query",
+            "description": "Person email address — resolves a specific person by exact (case-insensitive) match. Matches current employees only: job-change records carry no email, so a person known only from a job change is not found this way. Malformed addresses return 400; a valid address with no match returns an empty data set. When set, `signal_date_range` defaults to all-time.",
+            "schema": {
+              "type": "string",
+              "format": "email"
+            },
+            "example": "jane@novartis.com"
+          },
+          {
             "name": "signal_type",
             "in": "query",
             "description": "Comma-separated signal type(s) to pin `matched_signal` to. Accepted values: `funding_round`, `acquisition`, `job_change`. When omitted, `matched_signal` is the person's newest qualifying signal of any supported type, so types can mix across a page. Unknown values return 400.",

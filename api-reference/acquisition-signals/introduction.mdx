@@ -192,6 +192,7 @@ All successful responses follow this structure:
 The API returns standard HTTP status codes:
 
 - **200**: Success
+- **400**: Bad request - an unknown query parameter name (the error lists the supported parameters and suggests near-misses, e.g. `acquirer_country` → `acquirer_countries`) or an invalid filter value
 - **401**: Unauthorized - Invalid or missing API key
 - **429**: Rate limit exceeded
 - **500**: Internal server error

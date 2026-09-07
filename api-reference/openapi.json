@@ -316,6 +316,15 @@
             "example": "Sequoia"
           },
           {
+            "name": "investors",
+            "in": "query",
+            "description": "Comma-separated investor names matched exactly (case- and whitespace-insensitive) against the round's investors, with OR semantics: returns rounds where ANY listed investor participated. Use this instead of `investor_name` when you need precision — `investor_name=Sequoia` also matches `Sequoia Capital China`, `investors=Sequoia Capital` does not. If both are supplied they are ANDed.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "a16z,Sequoia Capital"
+          },
+          {
             "name": "employee_count_min",
             "in": "query",
             "description": "Minimum company employee count",
@@ -478,7 +487,7 @@
             }
           },
           "400": {
-            "description": "Bad request - an invalid filter value was supplied (e.g. an unrecognized `round` value)",
+            "description": "Bad request - an invalid filter value was supplied (e.g. an unrecognized `round` value), or an unknown query parameter name (unknown names are rejected rather than silently ignored; the error lists the supported parameters and suggests near-misses)",
             "content": {
               "application/json": {
                 "schema": {
@@ -935,6 +944,20 @@
               }
             }
           },
+          "400": {
+            "description": "Bad request - an unknown query parameter name (unknown names are rejected rather than silently ignored; the error lists the supported parameters and suggests near-misses)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Acquisition_ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Unknown query parameter: acquirer_country (did you mean \"acquirer_countries\"?). Supported parameters: count, page, limit, dateFrom, dateTo, date_preset, countries, exclude_countries, categories, subcategories, search, industry, company_name, company_domain, company_linkedin_url, employee_count_min, employee_count_max, founded_year_min, founded_year_max, amount_min, amount_max, currency, verification_status, acquiring_company, acquirer_countries, exclude_acquirer_countries, sort_by, sort_order."
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized - Invalid or missing API key",
             "content": {
@@ -1314,6 +1337,20 @@
               }
             }
           },
+          "400": {
+            "description": "Bad request - an unknown query parameter name (unknown names are rejected rather than silently ignored; the error lists the supported parameters and suggests near-misses). `person_name` is refused with an explanatory message (GDPR) — use `personLinkedinUrl`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobChange_ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Unknown query parameter: job_country (did you mean \"countries\"?). Supported parameters: count, page, limit, dateFrom, dateTo, date_preset, search, countries, exclude_countries, city, personLinkedinUrl, person_linkedin_url, company_linkedin_url, companyLinkedinUrl, company_domain, company_name, new_role, source, keyword, positions, departments, seniorities, sort_by, sort_order."
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized - Invalid or missing API key",
             "content": {
@@ -1491,7 +1528,9 @@
             "name": "company_countries",
             "in": "query",
             "description": "Comma-separated country codes matching the company HQ country ONLY (ignores job listing location). The HQ-only counterpart of job_countries; use countries to match either side. The three country scopes AND together if combined, so pick one.",
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "example": "GB"
           },
           {
@@ -1687,6 +1726,7 @@
                       "companyId": "d4e5f6a7-b8c9-0123-defg-h45678901234",
                       "companyName": "NextGen Software",
                       "companyWebsite": "https://www.nextgensoftware.com",
+                      "companyLinkedin": "https://www.linkedin.com/company/nextgen-software",
                       "companyIndustry": "Technology",
                       "companyCountry": "US",
                       "companySubcategory": "saas",
@@ -1712,6 +1752,20 @@
                     "creditsUsed": 1,
                     "creditsRemaining": 999
                   }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - an unknown query parameter name (unknown names are rejected rather than silently ignored; the error lists the supported parameters and suggests near-misses), or an invalid `team_size` / `applicants` range (entries must be `min-max` or the open-ended token, e.g. `51-200` or `1000-plus`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Hiring_ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Unknown query parameter: job_country (did you mean \"job_countries\"?). Supported parameters: count, page, limit, dateFrom, dateTo, date_preset, search, countries, company_countries, exclude_countries, job_countries, states, categories, subcategories, city, description, company_name, company_domain, company_linkedin_url, positions, departments, seniorities, applicants, team_size, sort_by, sort_order."
                 }
               }
             }
@@ -2034,6 +2088,20 @@
               }
             }
           },
+          "400": {
+            "description": "Bad request - an unknown query parameter name (unknown names are rejected rather than silently ignored; the error lists the supported parameters and suggests near-misses)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Investors_ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Unknown query parameter: ticket_size (did you mean \"ticket_size_min\"?). Supported parameters: count, page, limit, dateFrom, dateTo, date_preset, search, countries, exclude_countries, categories, type, headquarters, ticket_size_min, ticket_size_max, sort_by, sort_order."
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized - Invalid or missing API key",
             "content": {
@@ -2148,6 +2216,44 @@
               "type": "string"
             },
             "example": "https://www.linkedin.com/company/novartis"
+          },
+          {
+            "name": "enrich_on_miss",
+            "in": "query",
+            "description": "Set to `true` to queue the enrichment pipeline for the company when an identifier lookup (`domain` or `linkedin_url`) returns no company, instead of orchestrating a separate `POST /csv-enrichment` call. Opt-in per request; the queued job is billed as one `csv.enrichment` call on top of this lookup. Only valid together with `domain` or `linkedin_url` — passing it on a `search` or filtered browse returns `400`. The lookup's own `data` is never changed; the outcome is reported in the `enrichment` response field.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "example": "true"
+          },
+          {
+            "name": "enrich_wait",
+            "in": "query",
+            "description": "With `enrich_on_miss=true`, set to `true` to hold the request until the enrichment finishes (up to `enrich_timeout` seconds) and return the completed job inline in `enrichment.result`, instead of returning a `job_id` to poll. Passing it without `enrich_on_miss=true` returns `400`.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "example": "true"
+          },
+          {
+            "name": "enrich_timeout",
+            "in": "query",
+            "description": "Seconds to wait when `enrich_wait=true`, clamped to 1–30 (default 30). If the job has not finished in time, the response carries its current `status` and `job_id` so you can poll `GET /csv-enrichment/{jobId}`. Passing it without `enrich_on_miss=true` returns `400`.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 30,
+              "default": 30
+            },
+            "example": 30
           },
           {
             "name": "countries",
@@ -2372,6 +2478,20 @@
               }
             }
           },
+          "400": {
+            "description": "Bad request - an unknown query parameter name (unknown names are rejected rather than silently ignored; the error lists the supported parameters and suggests near-misses), an invalid `domain` / `linkedin_url` identifier syntax, or an unusable enrich-on-miss combination (`enrich_on_miss` without an identifier, or `enrich_wait` / `enrich_timeout` without `enrich_on_miss=true`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Companies_ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Unknown query parameter: linkedin (did you mean \"linkedin_url\"?). Supported parameters: count, page, limit, search, countries, exclude_countries, categories, subcategories, industry, domain, linkedin_url, employee_count_min, employee_count_max, founded_year_min, founded_year_max, sort_by, sort_order, enrich_on_miss, enrich_wait, enrich_timeout."
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized - Invalid or missing API key",
             "content": {
@@ -2567,6 +2687,16 @@
               "type": "string"
             },
             "example": "https://www.linkedin.com/company/novartis"
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "description": "Person email address — resolves a specific person by exact (case-insensitive) match. Matches current employees only: job-change records carry no email, so a person known only from a job change is not found this way. Malformed addresses return 400; a valid address with no match returns an empty data set. When set, `signal_date_range` defaults to all-time.",
+            "schema": {
+              "type": "string",
+              "format": "email"
+            },
+            "example": "jane@novartis.com"
           },
           {
             "name": "signal_type",
@@ -4832,6 +4962,12 @@
             "nullable": true,
             "description": "Company website URL"
           },
+          "companyLinkedin": {
+            "type": "string",
+            "nullable": true,
+            "description": "Company LinkedIn page URL",
+            "example": "https://www.linkedin.com/company/nextgen-software"
+          },
           "companyIndustry": {
             "type": "string",
             "nullable": true,
@@ -5158,6 +5294,43 @@
           },
           "meta": {
             "$ref": "#/components/schemas/Companies_Meta"
+          },
+          "enrichment": {
+            "type": "object",
+            "description": "Present only when `enrich_on_miss=true` was passed and the identifier lookup found no company. Reports what happened to the enrichment side effect; `data` stays the (empty) lookup result either way.",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "queued",
+                  "pending",
+                  "running",
+                  "completed",
+                  "failed",
+                  "insufficient_credits",
+                  "rate_limited",
+                  "unavailable"
+                ],
+                "description": "`queued` — job created, poll `GET /csv-enrichment/{job_id}`. `pending` / `running` / `completed` / `failed` — returned when `enrich_wait=true`; the job's state when the wait ended, with the full job in `result`. `insufficient_credits` — no job was created. `rate_limited` / `unavailable` — queueing failed; if `job_id` is present the job was created before the failure, is still running and still billable, so poll it."
+              },
+              "job_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Enrichment job id, when a job was created"
+              },
+              "result": {
+                "type": "object",
+                "description": "The full enrichment job (same shape as `GET /csv-enrichment/{jobId}`), only when `enrich_wait=true`"
+              },
+              "error": {
+                "type": "string",
+                "description": "Human-readable reason for `rate_limited` / `unavailable`"
+              }
+            },
+            "example": {
+              "status": "queued",
+              "job_id": "3f1c9a2e-7b4d-4c1a-9e2f-5d6a7b8c9d0e"
+            }
           }
         }
       },

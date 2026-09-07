@@ -76,6 +76,44 @@
             "example": "https://www.linkedin.com/company/novartis"
           },
           {
+            "name": "enrich_on_miss",
+            "in": "query",
+            "description": "Set to `true` to queue the enrichment pipeline for the company when an identifier lookup (`domain` or `linkedin_url`) returns no company, instead of orchestrating a separate `POST /csv-enrichment` call. Opt-in per request; the queued job is billed as one `csv.enrichment` call on top of this lookup. Only valid together with `domain` or `linkedin_url` — passing it on a `search` or filtered browse returns `400`. The lookup's own `data` is never changed; the outcome is reported in the `enrichment` response field.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "example": "true"
+          },
+          {
+            "name": "enrich_wait",
+            "in": "query",
+            "description": "With `enrich_on_miss=true`, set to `true` to hold the request until the enrichment finishes (up to `enrich_timeout` seconds) and return the completed job inline in `enrichment.result`, instead of returning a `job_id` to poll. Passing it without `enrich_on_miss=true` returns `400`.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "example": "true"
+          },
+          {
+            "name": "enrich_timeout",
+            "in": "query",
+            "description": "Seconds to wait when `enrich_wait=true`, clamped to 1–30 (default 30). If the job has not finished in time, the response carries its current `status` and `job_id` so you can poll `GET /csv-enrichment/{jobId}`. Passing it without `enrich_on_miss=true` returns `400`.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 30,
+              "default": 30
+            },
+            "example": 30
+          },
+          {
             "name": "countries",
             "in": "query",
             "description": "Comma-separated list of country codes to filter by",
@@ -263,6 +301,20 @@
               }
             }
           },
+          "400": {
+            "description": "Bad request - an unknown query parameter name (unknown names are rejected rather than silently ignored; the error lists the supported parameters and suggests near-misses), an invalid `domain` / `linkedin_url` identifier syntax, or an unusable enrich-on-miss combination (`enrich_on_miss` without an identifier, or `enrich_wait` / `enrich_timeout` without `enrich_on_miss=true`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Unknown query parameter: linkedin (did you mean \"linkedin_url\"?). Supported parameters: count, page, limit, search, countries, exclude_countries, categories, subcategories, industry, domain, linkedin_url, employee_count_min, employee_count_max, founded_year_min, founded_year_max, sort_by, sort_order, enrich_on_miss, enrich_wait, enrich_timeout."
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized - Invalid or missing API key",
             "content": {
@@ -346,6 +398,43 @@
           },
           "meta": {
             "$ref": "#/components/schemas/Meta"
+          },
+          "enrichment": {
+            "type": "object",
+            "description": "Present only when `enrich_on_miss=true` was passed and the identifier lookup found no company. Reports what happened to the enrichment side effect; `data` stays the (empty) lookup result either way.",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "queued",
+                  "pending",
+                  "running",
+                  "completed",
+                  "failed",
+                  "insufficient_credits",
+                  "rate_limited",
+                  "unavailable"
+                ],
+                "description": "`queued` — job created, poll `GET /csv-enrichment/{job_id}`. `pending` / `running` / `completed` / `failed` — returned when `enrich_wait=true`; the job's state when the wait ended, with the full job in `result`. `insufficient_credits` — no job was created. `rate_limited` / `unavailable` — queueing failed; if `job_id` is present the job was created before the failure, is still running and still billable, so poll it."
+              },
+              "job_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Enrichment job id, when a job was created"
+              },
+              "result": {
+                "type": "object",
+                "description": "The full enrichment job (same shape as `GET /csv-enrichment/{jobId}`), only when `enrich_wait=true`"
+              },
+              "error": {
+                "type": "string",
+                "description": "Human-readable reason for `rate_limited` / `unavailable`"
+              }
+            },
+            "example": {
+              "status": "queued",
+              "job_id": "3f1c9a2e-7b4d-4c1a-9e2f-5d6a7b8c9d0e"
+            }
           }
         }
       },

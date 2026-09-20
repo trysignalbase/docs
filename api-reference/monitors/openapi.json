@@ -227,7 +227,7 @@
       },
       "put": {
         "summary": "Update Monitor",
-        "description": "Partially update a monitor — send only the fields you want to change. Rename it, change which signal types it listens for, pause or resume it (active), or manage its webhook: a new webhook_url replaces the endpoint and mints a new signing secret (returned once, in this response); webhook_url: null detaches the webhook and leaves the monitor email-only; sending the URL it already has changes nothing and returns no secret. Changes apply to delivery immediately. Free (0 credits).",
+        "description": "Partially update a monitor — send only the fields you want to change. Rename it, change which signal types it listens for, pause or resume it (active), or manage its webhook: a new webhook_url replaces the endpoint and mints a new signing secret (returned once, in this response); webhook_url: null detaches the webhook and leaves the monitor email-only; sending the URL it already has changes nothing and returns no secret. The change is atomic: if the new webhook_url is rejected (400), the monitor keeps its current endpoint and keeps delivering. Changes apply to delivery immediately. Free (0 credits).",
         "operationId": "updateMonitor",
         "parameters": [
           {
@@ -842,7 +842,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "Webhook subscription ID. Usable with the Webhooks API to send a test event, list deliveries, retry a failed delivery, or rotate the secret."
+            "description": "Webhook subscription ID. Usable with the Webhooks API to send a test event, list deliveries, retry a failed delivery, or rotate the secret. Editing or deleting it through the Webhooks API is rejected with 409 — manage it with Update Monitor."
           },
           "endpoint_url": {
             "type": [
@@ -935,7 +935,15 @@
             "description": "The monitor's webhook, or null for an email-only monitor."
           },
           "stats": {
-            "$ref": "#/components/schemas/MonitorStats"
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MonitorStats"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Monitor statistics. null only in the rare case where an Update Monitor request was applied but its statistics could not be read back — the update itself succeeded; call Retrieve Monitor for the numbers."
           },
           "created_at": {
             "type": "string",

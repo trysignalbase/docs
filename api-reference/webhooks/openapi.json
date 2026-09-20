@@ -306,6 +306,7 @@
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "403": { "$ref": "#/components/responses/SubscriptionExpired" },
           "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/MonitorOwned" },
           "429": { "$ref": "#/components/responses/RateLimited" },
           "500": { "$ref": "#/components/responses/InternalError" }
         }
@@ -340,6 +341,7 @@
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "403": { "$ref": "#/components/responses/SubscriptionExpired" },
           "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/MonitorOwned" },
           "429": { "$ref": "#/components/responses/RateLimited" },
           "500": { "$ref": "#/components/responses/InternalError" }
         }
@@ -970,6 +972,19 @@
             "example": {
               "success": false,
               "error": "Delivery already succeeded",
+              "code": "conflict"
+            }
+          }
+        }
+      },
+      "MonitorOwned": {
+        "description": "The webhook belongs to a monitor. Its endpoint, event types, filters, and active state are managed through the Monitoring API (Update Monitor); only rotate_secret is accepted here.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "success": false,
+              "error": "This webhook belongs to monitor 29681a72-ed3d-41a8-b119-2c2942b34996 and can't be edited here. Use PUT /api/v2/monitors/29681a72-ed3d-41a8-b119-2c2942b34996 (signal_types, active, webhook_url) or the Monitoring page instead.",
               "code": "conflict"
             }
           }

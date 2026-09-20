@@ -628,6 +628,7 @@ curl -X DELETE "https://www.trysignalbase.com/api/v2/webhooks/$ID" \
 Everything above is also available without code under **Workspace → Webhooks** in the dashboard. Because the dashboard and the REST API share one code path, a webhook created in the UI is fully manageable via the API and vice versa.
 
 - **Webhooks are editable in place.** To change a URL or event list, use [Update Webhook](/api-reference/webhooks/endpoint/update) (or the dashboard **Edit** button) — you no longer need to delete and recreate. The signing secret is preserved across edits unless you pass `rotate_secret: true`.
+- **Monitor webhooks are managed by their monitor.** A webhook created through a [monitor](/api-reference/monitors/introduction) shows up in List Webhooks and supports test, delivery listing, retry, and `rotate_secret` — but changing its URL, event types, filters, or `active` flag, or deleting it, returns `409 conflict`. Use [Update Monitor](/api-reference/monitors/endpoint/update) instead.
 - **Retrieve existing config:** vendors who configured webhooks through the dashboard can list and manage them immediately via [List Webhooks](/api-reference/webhooks/endpoint/list) — no migration step required. Only `secret_preview` is exposed for pre-existing webhooks; rotate the secret if you need a fresh full value.
 
 ## Error Handling
@@ -640,6 +641,6 @@ Errors return a non-2xx status with `{ success: false, error, code }`.
 | 401 | `invalid_api_key` | Missing or invalid API key. |
 | 403 | `subscription_expired` | The key's team has no active subscription. |
 | 404 | `not_found` | Webhook or delivery not found (or not owned by your team). |
-| 409 | `conflict` | Retrying a delivery that already succeeded. |
+| 409 | `conflict` | Retrying a delivery that already succeeded, or editing/deleting a webhook that belongs to a [monitor](/api-reference/monitors/introduction#the-monitors-webhook). |
 | 429 | `rate_limited` | Rate limit exceeded. Includes a `retryAfter` field and `X-RateLimit-*` headers. |
 | 500 | `internal_server_error` / `internal_error` | Unexpected server error. |

@@ -1,0 +1,249 @@
+---
+title: "Introduction"
+description: "Control account monitoring over REST — create monitors, add the companies and people you care about, choose which signals to receive, and route them to your own endpoint"
+---
+
+## Welcome to the Monitoring API
+
+Monitoring flips the signals API around: instead of searching for signals, you tell Signalbase **which accounts you care about** and it pushes you their funding rounds, acquisitions, job changes, and new job posts as they happen.
+
+A **monitor** is a named group of **targets** with its own signal-type selection and an optional webhook endpoint. Want funding news for your customers but hiring news for your prospects? Create two monitors. Everything you can do on the dashboard **Monitoring** page is available here, and the two share one code path — a monitor created in either place is fully manageable from the other.
+
+<CardGroup cols={2}>
+  <Card title="Create Monitor" icon="plus" href="/api-reference/monitors/endpoint/create">
+    Name it, pick signal types, and optionally attach a webhook endpoint.
+  </Card>
+  <Card title="Add Targets" icon="bullseye" href="/api-reference/monitors/endpoint/add-targets">
+    Add up to 500 domains, LinkedIn company pages, or LinkedIn profiles per call.
+  </Card>
+  <Card title="List Targets" icon="list-check" href="/api-reference/monitors/endpoint/list-targets">
+    See which targets are resolved, which are pending, and each one's latest signal.
+  </Card>
+  <Card title="Update Monitor" icon="sliders" href="/api-reference/monitors/endpoint/update">
+    Change signal types, swap or detach the webhook, pause and resume.
+  </Card>
+</CardGroup>
+
+## Quickstart
+
+```bash
+# 1. Create a monitor. Save data.webhook.secret — it is shown only once.
+curl -X POST "https://www.trysignalbase.com/api/v2/monitors" \
+  -H "Authorization: Bearer $SB_KEY" -H "Content-Type: application/json" \
+  -d '{
+    "name": "Key accounts",
+    "signal_types": ["funding_round", "hiring"],
+    "webhook_url": "https://example.com/hooks/signalbase"
+  }'
+
+# 2. Add the accounts to watch (domains, LinkedIn company URLs, LinkedIn profile URLs)
+curl -X POST "https://www.trysignalbase.com/api/v2/monitors/$MONITOR_ID/targets" \
+  -H "Authorization: Bearer $SB_KEY" -H "Content-Type: application/json" \
+  -d '{ "targets": ["acme.com", "linkedin.com/company/initech", "linkedin.com/in/jane-doe"] }'
+
+# 3. Check what resolved and what is still pending
+curl "https://www.trysignalbase.com/api/v2/monitors/$MONITOR_ID/targets?status=pending" \
+  -H "Authorization: Bearer $SB_KEY"
+```
+
+From here on, every matching signal for a resolved target is `POST`ed to your endpoint. There is nothing to poll.
+
+## Authentication
+
+Every request needs an API key (`ff_live_…`) belonging to a team with an active or trialing subscription. Pass it as a Bearer token in the `Authorization` header. Get your key from the dashboard at [trysignalbase.com/workspace/api](https://www.trysignalbase.com/workspace/api).
+
+The base URL for all V2 endpoints is `https://www.trysignalbase.com/api/v2`. A key is bound to one team: the monitors it creates belong to that team, are visible to every team member on the dashboard, and are invisible to every other team. Request bodies may use `snake_case` (canonical) or `camelCase` (`signalTypes`, `webhookUrl`).
+
+## Endpoints
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `POST` | `/monitors` | [Create a monitor](/api-reference/monitors/endpoint/create) |
+| `GET` | `/monitors` | [List monitors](/api-reference/monitors/endpoint/list) |
+| `GET` | `/monitors/{id}` | [Retrieve a monitor](/api-reference/monitors/endpoint/retrieve) |
+| `PUT` | `/monitors/{id}` | [Update a monitor](/api-reference/monitors/endpoint/update) — rename, signal types, webhook, pause |
+| `DELETE` | `/monitors/{id}` | [Delete a monitor](/api-reference/monitors/endpoint/delete) and all of its targets |
+| `GET` | `/monitors/{id}/targets` | [List targets](/api-reference/monitors/endpoint/list-targets) |
+| `POST` | `/monitors/{id}/targets` | [Add targets](/api-reference/monitors/endpoint/add-targets) |
+| `DELETE` | `/monitors/{id}/targets/{targetId}` | [Remove one target](/api-reference/monitors/endpoint/remove-target) |
+| `POST` | `/monitors/{id}/targets/remove` | [Remove targets in bulk](/api-reference/monitors/endpoint/remove-targets) |
+
+## The Monitor Resource
+
+```json
+{
+  "id": "29681a72-ed3d-41a8-b119-2c2942b34996",
+  "name": "Key accounts",
+  "signal_types": ["funding_round", "hiring"],
+  "active": true,
+  "webhook": {
+    "id": "4141b666-835e-482d-8074-22c02eaf196a",
+    "endpoint_url": "https://example.com/hooks/signalbase",
+    "secret": "e34f1ba3-fcc9-4519-a58d-b1193e1fae44"
+  },
+  "stats": {
+    "targets": 4,
+    "resolved_targets": 2,
+    "signals_30d": 1,
+    "last_delivery_at": "2026-09-19T08:00:00.000Z"
+  },
+  "created_at": "2026-09-20T13:10:38.502Z",
+  "updated_at": "2026-09-20T13:10:41.540Z"
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | string | Unique monitor ID (UUID). |
+| `name` | string | Display name (1–255 characters). |
+| `signal_types` | string[] | Signal types this monitor delivers — see [Signal Types](#signal-types). |
+| `active` | boolean | `false` = paused. Targets are kept; nothing is delivered. |
+| `webhook` | object \| null | The monitor's webhook, or `null` for an email-only monitor. |
+| `webhook.id` | string | Webhook subscription ID — usable with the [Webhooks API](/api-reference/webhooks/introduction) (see [below](#the-monitors-webhook)). |
+| `webhook.endpoint_url` | string | Endpoint that receives this monitor's signals. |
+| `webhook.secret` | string | Signing secret. **Returned only once**, in the response to the request that created the endpoint. |
+| `stats.targets` | integer | Number of targets in the monitor. |
+| `stats.resolved_targets` | integer | Targets matched to a company. |
+| `stats.signals_30d` | integer | Signals of any type in the last 30 days for the monitor's resolved companies. |
+| `stats.last_delivery_at` | string \| null | Most recent successful delivery (webhook or email). |
+| `created_at` / `updated_at` | string | ISO-8601 timestamps. |
+
+### Signal Types
+
+| Value | Delivered when… | Webhook event |
+| --- | --- | --- |
+| `funding_round` | A monitored company raises a round. | `funding.created` |
+| `acquisition` | A monitored company acquires, or is acquired. | `acquisition.created` |
+| `job_change` | Someone joins or leaves a monitored company. | `job_change.created` |
+| `hiring` | A monitored company posts a new job. | `hiring.created` |
+
+"Different signals for different accounts" means different monitors: `signal_types` applies to every target in the monitor.
+
+## Targets
+
+A target is one thing you asked a monitor to watch. [Add Targets](/api-reference/monitors/endpoint/add-targets) accepts three kinds of identifier in the same array and works out which is which:
+
+| `type` | You send | Stored `value` | What is monitored |
+| --- | --- | --- | --- |
+| `domain` | `acme.com`, `https://www.acme.com/about` | `acme.com` | The company with that website. |
+| `linkedin_company` | `https://www.linkedin.com/company/acme/` | `linkedin.com/company/acme` | The company with that LinkedIn page. |
+| `linkedin_profile` | `https://www.linkedin.com/in/jane-doe/` | `linkedin.com/in/jane-doe` | The company that person **currently works at**. |
+
+Identifiers are normalized — scheme, `www.`, path, query, and case are dropped — and de-duplicated, so adding is idempotent. Anything that is none of the three (a company name, a string without a dot) comes back in `invalid` without failing the request.
+
+```json
+{
+  "id": "9530caa4-70c9-49a0-ae3a-dc7f3fe497c3",
+  "monitor_id": "29681a72-ed3d-41a8-b119-2c2942b34996",
+  "type": "domain",
+  "value": "acme.com",
+  "status": "resolved",
+  "company": {
+    "id": "0b9f6f0e-2f0c-4a53-9a44-6d2b8a1c7e11",
+    "name": "Acme",
+    "slug": "acme",
+    "domain": "acme.com",
+    "industry": "Software",
+    "country": "US"
+  },
+  "resolved_at": "2026-09-20T13:10:41.506Z",
+  "last_signal_type": "funding_round",
+  "last_signal_at": "2026-09-18T13:08:25.412Z",
+  "created_at": "2026-09-20T13:10:41.507Z"
+}
+```
+
+### Resolved vs. pending
+
+Signals are attached to companies, so a target only delivers once it has been matched to a company in the Signalbase database.
+
+- **`resolved`** — matched. `company` is populated and its signals are delivered from now on.
+- **`pending`** — not matched yet. Signalbase researches pending targets automatically (usually within minutes to a few hours, in batches) and re-checks them every night as new companies enter the database. A pending target delivers nothing and needs no action from you; poll [List Targets](/api-reference/monitors/endpoint/list-targets) with `?status=pending` if you want to track progress.
+
+<Note>
+Monitoring is forward-looking. Adding a target does not replay signals that are already in the Signalbase database to your webhook — use the signal endpoints (for example [Funding Signals](/api-reference/funding-signals/introduction)) to backfill history. `last_signal_type` / `last_signal_at` tell you whether there is anything to backfill.
+</Note>
+
+## Delivery
+
+Every monitor delivers on two rails:
+
+- **Email** — always on. Real-time alert emails go to the user who created the monitor (for API-created monitors, the owner of the API key).
+- **Webhook** — optional. Set `webhook_url` and each matching signal is sent as a signed `POST` to your endpoint.
+
+Webhook deliveries from a monitor are ordinary Signalbase webhook events: the same envelope, the same per-event payloads, the same `X-Webhook-Signature` HMAC. Everything in the Webhooks guide applies unchanged — see [The Delivery Your Endpoint Receives](/api-reference/webhooks/introduction#the-delivery-your-endpoint-receives), [Payload by event type](/api-reference/webhooks/introduction#payload-by-event-type), and [Verifying the Signature](/api-reference/webhooks/introduction#verifying-the-signature), using the monitor's `webhook.secret`.
+
+A monitor delivers only while it is `active` **and** has at least one resolved target. Pausing (`active: false`), removing the last resolved target, or deleting the monitor stops delivery immediately; resuming or adding a resolved target restarts it.
+
+### The monitor's webhook
+
+`webhook.id` is a real webhook subscription, so the [Webhooks API](/api-reference/webhooks/introduction) works on it:
+
+- [Send a test event](/api-reference/webhooks/endpoint/test) to check your endpoint and signature verification.
+- [List deliveries](/api-reference/webhooks/endpoint/deliveries) and [retry](/api-reference/webhooks/endpoint/retry) failed ones.
+- [Rotate the signing secret](/api-reference/webhooks/endpoint/update) with `rotate_secret: true` if you lost it — this keeps the same endpoint, unlike changing `webhook_url`.
+
+<Warning>
+Do not change a monitor webhook's `event_types`, `filters`, or `active` flag through the Webhooks API, and do not delete it there. Those fields are owned by the monitor and are rewritten whenever the monitor or its targets change. Use [Update Monitor](/api-reference/monitors/endpoint/update) instead (`signal_types`, `active`, `webhook_url`).
+</Warning>
+
+Changing `webhook_url` to a different URL retires the old subscription and creates a new one with a **new `id` and a new secret**; delivery history stays with the old subscription.
+
+## Response Envelope
+
+Every endpoint returns the same JSON envelope as the rest of the V2 API.
+
+**Success:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "pagination": { "limit": 100, "offset": 0, "count": 2, "total": 2 },
+  "meta": { "endpoint": "monitors.targets.list", "creditsUsed": 0 }
+}
+```
+
+`pagination` is present only on [List Targets](/api-reference/monitors/endpoint/list-targets). `count` is the number of items in this page; `total` is the number of targets matching the filter.
+
+**Error:**
+
+```json
+{ "success": false, "error": "Monitor not found", "code": "not_found" }
+```
+
+## Credits & Limits
+
+| Item | Value |
+| --- | --- |
+| All Monitoring API calls (create, list, update, delete, targets) | Free (0 credits) |
+| Successful webhook delivery from a monitor | 1 API credit |
+| Email alerts from a monitor | Free |
+| Max monitors per team | 20 |
+| Max targets per team (across all monitors) | 1,000 |
+| Max targets per add / bulk-remove request | 500 |
+| List Targets page size | 1–200 (default 100) |
+| Monitor name | 1–255 characters |
+| Webhook URL | ≤ 500 characters, HTTP or HTTPS (HTTPS strongly recommended), public address only |
+| Default rate limit | 60 requests/minute per endpoint per team (higher limits available contractually) |
+
+<Note>
+The same company can be a target in several monitors — for example to send its funding rounds to one endpoint and its hiring to another. Each entry counts toward the 1,000-target limit. An active monitor webhook also counts toward the team's limit of 10 active webhooks when you create standalone webhooks with the [Webhooks API](/api-reference/webhooks/introduction).
+</Note>
+
+If your team's API credit balance reaches zero, webhook deliveries stop; monitors and targets are kept.
+
+## Error Handling
+
+Errors return a non-2xx status with `{ success: false, error, code }`.
+
+| HTTP | `code` | Meaning |
+| --- | --- | --- |
+| 400 | `bad_request` | Invalid JSON or field value, unknown signal type, non-public webhook URL, no valid target in the request, or a team limit reached (20 monitors / 1,000 targets). |
+| 401 | `invalid_api_key` | Missing or invalid API key. |
+| 403 | `subscription_expired` | The key's team has no active subscription. |
+| 404 | `not_found` | Monitor or target not found — or it belongs to another team. |
+| 429 | `rate_limited` | Rate limit exceeded. Includes a `retryAfter` field plus `Retry-After` and `X-RateLimit-*` headers. |
+| 500 | `internal_server_error` / `internal_error` | Unexpected server error. |
+
+Partial problems never fail a bulk call: unparseable entries are reported in `invalid`, already-present targets in `skipped_existing`, and unmatched removals in `not_found`, all with HTTP 200. The one exception is the 1,000-target limit — a request that would exceed it is rejected as a whole and adds nothing.

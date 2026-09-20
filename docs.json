@@ -154,6 +154,34 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "Monitoring",
+        "groups": [
+          {
+            "group": "Monitoring API",
+            "pages": ["api-reference/monitors/introduction"]
+          },
+          {
+            "group": "Monitors",
+            "pages": [
+              "api-reference/monitors/endpoint/create",
+              "api-reference/monitors/endpoint/list",
+              "api-reference/monitors/endpoint/retrieve",
+              "api-reference/monitors/endpoint/update",
+              "api-reference/monitors/endpoint/delete"
+            ]
+          },
+          {
+            "group": "Targets",
+            "pages": [
+              "api-reference/monitors/endpoint/add-targets",
+              "api-reference/monitors/endpoint/list-targets",
+              "api-reference/monitors/endpoint/remove-target",
+              "api-reference/monitors/endpoint/remove-targets"
+            ]
+          }
+        ]
       }
     ],
     "global": {}

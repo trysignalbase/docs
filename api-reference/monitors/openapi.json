@@ -1,0 +1,1603 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Monitoring API",
+    "description": "Manage account monitoring over REST. A monitor is a named group of watch targets (company domains, LinkedIn company pages, or LinkedIn member profiles) with its own signal-type selection and an optional webhook endpoint. Create monitors, add and remove targets, change what a monitor listens for, pause it, and delete it. The dashboard Monitoring page calls the same code path, so monitors created in either place are fully manageable from the other.",
+    "license": {
+      "name": "MIT"
+    },
+    "version": "2.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://www.trysignalbase.com/api/v2"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/monitors": {
+      "post": {
+        "summary": "Create Monitor",
+        "description": "Create a monitor for the authenticated team. A monitor starts empty — add targets with Add Targets. If you pass webhook_url, a dedicated webhook subscription is created for the monitor and its signing secret is returned exactly once, in this response (data.webhook.secret). Omit webhook_url for an email-only monitor. Free (0 credits). A team may have at most 20 monitors.",
+        "operationId": "createMonitor",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MonitorCreateRequest"
+              },
+              "example": {
+                "name": "Key accounts",
+                "signal_types": [
+                  "funding_round",
+                  "hiring"
+                ],
+                "webhook_url": "https://example.com/hooks/signalbase"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Monitor created. data.webhook.secret is present only when webhook_url was provided, and only in this response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonitorResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "id": "29681a72-ed3d-41a8-b119-2c2942b34996",
+                    "name": "Key accounts",
+                    "signal_types": [
+                      "funding_round",
+                      "hiring"
+                    ],
+                    "active": true,
+                    "webhook": {
+                      "id": "4141b666-835e-482d-8074-22c02eaf196a",
+                      "endpoint_url": "https://example.com/hooks/signalbase",
+                      "secret": "e34f1ba3-fcc9-4519-a58d-b1193e1fae44"
+                    },
+                    "stats": {
+                      "targets": 0,
+                      "resolved_targets": 0,
+                      "signals_30d": 0,
+                      "last_delivery_at": null
+                    },
+                    "created_at": "2026-09-20T13:10:38.502Z",
+                    "updated_at": "2026-09-20T13:10:38.502Z"
+                  },
+                  "meta": {
+                    "endpoint": "monitors.create",
+                    "creditsUsed": 0
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/SubscriptionExpired"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "get": {
+        "summary": "List Monitors",
+        "description": "List every monitor of the authenticated team, newest first, each with its stats. Not paginated — a team has at most 20 monitors. Paused monitors (active: false) are included. Free (0 credits).",
+        "operationId": "listMonitors",
+        "responses": {
+          "200": {
+            "description": "The team's monitors.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonitorListResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": [
+                    {
+                      "id": "29681a72-ed3d-41a8-b119-2c2942b34996",
+                      "name": "Key accounts",
+                      "signal_types": [
+                        "funding_round",
+                        "hiring"
+                      ],
+                      "active": true,
+                      "webhook": {
+                        "id": "4141b666-835e-482d-8074-22c02eaf196a",
+                        "endpoint_url": "https://example.com/hooks/signalbase"
+                      },
+                      "stats": {
+                        "targets": 4,
+                        "resolved_targets": 2,
+                        "signals_30d": 1,
+                        "last_delivery_at": "2026-09-19T08:00:00.000Z"
+                      },
+                      "created_at": "2026-09-20T13:10:38.502Z",
+                      "updated_at": "2026-09-20T13:10:41.540Z"
+                    }
+                  ],
+                  "meta": {
+                    "endpoint": "monitors.list",
+                    "creditsUsed": 0
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/SubscriptionExpired"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/monitors/{id}": {
+      "get": {
+        "summary": "Retrieve Monitor",
+        "description": "Fetch one monitor with its stats. The webhook signing secret is never returned here. Free (0 credits).",
+        "operationId": "getMonitor",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MonitorId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The monitor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonitorResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "id": "29681a72-ed3d-41a8-b119-2c2942b34996",
+                    "name": "Key accounts",
+                    "signal_types": [
+                      "funding_round",
+                      "hiring"
+                    ],
+                    "active": true,
+                    "webhook": {
+                      "id": "4141b666-835e-482d-8074-22c02eaf196a",
+                      "endpoint_url": "https://example.com/hooks/signalbase"
+                    },
+                    "stats": {
+                      "targets": 4,
+                      "resolved_targets": 2,
+                      "signals_30d": 1,
+                      "last_delivery_at": "2026-09-19T08:00:00.000Z"
+                    },
+                    "created_at": "2026-09-20T13:10:38.502Z",
+                    "updated_at": "2026-09-20T13:10:41.540Z"
+                  },
+                  "meta": {
+                    "endpoint": "monitors.get",
+                    "creditsUsed": 0
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/SubscriptionExpired"
+          },
+          "404": {
+            "$ref": "#/components/responses/MonitorNotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update Monitor",
+        "description": "Partially update a monitor — send only the fields you want to change. Rename it, change which signal types it listens for, pause or resume it (active), or manage its webhook: a new webhook_url replaces the endpoint and mints a new signing secret (returned once, in this response); webhook_url: null detaches the webhook and leaves the monitor email-only; sending the URL it already has changes nothing and returns no secret. Changes apply to delivery immediately. Free (0 credits).",
+        "operationId": "updateMonitor",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MonitorId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MonitorUpdateRequest"
+              },
+              "examples": {
+                "changeSignals": {
+                  "summary": "Rename and change signal types",
+                  "value": {
+                    "name": "Tier 1 accounts",
+                    "signal_types": [
+                      "acquisition",
+                      "job_change"
+                    ]
+                  }
+                },
+                "pause": {
+                  "summary": "Pause the monitor",
+                  "value": {
+                    "active": false
+                  }
+                },
+                "replaceWebhook": {
+                  "summary": "Point the monitor at a new endpoint (new secret returned once)",
+                  "value": {
+                    "webhook_url": "https://example.com/hooks/v2"
+                  }
+                },
+                "detachWebhook": {
+                  "summary": "Detach the webhook (email-only)",
+                  "value": {
+                    "webhook_url": null
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated monitor. data.webhook.secret is present only when this request replaced the webhook endpoint.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonitorResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "id": "29681a72-ed3d-41a8-b119-2c2942b34996",
+                    "name": "Tier 1 accounts",
+                    "signal_types": [
+                      "acquisition",
+                      "job_change"
+                    ],
+                    "active": true,
+                    "webhook": {
+                      "id": "4141b666-835e-482d-8074-22c02eaf196a",
+                      "endpoint_url": "https://example.com/hooks/signalbase"
+                    },
+                    "stats": {
+                      "targets": 4,
+                      "resolved_targets": 2,
+                      "signals_30d": 1,
+                      "last_delivery_at": "2026-09-19T08:00:00.000Z"
+                    },
+                    "created_at": "2026-09-20T13:10:38.502Z",
+                    "updated_at": "2026-09-20T13:11:52.903Z"
+                  },
+                  "meta": {
+                    "endpoint": "monitors.update",
+                    "creditsUsed": 0
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/SubscriptionExpired"
+          },
+          "404": {
+            "$ref": "#/components/responses/MonitorNotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Monitor",
+        "description": "Permanently delete a monitor together with all of its targets. Its email alert and webhook subscription stop delivering immediately. This cannot be undone — to stop deliveries temporarily, pause the monitor with Update Monitor (active: false) instead. Free (0 credits).",
+        "operationId": "deleteMonitor",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MonitorId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The monitor and its targets were deleted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "id": "29681a72-ed3d-41a8-b119-2c2942b34996",
+                    "deleted": true
+                  },
+                  "meta": {
+                    "endpoint": "monitors.delete",
+                    "creditsUsed": 0
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/SubscriptionExpired"
+          },
+          "404": {
+            "$ref": "#/components/responses/MonitorNotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/monitors/{id}/targets": {
+      "get": {
+        "summary": "List Targets",
+        "description": "List a monitor's targets, newest first, with each target's resolution status, matched company, and most recent signal. Offset-paginated; pagination.total is the number of targets matching the status filter. Free (0 credits).",
+        "operationId": "listMonitorTargets",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MonitorId"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "Only return targets in this state. resolved = matched to a company, signals are flowing. pending = not matched yet; being researched automatically.",
+            "schema": {
+              "$ref": "#/components/schemas/TargetStatus"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Page size.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 100
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "description": "Number of targets to skip.",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of targets.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TargetListResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": [
+                    {
+                      "id": "9530caa4-70c9-49a0-ae3a-dc7f3fe497c3",
+                      "monitor_id": "29681a72-ed3d-41a8-b119-2c2942b34996",
+                      "type": "domain",
+                      "value": "acme.com",
+                      "status": "resolved",
+                      "company": {
+                        "id": "0b9f6f0e-2f0c-4a53-9a44-6d2b8a1c7e11",
+                        "name": "Acme",
+                        "slug": "acme",
+                        "domain": "acme.com",
+                        "industry": "Software",
+                        "country": "US"
+                      },
+                      "resolved_at": "2026-09-20T13:10:41.506Z",
+                      "last_signal_type": "funding_round",
+                      "last_signal_at": "2026-09-18T13:08:25.412Z",
+                      "created_at": "2026-09-20T13:10:41.507Z"
+                    },
+                    {
+                      "id": "f63a838c-4927-43c9-ba73-65fa46edd5c1",
+                      "monitor_id": "29681a72-ed3d-41a8-b119-2c2942b34996",
+                      "type": "linkedin_company",
+                      "value": "linkedin.com/company/initech",
+                      "status": "pending",
+                      "company": null,
+                      "resolved_at": null,
+                      "last_signal_type": null,
+                      "last_signal_at": null,
+                      "created_at": "2026-09-20T13:10:41.507Z"
+                    }
+                  ],
+                  "pagination": {
+                    "limit": 100,
+                    "offset": 0,
+                    "count": 2,
+                    "total": 2
+                  },
+                  "meta": {
+                    "endpoint": "monitors.targets.list",
+                    "creditsUsed": 0
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/SubscriptionExpired"
+          },
+          "404": {
+            "$ref": "#/components/responses/MonitorNotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "post": {
+        "summary": "Add Targets",
+        "description": "Add up to 500 targets to a monitor in one request. Each entry may be a company domain or website URL (acme.com, https://www.acme.com/about), a LinkedIn company URL (linkedin.com/company/acme), or a LinkedIn member profile URL (linkedin.com/in/jane-doe — monitors the company that person currently works at). Inputs are normalized (scheme, www., path, and case are stripped) and de-duplicated. The call is idempotent: targets already in the monitor are counted in skipped_existing, not added twice. Entries that are none of the three kinds are returned in invalid and do not fail the request; the request fails with 400 only when no entry is valid, or when it would exceed the team's 1,000-target limit (nothing is added in that case). Targets matched to a known company are resolved immediately; the rest are pending and researched automatically. Free (0 credits).",
+        "operationId": "addMonitorTargets",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MonitorId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TargetsAddRequest"
+              },
+              "example": {
+                "targets": [
+                  "acme.com",
+                  "https://www.linkedin.com/company/initech/",
+                  "https://www.linkedin.com/in/jane-doe/",
+                  "not a domain"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Targets processed. added holds only the newly created targets.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TargetsAddResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "added": [
+                      {
+                        "id": "9530caa4-70c9-49a0-ae3a-dc7f3fe497c3",
+                        "monitor_id": "29681a72-ed3d-41a8-b119-2c2942b34996",
+                        "type": "domain",
+                        "value": "acme.com",
+                        "status": "resolved",
+                        "company": {
+                          "id": "0b9f6f0e-2f0c-4a53-9a44-6d2b8a1c7e11",
+                          "name": "Acme",
+                          "slug": "acme",
+                          "domain": "acme.com",
+                          "industry": "Software",
+                          "country": "US"
+                        },
+                        "resolved_at": "2026-09-20T13:10:41.506Z",
+                        "last_signal_type": "funding_round",
+                        "last_signal_at": "2026-09-18T13:08:25.412Z",
+                        "created_at": "2026-09-20T13:10:41.507Z"
+                      },
+                      {
+                        "id": "f63a838c-4927-43c9-ba73-65fa46edd5c1",
+                        "monitor_id": "29681a72-ed3d-41a8-b119-2c2942b34996",
+                        "type": "linkedin_company",
+                        "value": "linkedin.com/company/initech",
+                        "status": "pending",
+                        "company": null,
+                        "resolved_at": null,
+                        "last_signal_type": null,
+                        "last_signal_at": null,
+                        "created_at": "2026-09-20T13:10:41.507Z"
+                      },
+                      {
+                        "id": "0279e977-424d-410a-b249-59c74038c187",
+                        "monitor_id": "29681a72-ed3d-41a8-b119-2c2942b34996",
+                        "type": "linkedin_profile",
+                        "value": "linkedin.com/in/jane-doe",
+                        "status": "pending",
+                        "company": null,
+                        "resolved_at": null,
+                        "last_signal_type": null,
+                        "last_signal_at": null,
+                        "created_at": "2026-09-20T13:10:41.507Z"
+                      }
+                    ],
+                    "skipped_existing": 0,
+                    "invalid": [
+                      "not a domain"
+                    ],
+                    "pending": [
+                      "linkedin.com/company/initech",
+                      "linkedin.com/in/jane-doe"
+                    ],
+                    "resolved_companies": 1
+                  },
+                  "meta": {
+                    "endpoint": "monitors.targets.add",
+                    "creditsUsed": 0
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/SubscriptionExpired"
+          },
+          "404": {
+            "$ref": "#/components/responses/MonitorNotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/monitors/{id}/targets/{targetId}": {
+      "delete": {
+        "summary": "Remove Target",
+        "description": "Remove one target from a monitor by its target ID. The target must belong to the monitor in the path. Delivery for that company stops immediately (unless another target in the monitor resolves to the same company). Free (0 credits).",
+        "operationId": "removeMonitorTarget",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MonitorId"
+          },
+          {
+            "$ref": "#/components/parameters/TargetId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The target was removed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "id": "9530caa4-70c9-49a0-ae3a-dc7f3fe497c3",
+                    "deleted": true
+                  },
+                  "meta": {
+                    "endpoint": "monitors.targets.remove",
+                    "creditsUsed": 0
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/SubscriptionExpired"
+          },
+          "404": {
+            "$ref": "#/components/responses/TargetNotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/monitors/{id}/targets/remove": {
+      "post": {
+        "summary": "Remove Targets (bulk)",
+        "description": "Remove up to 500 targets from a monitor in one request — by target ID (ids), by identifier (targets), or both. Identifiers are normalized exactly like Add Targets, so https://www.ACME.com/ removes acme.com. A LinkedIn company URL removes only the target that was added by that URL, never a linkedin_profile target that currently resolves to the same company. Entries that match nothing are returned in not_found and do not fail the request. This is a POST action rather than DELETE with a body because many HTTP clients and proxies drop DELETE bodies. Free (0 credits).",
+        "operationId": "removeMonitorTargets",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MonitorId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TargetsRemoveRequest"
+              },
+              "example": {
+                "targets": [
+                  "acme.com",
+                  "linkedin.com/in/jane-doe",
+                  "unknown.com"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Targets processed. removed holds the targets that were deleted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TargetsRemoveResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "removed": [
+                      {
+                        "id": "9530caa4-70c9-49a0-ae3a-dc7f3fe497c3",
+                        "monitor_id": "29681a72-ed3d-41a8-b119-2c2942b34996",
+                        "type": "domain",
+                        "value": "acme.com",
+                        "status": "resolved",
+                        "company": {
+                          "id": "0b9f6f0e-2f0c-4a53-9a44-6d2b8a1c7e11",
+                          "name": "Acme",
+                          "slug": "acme",
+                          "domain": "acme.com",
+                          "industry": "Software",
+                          "country": "US"
+                        },
+                        "resolved_at": "2026-09-20T13:10:41.506Z",
+                        "last_signal_type": "funding_round",
+                        "last_signal_at": "2026-09-18T13:08:25.412Z",
+                        "created_at": "2026-09-20T13:10:41.507Z"
+                      },
+                      {
+                        "id": "0279e977-424d-410a-b249-59c74038c187",
+                        "monitor_id": "29681a72-ed3d-41a8-b119-2c2942b34996",
+                        "type": "linkedin_profile",
+                        "value": "linkedin.com/in/jane-doe",
+                        "status": "pending",
+                        "company": null,
+                        "resolved_at": null,
+                        "last_signal_type": null,
+                        "last_signal_at": null,
+                        "created_at": "2026-09-20T13:10:41.507Z"
+                      }
+                    ],
+                    "not_found": [
+                      "unknown.com"
+                    ],
+                    "invalid": [],
+                    "resolved_companies": 0
+                  },
+                  "meta": {
+                    "endpoint": "monitors.targets.remove",
+                    "creditsUsed": 0
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/SubscriptionExpired"
+          },
+          "404": {
+            "$ref": "#/components/responses/MonitorNotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "MonitorId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "The monitor ID.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "TargetId": {
+        "name": "targetId",
+        "in": "path",
+        "required": true,
+        "description": "The target ID (the id of a Target, as returned by List Targets or Add Targets).",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "schemas": {
+      "SignalType": {
+        "type": "string",
+        "enum": [
+          "funding_round",
+          "acquisition",
+          "job_change",
+          "hiring"
+        ],
+        "description": "A signal type a monitor can listen for. funding_round = the company raised a round; acquisition = the company acquired or was acquired; job_change = someone joined or left the company; hiring = the company posted a new job."
+      },
+      "TargetType": {
+        "type": "string",
+        "enum": [
+          "domain",
+          "linkedin_company",
+          "linkedin_profile"
+        ],
+        "description": "How the target was identified when it was added."
+      },
+      "TargetStatus": {
+        "type": "string",
+        "enum": [
+          "resolved",
+          "pending"
+        ],
+        "description": "resolved = matched to a company in the Signalbase database; its signals are delivered. pending = not matched yet; it is researched automatically and re-checked nightly, and delivers nothing until it resolves."
+      },
+      "MonitorWebhook": {
+        "type": "object",
+        "required": [
+          "id",
+          "endpoint_url"
+        ],
+        "description": "The webhook subscription owned by this monitor.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Webhook subscription ID. Usable with the Webhooks API to send a test event, list deliveries, retry a failed delivery, or rotate the secret."
+          },
+          "endpoint_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The endpoint that receives this monitor's signals."
+          },
+          "secret": {
+            "type": "string",
+            "description": "Signing secret for verifying deliveries. Present ONLY in the response to the request that created this endpoint (Create Monitor with webhook_url, or Update Monitor with a new webhook_url)."
+          }
+        }
+      },
+      "MonitorStats": {
+        "type": "object",
+        "required": [
+          "targets",
+          "resolved_targets",
+          "signals_30d",
+          "last_delivery_at"
+        ],
+        "properties": {
+          "targets": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of targets in the monitor."
+          },
+          "resolved_targets": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Targets matched to a company (status resolved)."
+          },
+          "signals_30d": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Signals of any type recorded in the last 30 days for the monitor's resolved companies."
+          },
+          "last_delivery_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Most recent successful delivery from this monitor (webhook or email), or null if none yet."
+          }
+        }
+      },
+      "Monitor": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "signal_types",
+          "active",
+          "webhook",
+          "stats",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique monitor ID (UUID)."
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name."
+          },
+          "signal_types": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SignalType"
+            },
+            "description": "Signal types this monitor delivers."
+          },
+          "active": {
+            "type": "boolean",
+            "description": "false = paused: targets are kept, nothing is delivered."
+          },
+          "webhook": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MonitorWebhook"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The monitor's webhook, or null for an email-only monitor."
+          },
+          "stats": {
+            "$ref": "#/components/schemas/MonitorStats"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "TargetCompany": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "domain",
+          "industry",
+          "country"
+        ],
+        "description": "The company a resolved target was matched to.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Signalbase company ID."
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "domain": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "industry": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "country": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Headquarters country code."
+          }
+        }
+      },
+      "Target": {
+        "type": "object",
+        "required": [
+          "id",
+          "monitor_id",
+          "type",
+          "value",
+          "status",
+          "company",
+          "resolved_at",
+          "last_signal_type",
+          "last_signal_at",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique target ID (UUID)."
+          },
+          "monitor_id": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TargetType"
+          },
+          "value": {
+            "type": "string",
+            "description": "The normalized identifier: a bare domain (acme.com), linkedin.com/company/<slug>, or linkedin.com/in/<slug>."
+          },
+          "status": {
+            "$ref": "#/components/schemas/TargetStatus"
+          },
+          "company": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TargetCompany"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Matched company; null while pending."
+          },
+          "resolved_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the target was matched to its company; null while pending."
+          },
+          "last_signal_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Type of the company's most recent signal (any type, not only the monitor's signal_types), or null."
+          },
+          "last_signal_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When that signal occurred, or null."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MonitorCreateRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "signal_types"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Display name, e.g. \"Key accounts\"."
+          },
+          "signal_types": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/SignalType"
+            },
+            "description": "Signal types to deliver. At least one."
+          },
+          "webhook_url": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 500,
+            "description": "Publicly reachable endpoint to receive this monitor's signals. Private, loopback, and link-local addresses are rejected. Omit for an email-only monitor."
+          }
+        }
+      },
+      "MonitorUpdateRequest": {
+        "type": "object",
+        "minProperties": 1,
+        "description": "Send at least one field. Omitted fields are left unchanged.",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "signal_types": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/SignalType"
+            },
+            "description": "Replaces the full list."
+          },
+          "webhook_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "maxLength": 500,
+            "description": "A new URL replaces the endpoint and mints a new signing secret. null detaches the webhook. The current URL is a no-op."
+          },
+          "active": {
+            "type": "boolean",
+            "description": "false pauses delivery; true resumes it."
+          }
+        }
+      },
+      "TargetsAddRequest": {
+        "type": "object",
+        "required": [
+          "targets"
+        ],
+        "properties": {
+          "targets": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 500,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "description": "Company domains or website URLs, LinkedIn company URLs, and/or LinkedIn member profile URLs. Each entry ≤ 500 characters."
+          }
+        }
+      },
+      "TargetsRemoveRequest": {
+        "type": "object",
+        "description": "Provide ids, targets, or both.",
+        "anyOf": [
+          {
+            "required": [
+              "ids"
+            ]
+          },
+          {
+            "required": [
+              "targets"
+            ]
+          }
+        ],
+        "properties": {
+          "ids": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 500,
+            "items": {
+              "type": "string"
+            },
+            "description": "Target IDs to remove."
+          },
+          "targets": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 500,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "description": "Identifiers to remove, in any form Add Targets accepts."
+          }
+        }
+      },
+      "ResponseMeta": {
+        "type": "object",
+        "required": [
+          "endpoint",
+          "creditsUsed"
+        ],
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "description": "Endpoint identifier (e.g. monitors.create)."
+          },
+          "creditsUsed": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "API credits consumed by this request. Always 0 for the Monitoring API."
+          }
+        }
+      },
+      "TargetPagination": {
+        "type": "object",
+        "required": [
+          "limit",
+          "offset",
+          "count",
+          "total"
+        ],
+        "properties": {
+          "limit": {
+            "type": "integer"
+          },
+          "offset": {
+            "type": "integer"
+          },
+          "count": {
+            "type": "integer",
+            "description": "Number of targets returned in this page."
+          },
+          "total": {
+            "type": "integer",
+            "description": "Total targets in the monitor that match the status filter."
+          }
+        }
+      },
+      "MonitorResponse": {
+        "type": "object",
+        "required": [
+          "success",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Monitor"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          }
+        }
+      },
+      "MonitorListResponse": {
+        "type": "object",
+        "required": [
+          "success",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Monitor"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          }
+        }
+      },
+      "DeleteResponse": {
+        "type": "object",
+        "required": [
+          "success",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "required": [
+              "id",
+              "deleted"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "ID of the deleted resource."
+              },
+              "deleted": {
+                "type": "boolean",
+                "const": true
+              }
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          }
+        }
+      },
+      "TargetListResponse": {
+        "type": "object",
+        "required": [
+          "success",
+          "data",
+          "pagination",
+          "meta"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Target"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/TargetPagination"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          }
+        }
+      },
+      "TargetsAddResponse": {
+        "type": "object",
+        "required": [
+          "success",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "required": [
+              "added",
+              "skipped_existing",
+              "invalid",
+              "pending",
+              "resolved_companies"
+            ],
+            "properties": {
+              "added": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Target"
+                },
+                "description": "Targets created by this request."
+              },
+              "skipped_existing": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Valid entries that were already in the monitor."
+              },
+              "invalid": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Entries (as sent) that are not a domain, LinkedIn company URL, or LinkedIn profile URL."
+              },
+              "pending": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Normalized values of the added targets that are not matched to a company yet."
+              },
+              "resolved_companies": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Distinct resolved companies in the monitor after this request."
+              }
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          }
+        }
+      },
+      "TargetsRemoveResponse": {
+        "type": "object",
+        "required": [
+          "success",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "required": [
+              "removed",
+              "not_found",
+              "invalid",
+              "resolved_companies"
+            ],
+            "properties": {
+              "removed": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Target"
+                },
+                "description": "Targets deleted by this request."
+              },
+              "not_found": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "IDs and normalized identifiers that matched no target in this monitor."
+              },
+              "invalid": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Entries of targets (as sent) that could not be parsed."
+              },
+              "resolved_companies": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Distinct resolved companies left in the monitor."
+              }
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": [
+          "success",
+          "error",
+          "code"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": false
+          },
+          "error": {
+            "type": "string",
+            "description": "Human-readable error message."
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "bad_request",
+              "invalid_api_key",
+              "subscription_expired",
+              "not_found",
+              "rate_limited",
+              "internal_server_error",
+              "internal_error"
+            ]
+          },
+          "retryAfter": {
+            "type": "integer",
+            "description": "Seconds until a retry is recommended. Present on rate-limit (429) responses."
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Invalid JSON or field values, an unknown signal type, a non-public webhook URL, no valid target in the request, or a team limit was reached (20 monitors, 1,000 targets).",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "success": false,
+              "error": "signal_types must be a non-empty array of: funding_round, acquisition, job_change, hiring",
+              "code": "bad_request"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Missing or invalid API key.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "success": false,
+              "error": "Invalid API key. No key found.",
+              "code": "invalid_api_key"
+            }
+          }
+        }
+      },
+      "SubscriptionExpired": {
+        "description": "The API key belongs to a team without an active subscription.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "success": false,
+              "error": "Subscription expired. Please upgrade your subscription: https://www.trysignalbase.com/#pricing",
+              "code": "subscription_expired"
+            }
+          }
+        }
+      },
+      "MonitorNotFound": {
+        "description": "No monitor with that ID exists for the authenticated team.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "success": false,
+              "error": "Monitor not found",
+              "code": "not_found"
+            }
+          }
+        }
+      },
+      "TargetNotFound": {
+        "description": "No target with that ID exists in that monitor for the authenticated team.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "success": false,
+              "error": "Target not found",
+              "code": "not_found"
+            }
+          }
+        }
+      },
+      "RateLimited": {
+        "description": "Rate limit exceeded for this team and endpoint. The response also sets Retry-After, X-RateLimit-Limit, X-RateLimit-Remaining, and X-RateLimit-Reset headers.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "success": false,
+              "error": "Too many requests. Please upgrade your plan or slow down.",
+              "code": "rate_limited",
+              "retryAfter": 60
+            }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "Unexpected server error.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "success": false,
+              "error": "An unknown error occurred",
+              "code": "internal_error"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "API key",
+        "description": "Signalbase API key. Include as a Bearer token in the Authorization header."
+      }
+    }
+  }
+}

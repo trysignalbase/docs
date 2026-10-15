@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Signalbase API",
-    "description": "Complete Signalbase V2 API: signal endpoints (funding, acquisitions, job changes, hiring, investors), companies, people, CSV enrichment, webhooks, and monitoring. Generated from the per-page specs under api-reference/*/openapi.json (run scripts/build-openapi.mjs).",
+    "description": "Complete Signalbase V2 API: signal endpoints (funding, acquisitions, job changes, hiring, custom definitions, investors), companies, people, CSV enrichment, webhooks, and monitoring. Generated from the per-page specs under api-reference/*/openapi.json (run scripts/build-openapi.mjs).",
     "version": "2.4.0"
   },
   "servers": [
@@ -4396,6 +4396,532 @@
           }
         }
       }
+    },
+    "/signals/custom": {
+      "get": {
+        "summary": "Get Custom Signals",
+        "description": "Fetch signals produced by custom signal definitions, with filtering, pagination and search. Filter by `type` (definition slug, comma-separated), confidence floor, keyword, dates, company identifiers and HQ country. Every row carries the definition, a headline, verbatim evidence quotes from the post and the definition-specific `attributes`. Custom signals are social-post evidence: they are not corroborated by a second source the way funding rounds are — use `min_confidence` to tighten.",
+        "operationId": "getCustomSignals",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number for pagination",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "example": 1
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of results per page (maximum 100)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "example": 20
+          },
+          {
+            "name": "include_total",
+            "in": "query",
+            "description": "`false` skips the full-cohort count: `pagination.totalCount` and `totalPages` come back null and the page is faster.",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "Return only the total count that matches the filters (`data` is empty). Free of charge.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Definition slug(s), comma-separated. Omitted = every definition. Find slugs with GET /signals/custom/definitions. A malformed slug is a 400; an unknown but well-formed slug matches nothing.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "stealth_exit,new_office"
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "description": "Search phrase that found the post (partial match)",
+            "schema": {
+              "type": "string"
+            },
+            "example": "out of stealth"
+          },
+          {
+            "name": "min_confidence",
+            "in": "query",
+            "description": "Extractor confidence floor, 0 to 1",
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "example": 0.8
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Free-text search across headline, summary and company name",
+            "schema": {
+              "type": "string"
+            },
+            "example": "Austin"
+          },
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "description": "Filter signals from this date (ISO 8601: YYYY-MM-DD), on occurredAt",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-10-01"
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "description": "Filter signals up to this date (ISO 8601: YYYY-MM-DD), on occurredAt",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-10-31"
+          },
+          {
+            "name": "date_preset",
+            "in": "query",
+            "description": "Relative date shorthand — takes precedence over dateFrom/dateTo",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "today",
+                "yesterday",
+                "last_7d",
+                "last_14d",
+                "last_30d",
+                "last_60d",
+                "last_90d",
+                "last_6m",
+                "last_1y",
+                "last_2y",
+                "last_3y",
+                "last_5y",
+                "all_time",
+                "this_week",
+                "this_month",
+                "this_quarter",
+                "this_year",
+                "last_week",
+                "last_month",
+                "last_quarter",
+                "last_year"
+              ]
+            },
+            "example": "last_30d"
+          },
+          {
+            "name": "countries",
+            "in": "query",
+            "description": "Company HQ allowlist: comma-separated ISO codes, names or regions (EU, DACH, …)",
+            "schema": {
+              "type": "string"
+            },
+            "example": "US,GB,DE"
+          },
+          {
+            "name": "exclude_countries",
+            "in": "query",
+            "description": "Company HQ denylist: comma-separated names or codes. Unknown HQ is kept.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "CN"
+          },
+          {
+            "name": "subcategories",
+            "in": "query",
+            "description": "Comma-separated subcategory IDs",
+            "schema": {
+              "type": "string"
+            },
+            "example": "ai,saas"
+          },
+          {
+            "name": "company_domain",
+            "in": "query",
+            "description": "Recommended. Company website domain (single or comma-separated up to 50). Strict match; scheme, www. and trailing slash are ignored.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "acme.com"
+          },
+          {
+            "name": "company_linkedin_url",
+            "in": "query",
+            "description": "Recommended. LinkedIn company URL. Strict match.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "linkedin.com/company/acme"
+          },
+          {
+            "name": "company_name",
+            "in": "query",
+            "description": "Exact, case-insensitive company name. Prefer the URL identifiers.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "Acme"
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "description": "Sort field",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "occurred_at",
+                "discovered_at",
+                "confidence"
+              ],
+              "default": "occurred_at"
+            },
+            "example": "occurred_at"
+          },
+          {
+            "name": "sort_order",
+            "in": "query",
+            "description": "Sort direction",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            },
+            "example": "desc"
+          },
+          {
+            "name": "filter_version",
+            "in": "query",
+            "description": "Filter compatibility version. Omit for current behaviour; 1 freezes legacy matching; 2 enables strict country validation.",
+            "schema": {
+              "type": "integer",
+              "enum": [
+                1,
+                2
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response with custom signals",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Custom_CustomSignalsResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": [
+                    {
+                      "signalId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                      "type": "new_office",
+                      "definition": {
+                        "slug": "new_office",
+                        "name": "New office or market entry"
+                      },
+                      "occurredAt": "2026-10-14T00:00:00.000Z",
+                      "discoveredAt": "2026-10-15T09:12:03.000Z",
+                      "headline": "Acme opened an office in Austin",
+                      "summary": "Acme announced its first US office in Austin, Texas, with a local team starting this month.",
+                      "confidence": 0.92,
+                      "keyword": "new office in",
+                      "source": "linkedin_post",
+                      "sourceUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7515785729281671168",
+                      "authorUrl": "https://www.linkedin.com/in/jane-doe",
+                      "attributes": {
+                        "location": "Austin, Texas, US",
+                        "kind": "new_office",
+                        "mentions_hiring": "yes"
+                      },
+                      "evidenceQuotes": [
+                        "Big news: we've opened our new office in Austin, Texas! Our first in the US."
+                      ],
+                      "occurredOn": "2026-10-14",
+                      "match_confidence": "none",
+                      "company": {
+                        "id": "d4e5f6a7-b8c9-0123-defg-h45678901234",
+                        "name": "Acme",
+                        "slug": "acme",
+                        "website": "acme.com",
+                        "linkedinUrl": "linkedin.com/company/acme",
+                        "industry": "Software Development",
+                        "subcategory": "saas",
+                        "headquartersCountry": "DE",
+                        "employeeCount": 40,
+                        "foundedYear": 2024,
+                        "description": "Acme builds billing for usage-based SaaS.",
+                        "logoUrl": "https://images.trysignalbase.com/acme.png"
+                      },
+                      "sources": [
+                        {
+                          "url": "https://www.linkedin.com/feed/update/urn:li:activity:7515785729281671168",
+                          "sourceType": "social_media",
+                          "publishedAt": "2026-10-15T09:00:00.000Z"
+                        }
+                      ]
+                    }
+                  ],
+                  "pagination": {
+                    "currentPage": 1,
+                    "totalPages": 3,
+                    "totalCount": 41,
+                    "hasNextPage": true,
+                    "hasPreviousPage": false
+                  },
+                  "meta": {
+                    "endpoint": "signals.custom",
+                    "creditsUsed": 1,
+                    "creditsRemaining": 4999
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request — unknown query parameter, malformed slug in `type`, or an out-of-range value",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Custom_ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Unknown query parameter: types (use \"type\" (comma-separated definition slugs)). Supported parameters: filter_version, count, page, limit, include_total, dateFrom, dateTo, date_preset, type, keyword, min_confidence, search, countries, exclude_countries, subcategories, company_name, company_domain, company_linkedin_url, sort_by, sort_order."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Custom_ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Invalid API key"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Custom_ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "out of credits, please contact support to increase your usage"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Custom_ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Rate limit exceeded"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Custom_ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Failed to fetch custom signals"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/signals/custom/definitions": {
+      "get": {
+        "summary": "List Custom Signal Definitions",
+        "description": "The definitions you can filter GET /signals/custom by: every global definition plus your own team's. Free of charge — it is the catalogue, not data. Each entry's `slug` is the value to pass as `type`; `description` is the rule a post must satisfy to count; `attributes` names the definition-specific fields its signals carry.",
+        "operationId": "listCustomSignalDefinitions",
+        "parameters": [
+          {
+            "name": "include_disabled",
+            "in": "query",
+            "description": "Also list definitions that are not currently being swept (drafts).",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The definitions catalogue",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Custom_DefinitionsResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": [
+                    {
+                      "slug": "founding_hire",
+                      "name": "First or founding hire",
+                      "description": "The author's own company is hiring its first employee in a function, or is building its founding team.",
+                      "status": "active",
+                      "scope": "global",
+                      "attributes": [
+                        "role",
+                        "function",
+                        "location",
+                        "stage"
+                      ],
+                      "createdAt": "2026-10-15T08:00:00.000Z"
+                    },
+                    {
+                      "slug": "new_office",
+                      "name": "New office or market entry",
+                      "description": "The author's own company opens a new office, moves headquarters, enters a new country or city market, or establishes a local presence there (first local hire, boots on the ground, a local team). The post must name the place.",
+                      "status": "active",
+                      "scope": "global",
+                      "attributes": [
+                        "location",
+                        "kind",
+                        "first_hire_role",
+                        "mentions_hiring"
+                      ],
+                      "createdAt": "2026-10-15T08:00:00.000Z"
+                    },
+                    {
+                      "slug": "stealth_exit",
+                      "name": "Out of stealth",
+                      "description": "The author's own company is leaving stealth or publicly launching for the first time.",
+                      "status": "active",
+                      "scope": "global",
+                      "attributes": [
+                        "product",
+                        "stealth_duration",
+                        "mentions_hiring",
+                        "funding_mentioned"
+                      ],
+                      "createdAt": "2026-10-15T08:00:00.000Z"
+                    }
+                  ],
+                  "pagination": {
+                    "currentPage": 1,
+                    "totalPages": 1,
+                    "totalCount": 3,
+                    "hasNextPage": false,
+                    "hasPreviousPage": false
+                  },
+                  "meta": {
+                    "endpoint": "signals.customDefinitions",
+                    "creditsUsed": 0
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request — unknown query parameter, malformed slug in `type`, or an out-of-range value",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Custom_ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Unknown query parameter: types (use \"type\" (comma-separated definition slugs)). Supported parameters: filter_version, count, page, limit, include_total, dateFrom, dateTo, date_preset, type, keyword, min_confidence, search, countries, exclude_countries, subcategories, company_name, company_domain, company_linkedin_url, sort_by, sort_order."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Custom_ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Invalid API key"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Custom_ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Rate limit exceeded"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Custom_ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Failed to fetch custom signals"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -6991,12 +7517,13 @@
       },
       "Webhook_EventType": {
         "type": "string",
-        "description": "Event type a subscription can register for. system.test is accepted but only ever delivered by the Send Test Event endpoint; it never fires automatically.",
+        "description": "Event type a subscription can register for. system.test is accepted but only ever delivered by the Send Test Event endpoint; it never fires automatically. custom_signal.created covers every custom signal definition; the payload's signal.type is the definition slug.",
         "enum": [
           "funding.created",
           "acquisition.created",
           "job_change.created",
           "hiring.created",
+          "custom_signal.created",
           "new_company.created",
           "investor.created",
           "system.test"
@@ -7624,13 +8151,17 @@
       },
       "Monitor_SignalType": {
         "type": "string",
-        "enum": [
+        "pattern": "^[a-z][a-z0-9_]{2,39}$",
+        "examples": [
           "funding_round",
           "acquisition",
           "job_change",
-          "hiring"
+          "hiring",
+          "stealth_exit",
+          "new_office",
+          "founding_hire"
         ],
-        "description": "A signal type a monitor can listen for. funding_round = the company raised a round; acquisition = the company acquired or was acquired; job_change = someone joined or left the company; hiring = the company posted a new job."
+        "description": "A signal type a monitor can listen for: one of the built-in families — funding_round (the company raised a round), acquisition (the company acquired or was acquired), job_change (someone joined or left the company), hiring (the company posted a new job) — or the slug of a custom signal definition (e.g. stealth_exit, new_office, founding_hire; list them with GET /signals/custom/definitions). An unknown slug is rejected with 400."
       },
       "Monitor_TargetType": {
         "type": "string",
@@ -8304,6 +8835,354 @@
           "retryAfter": {
             "type": "integer",
             "description": "Seconds until a retry is recommended. Present on rate-limit (429) responses."
+          }
+        }
+      },
+      "Custom_CustomSignalsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Custom_CustomSignal"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Custom_Pagination"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Custom_Meta"
+          }
+        }
+      },
+      "Custom_CustomSignal": {
+        "type": "object",
+        "properties": {
+          "signalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "description": "The definition slug (e.g. stealth_exit, new_office, founding_hire). Same value as definition.slug."
+          },
+          "definition": {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "type": "string"
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The event date when the post stated one, otherwise when the post was published."
+          },
+          "discoveredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "headline": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "One line stating the signal as a fact."
+          },
+          "summary": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "confidence": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 1,
+            "description": "The extractor's confidence in the match."
+          },
+          "keyword": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The search phrase that found the post."
+          },
+          "source": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "linkedin_post, twitter_post, …"
+          },
+          "sourceUrl": {
+            "type": "string",
+            "description": "The post the signal was extracted from."
+          },
+          "authorUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "description": "Definition-specific fields (e.g. location, kind for new_office; role, function, stage for founding_hire). Null when the post did not state them."
+          },
+          "evidenceQuotes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Verbatim quotes from the post that support the signal."
+          },
+          "occurredOn": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "The event date as stated in the post, if any."
+          },
+          "match_confidence": {
+            "type": "string",
+            "enum": [
+              "exact",
+              "fuzzy",
+              "none"
+            ]
+          },
+          "company": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "slug": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "website": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "linkedinUrl": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "industry": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "subcategory": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "headquartersCountry": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "employeeCount": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "foundedYear": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "logoUrl": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string"
+                },
+                "sourceType": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "publishedAt": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date-time"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Custom_DefinitionsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Custom_Definition"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Custom_Pagination"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Custom_Meta"
+          }
+        }
+      },
+      "Custom_Definition": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "description": "Pass as `type` on GET /signals/custom, or in a monitor's signal_types."
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "description": "The rule a post must satisfy to count."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "disabled"
+            ]
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "global",
+              "team"
+            ]
+          },
+          "attributes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Custom_Pagination": {
+        "type": "object",
+        "properties": {
+          "currentPage": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "totalCount": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "hasNextPage": {
+            "type": "boolean"
+          },
+          "hasPreviousPage": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Custom_Meta": {
+        "type": "object",
+        "properties": {
+          "endpoint": {
+            "type": "string"
+          },
+          "creditsUsed": {
+            "type": "integer"
+          },
+          "creditsRemaining": {
+            "type": "integer"
+          }
+        }
+      },
+      "Custom_ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "error": {
+            "type": "string"
           }
         }
       }

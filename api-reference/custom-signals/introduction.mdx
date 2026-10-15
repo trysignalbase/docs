@@ -1,0 +1,169 @@
+---
+title: 'Introduction'
+description: 'Signals from custom definitions — out of stealth, new office or market entry, first or founding hire, and more'
+---
+
+## Welcome to the Custom Signals API
+
+Beyond the four built-in signal families (funding, acquisitions, job changes, hiring), Signalbase tracks **custom signal definitions**: signal types defined as data. Each definition is a plain-English rule plus the search phrases that find candidate posts; every post that matches becomes a signal with a headline, verbatim evidence quotes and definition-specific attributes.
+
+One endpoint serves every definition. The `type` parameter selects which; the catalogue endpoint tells you what exists.
+
+<CardGroup cols={2}>
+  <Card
+    title="Custom Signals Endpoint"
+    icon="sparkles"
+    href="/api-reference/custom-signals/endpoint/get"
+  >
+    Fetch signals from any definition, filterable by type, confidence, dates and company
+  </Card>
+  <Card
+    title="Definitions Catalogue"
+    icon="list"
+    href="/api-reference/custom-signals/endpoint/definitions"
+  >
+    List the definitions you can filter on — free of charge
+  </Card>
+</CardGroup>
+
+## Definitions
+
+| Slug | Name | A signal fires when… |
+| --- | --- | --- |
+| `stealth_exit` | Out of stealth | A company leaves stealth or launches publicly for the first time. |
+| `new_office` | New office or market entry | A company opens an office, moves HQ, enters a new country or city market, or makes a first local hire. |
+| `founding_hire` | First or founding hire | A company is hiring its first employee in a function or building its founding team. |
+
+New definitions appear in the catalogue as they go live. Each catalogue entry's `description` is the exact rule a post must satisfy, and `attributes` lists the extra fields its signals carry (for example `location` and `kind` for `new_office`, or `role`, `function` and `stage` for `founding_hire`).
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/custom/definitions" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+## What a custom signal looks like
+
+```json
+{
+  "signalId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "type": "new_office",
+  "definition": { "slug": "new_office", "name": "New office or market entry" },
+  "occurredAt": "2026-10-14T00:00:00.000Z",
+  "headline": "Acme opened an office in Austin",
+  "summary": "Acme announced its first US office in Austin, Texas, with a local team starting this month.",
+  "confidence": 0.92,
+  "evidenceQuotes": ["Big news: we've opened our new office in Austin, Texas! Our first in the US."],
+  "attributes": { "location": "Austin, Texas, US", "kind": "new_office", "mentions_hiring": "yes" },
+  "sourceUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7515785729281671168",
+  "company": { "id": "…", "name": "Acme", "website": "acme.com", "headquartersCountry": "DE" }
+}
+```
+
+- **`type`** is the definition slug — the same value you pass to filter, and the same value a monitor's `signal_types` accepts.
+- **`occurredAt`** is the event date when the post states one (`occurredOn`), otherwise when the post was published.
+- **`evidenceQuotes`** are copied verbatim from the post. A quote that is not in the post is never shown.
+- **`attributes`** are definition-specific and null when the post did not state them. A new definition never changes the row shape.
+
+<Warning>Custom signals are social-post evidence. Unlike funding rounds they are not corroborated by a second source, so treat `confidence` as a real signal: `min_confidence=0.8` is a sensible default for automated workflows.</Warning>
+
+## Count Mode
+
+Add `count=true` to get the total matching any filter combination **without consuming credits**.
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/custom?count=true&type=stealth_exit&date_preset=last_30d" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+## Authentication
+
+All API endpoints require a Bearer token in the `Authorization` header.
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/custom?type=founding_hire&page=1&limit=20" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+## Query Parameters
+
+<Note>Parameter **names** are validated strictly: an unrecognized query parameter returns a `400` listing the supported names, with a hint for near-misses (`types` → `type`). A malformed slug in `type` is a `400` too; an unknown but well-formed slug simply matches nothing — check the catalogue.</Note>
+
+### Pagination
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `page` | integer | 1 | Page number |
+| `limit` | integer | 20 | Results per page (max: 100) |
+| `include_total` | boolean | true | `false` skips the total count (faster; `totalCount` and `totalPages` come back null) |
+| `count` | boolean | false | Return only the total, free of charge |
+
+### Definition Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `type` | string | Definition slug(s), comma-separated (e.g. `stealth_exit` or `stealth_exit,new_office`). Omitted = every definition |
+| `keyword` | string | The search phrase that found the post (partial match) |
+| `min_confidence` | number | Confidence floor, 0 to 1 |
+| `search` | string | Free-text search across headline, summary and company name |
+
+### Date Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `dateFrom` | string | Filter by `occurredAt` from (ISO-8601) |
+| `dateTo` | string | Filter by `occurredAt` to (ISO-8601) |
+| `date_preset` | string | Relative shorthand — takes precedence over `dateFrom`/`dateTo`. See [Date Presets](/enums#date-presets) |
+
+### Company Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `company_domain` | string | **Recommended.** Website domain (single or comma-separated up to 50). Strict match — see [Matching by company URL](/api-reference/hiring-signals/introduction#matching-by-company-url-recommended) |
+| `company_linkedin_url` | string | **Recommended.** LinkedIn company URL. Strict match |
+| `company_name` | string | Exact, case-insensitive company name |
+| `countries` | string | Company HQ allowlist (ISO codes, names or regions) |
+| `exclude_countries` | string | Company HQ denylist |
+| `subcategories` | string | Comma-separated subcategory IDs (e.g. `ai,fintech,saas`) |
+
+### Sorting
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `sort_by` | string | `occurred_at` | `occurred_at`, `discovered_at`, `confidence` |
+| `sort_order` | string | `desc` | `asc` or `desc` |
+
+## Monitors and webhooks
+
+A monitor's `signal_types` accepts a definition slug next to the built-in types, so a watched company's custom signals reach your webhook like any other:
+
+```bash
+curl -X POST "https://www.trysignalbase.com/api/v2/monitors" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "name": "Key accounts", "signal_types": ["funding_round", "stealth_exit", "new_office"], "webhook_url": "https://example.com/hooks/signalbase" }'
+```
+
+Every custom definition fires the one webhook event **`custom_signal.created`**; the payload's `signal.type` says which definition. Subscribe to it directly on a webhook, or let a monitor do it for you. Email alerts are not yet available for custom signals.
+
+## Example Usage
+
+### Stealth exits in the last 30 days, high confidence
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/custom?type=stealth_exit&date_preset=last_30d&min_confidence=0.8" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### New offices and founding hires at US-headquartered companies
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/custom?type=new_office,founding_hire&countries=US&sort_by=confidence&sort_order=desc" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Everything about one company
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/custom?company_domain=acme.com&date_preset=last_1y" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```

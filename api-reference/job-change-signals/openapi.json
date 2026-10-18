@@ -258,6 +258,20 @@
               }
             }
           },
+          "400": {
+            "description": "Bad request - an unknown query parameter name (unknown names are rejected rather than silently ignored; the error lists the supported parameters and suggests near-misses). `person_name` is refused with an explanatory message (GDPR) — use `personLinkedinUrl`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Unknown query parameter: job_country (did you mean \"countries\"?). Supported parameters: count, page, limit, dateFrom, dateTo, date_preset, search, countries, exclude_countries, city, personLinkedinUrl, person_linkedin_url, company_linkedin_url, companyLinkedinUrl, company_domain, company_name, new_role, source, keyword, positions, departments, seniorities, sort_by, sort_order."
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized - Invalid or missing API key",
             "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "example": { "success": false, "error": "Invalid API key" } } }

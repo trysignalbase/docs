@@ -50,7 +50,8 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/hiring?count=true&posi
 
 - **Real-time Signals**: Hiring signals aggregated continuously from web sources
 - **Role-aware Filters**: Filter by positions, departments, and seniority levels
-- **Location Targeting**: Filter by country, US state, and city
+- **Job Description Search**: Opt-in full-text search over the posting body with `description` — whole-word match with `"quoted phrases"`, `OR` and `-exclude` syntax
+- **Location Targeting**: Filter by job-listing country (`job_countries`), company HQ country (`company_countries`) or either (`countries`), plus US state and city
 - **Category Filters**: Filter by industry categories and keyword-based subcategories
 - **Company Filters**: Filter by team size and applicant count ranges
 - **Flexible Sorting**: Sort by date posted, title, company name, location, or ingestion date
@@ -220,6 +221,7 @@ All successful responses follow this structure:
 The API returns standard HTTP status codes:
 
 - **200**: Success
+- **400**: Bad request - an unknown query parameter name (the error lists the supported parameters and suggests near-misses, e.g. `job_country` → `job_countries`) or an invalid `team_size` / `applicants` range (entries must be `min-max` or the open-ended token, e.g. `51-200`, `1000-plus`)
 - **401**: Unauthorized - Invalid or missing API key
 - **429**: Rate limit exceeded
 - **500**: Internal server error

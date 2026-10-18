@@ -62,6 +62,41 @@ curl -X GET "https://www.trysignalbase.com/api/v2/companies?domain=novartis.com"
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
+## Enrich on Miss
+
+When an identifier lookup (`domain` or `linkedin_url`) finds no company, the same request can queue the enrichment pipeline for it instead of making you orchestrate `GET` miss → `POST /csv-enrichment` → poll yourself. It is **opt-in per request** and never changes the lookup's own answer: `data` stays the (empty) lookup result, and the outcome of the side effect is reported in a separate `enrichment` field.
+
+```bash
+# Queue enrichment if we have nothing on acme.com; poll the returned job_id
+curl -X GET "https://www.trysignalbase.com/api/v2/companies?domain=acme.com&enrich_on_miss=true" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+# Wait up to 20s for the enrichment to finish and return it inline
+curl -X GET "https://www.trysignalbase.com/api/v2/companies?domain=acme.com&enrich_on_miss=true&enrich_wait=true&enrich_timeout=20" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+**Response on a miss** (`data` is empty, `enrichment` is present):
+
+```json
+{
+  "success": true,
+  "data": [],
+  "pagination": { "currentPage": 1, "totalPages": 0, "totalCount": 0, "hasNextPage": false, "hasPreviousPage": false },
+  "meta": { "endpoint": "companies.list", "creditsUsed": 1 },
+  "enrichment": { "status": "queued", "job_id": "3f1c9a2e-7b4d-4c1a-9e2f-5d6a7b8c9d0e" }
+}
+```
+
+| `enrichment.status` | Meaning |
+|---|---|
+| `queued` | Job created — poll [`GET /csv-enrichment/{jobId}`](/api-reference/csv-enrichment/endpoint/get) with `job_id` |
+| `pending` / `running` / `completed` / `failed` | Only with `enrich_wait=true`: the job's state when the wait ended. The full job rides in `enrichment.result`; if it is still `running` after `enrich_timeout`, poll `job_id` |
+| `insufficient_credits` | No job was created |
+| `rate_limited` / `unavailable` | Queueing failed; `error` says why. If `job_id` is present the job **was** created before the failure and is still running and billable, so poll it |
+
+**Rules.** `enrich_on_miss` is only valid with `domain` or `linkedin_url` — a miss on `search` or a filtered browse is not a fact about one company, so that request is a `400`, not a silent no-op. Likewise `enrich_wait` / `enrich_timeout` without `enrich_on_miss=true` return `400`. A queued job is billed as one `csv.enrichment` call on top of this lookup; the trigger only fires on a successful, empty identifier lookup.
+
 ## Key Features
 
 - **Independent Querying**: Browse companies without needing signal data
@@ -113,6 +148,9 @@ Resolve a specific company by its canonical identifier — see [Identifier Looku
 |-----------|------|-------------|
 | `domain` | string | Company website domain — exact match (e.g. `novartis.com`) |
 | `linkedin_url` | string | Company LinkedIn URL — exact match (e.g. `linkedin.com/company/novartis`) |
+| `enrich_on_miss` | string | `true` to queue enrichment for the company when a `domain` / `linkedin_url` lookup finds nothing — see [Enrich on Miss](#enrich-on-miss). Requires an identifier; `400` otherwise |
+| `enrich_wait` | string | With `enrich_on_miss=true`: `true` to hold the request for the enrichment result (up to `enrich_timeout` seconds) instead of returning a job id to poll. `400` without `enrich_on_miss=true` |
+| `enrich_timeout` | integer | Seconds to wait when `enrich_wait=true`, clamped to `1`–`30` (default `30`). `400` without `enrich_on_miss=true` |
 
 ### Filters
 
@@ -191,7 +229,7 @@ All successful responses follow this structure:
 The API returns standard HTTP status codes:
 
 - **200**: Success
-- **400**: Bad request — invalid `domain` or `linkedin_url` identifier syntax. Note: a *valid* identifier that resolves to no company returns `200` with an empty `data` set, not `400`
+- **400**: Bad request — an unknown query parameter name (the error lists the supported parameters and suggests near-misses), invalid `domain` or `linkedin_url` identifier syntax, or an unusable enrich-on-miss combination (`enrich_on_miss` without an identifier, or `enrich_wait` / `enrich_timeout` without `enrich_on_miss=true`). Note: a *valid* identifier that resolves to no company returns `200` with an empty `data` set, not `400`
 - **401**: Unauthorized - Invalid or missing API key
 - **429**: Rate limit exceeded
 - **500**: Internal server error

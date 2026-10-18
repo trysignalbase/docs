@@ -206,6 +206,20 @@
               }
             }
           },
+          "400": {
+            "description": "Bad request - an unknown query parameter name (unknown names are rejected rather than silently ignored; the error lists the supported parameters and suggests near-misses)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Unknown query parameter: ticket_size (did you mean \"ticket_size_min\"?). Supported parameters: count, page, limit, dateFrom, dateTo, date_preset, search, countries, exclude_countries, categories, type, headquarters, ticket_size_min, ticket_size_max, sort_by, sort_order."
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized - Invalid or missing API key",
             "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "example": { "success": false, "error": "Invalid API key" } } }

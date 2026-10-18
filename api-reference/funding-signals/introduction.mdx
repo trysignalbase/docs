@@ -157,7 +157,8 @@ curl -X GET "https://www.trysignalbase.com/api/v2/signals/funding?company_linked
 | `round_flavor` | string | Comma-separated round flavors: `bridge`, `extension`, `secondary` |
 | `currency` | string | Filter by ISO 4217 currency code (e.g., `USD`, `EUR`, `GBP`). See [Currency Values](/enums#currency-values) |
 | `verification_status` | string | Comma-separated statuses: `verified`, `unverified`, `pending` |
-| `investor_name` | string | Search by investor name (partial match) |
+| `investor_name` | string | Search by investor name (partial match, substring — `Sequoia` also matches `Sequoia Capital China`) |
+| `investors` | string | Comma-separated investor names matched **exactly** (case- and whitespace-insensitive) with OR semantics — rounds where any listed investor participated (e.g. `a16z,Sequoia Capital`). Use this when `investor_name` is too loose; if both are supplied they are ANDed |
 
 ### Sorting
 
@@ -214,6 +215,7 @@ All successful responses follow this structure:
 The API returns standard HTTP status codes:
 
 - **200**: Success
+- **400**: Bad request - an unknown query parameter name (the error lists the supported parameters and suggests near-misses) or an invalid filter value such as an unrecognized `round`
 - **401**: Unauthorized - Invalid or missing API key
 - **429**: Rate limit exceeded
 - **500**: Internal server error

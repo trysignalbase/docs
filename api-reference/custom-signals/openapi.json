@@ -2,11 +2,11 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Custom Signals API",
-    "description": "Signals produced by custom signal definitions \u2014 signal types defined as data (out of stealth, new office or market entry, first or founding hire, \u2026) rather than the four built-in families. One endpoint serves every definition; `type` selects which. A free companion endpoint lists the definitions.",
+    "description": "Signals produced by custom signal definitions — signal types defined as data (out of stealth, new office or market entry, first or founding hire, …) rather than the four built-in families. One endpoint serves every definition; `type` selects which. A free companion endpoint lists the definitions, and a team can create, start, pause and remove definitions of its own.",
     "license": {
       "name": "MIT"
     },
-    "version": "2.0.0"
+    "version": "2.1.0"
   },
   "servers": [
     {
@@ -22,7 +22,7 @@
     "/signals/custom": {
       "get": {
         "summary": "Get Custom Signals",
-        "description": "Fetch signals produced by custom signal definitions, with filtering, pagination and search. Filter by `type` (definition slug, comma-separated), confidence floor, keyword, dates, company identifiers and HQ country. Every row carries the definition, a headline, verbatim evidence quotes from the post and the definition-specific `attributes`. Custom signals are social-post evidence: they are not corroborated by a second source the way funding rounds are \u2014 use `min_confidence` to tighten.",
+        "description": "Fetch signals produced by custom signal definitions, with filtering, pagination and search. Filter by `type` (definition slug, comma-separated), confidence floor, keyword, dates, company identifiers and HQ country. Every row carries the definition, a headline, verbatim evidence quotes from the post and the definition-specific `attributes`. Custom signals are social-post evidence: they are not corroborated by a second source the way funding rounds are — use `min_confidence` to tighten.",
         "operationId": "getCustomSignals",
         "parameters": [
           {
@@ -127,7 +127,7 @@
           {
             "name": "date_preset",
             "in": "query",
-            "description": "Relative date shorthand \u2014 takes precedence over dateFrom/dateTo",
+            "description": "Relative date shorthand — takes precedence over dateFrom/dateTo",
             "schema": {
               "type": "string",
               "enum": [
@@ -159,7 +159,7 @@
           {
             "name": "countries",
             "in": "query",
-            "description": "Company HQ allowlist: comma-separated ISO codes, names or regions (EU, DACH, \u2026)",
+            "description": "Company HQ allowlist: comma-separated ISO codes, names or regions (EU, DACH, …)",
             "schema": {
               "type": "string"
             },
@@ -329,7 +329,7 @@
             }
           },
           "400": {
-            "description": "Bad request \u2014 unknown query parameter, malformed slug in `type`, or an out-of-range value",
+            "description": "Bad request — unknown query parameter, malformed slug in `type`, or an out-of-range value",
             "content": {
               "application/json": {
                 "schema": {
@@ -404,7 +404,7 @@
     "/signals/custom/definitions": {
       "get": {
         "summary": "List Custom Signal Definitions",
-        "description": "The definitions you can filter GET /signals/custom by: every global definition plus your own team's. Free of charge \u2014 it is the catalogue, not data. Each entry's `slug` is the value to pass as `type`; `description` is the rule a post must satisfy to count; `attributes` names the definition-specific fields its signals carry.",
+        "description": "The definitions you can filter GET /signals/custom by: every global definition plus your own team's. Free of charge — it is the catalogue, not data. Each entry's `slug` is the value to pass as `type`; `description` is the rule a post must satisfy to count; `attributes` names the definition-specific fields its signals carry.",
         "operationId": "listCustomSignalDefinitions",
         "parameters": [
           {
@@ -487,7 +487,7 @@
             }
           },
           "400": {
-            "description": "Bad request \u2014 unknown query parameter, malformed slug in `type`, or an out-of-range value",
+            "description": "Bad request — unknown query parameter, malformed slug in `type`, or an out-of-range value",
             "content": {
               "application/json": {
                 "schema": {
@@ -538,6 +538,613 @@
                 "example": {
                   "success": false,
                   "error": "Failed to fetch custom signals"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a Custom Signal Definition",
+        "description": "Create a definition of your own from a name and a plain-English rule. Signalbase compiles the rule into search phrases and a matching rule and test-runs it against recent posts; the definition moves compiling → testing → ready over a few minutes. Poll Retrieve Definition until it is ready, review the test leads, then start it with Update Definition (`active: true`). Nothing is swept until it is started. With `targets` the definition only watches those companies; without, it sweeps every post. Free (0 credits). A team may hold 3 definitions (paused ones count, removed ones do not); the feature needs a Pro plan.",
+        "operationId": "createCustomSignalDefinition",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DefinitionCreateRequest"
+              },
+              "example": {
+                "name": "First sales leader",
+                "description": "The author's own company announces hiring its first sales leader or is building its first sales team: a first VP Sales, Head of Sales, CRO or founding account executive. Exclude ordinary sales hires at companies that already have a sales team, and recruiter posts about other companies."
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Definition created and queued for compilation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnDefinitionResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "slug": "first_sales_leader_x7k2",
+                    "name": "First sales leader",
+                    "description": "",
+                    "sourceDescription": "The author's own company announces hiring its first sales leader or is building its first sales team: a first VP Sales, Head of Sales, CRO or founding account executive. Exclude ordinary sales hires at companies that already have a sales team, and recruiter posts about other companies.",
+                    "status": "compiling",
+                    "scope": "team",
+                    "attributes": [],
+                    "keywordCount": 0,
+                    "restricted": false,
+                    "monitorId": null,
+                    "compileError": null,
+                    "test": null,
+                    "lastRunAt": null,
+                    "lastRunStats": null,
+                    "activatedAt": null,
+                    "createdAt": "2026-11-10T09:12:04.000Z",
+                    "signals30d": 0,
+                    "signalsTotal": 0,
+                    "lastSignalAt": null,
+                    "attached": null,
+                    "nextStep": "The definition is being compiled into search phrases and a matching rule. Read it again in a minute; it moves to testing, then ready."
+                  },
+                  "meta": {
+                    "endpoint": "customSignals.create",
+                    "creditsUsed": 0
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request — a malformed body, slug or value; the message names the field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "You can have 3 custom signals. Remove one to add another."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Invalid API key"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden — custom signals need a Pro plan, or the team has no active subscription",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Custom signals are part of the Pro plan."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found — no definition with this slug belongs to your team (global definitions are not managed here), or custom signals are not enabled for your account yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Custom signal not found"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Rate limit exceeded"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Internal server error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/signals/custom/definitions/{slug}": {
+      "get": {
+        "summary": "Retrieve a Custom Signal Definition",
+        "description": "One of your team's own definitions with its status, the compile error if any, the last test run (counts and the leads it found) and how many signals it has produced. Poll this after creating a definition. Global catalogue definitions are not readable here — see List Custom Signal Definitions. Free (0 credits).",
+        "operationId": "getCustomSignalDefinition",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DefinitionSlug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The definition.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnDefinitionResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "slug": "first_sales_leader_x7k2",
+                    "name": "First sales leader",
+                    "description": "The author's own company announces its first sales leader (VP Sales, Head of Sales, CRO) or founding sales hire. Not: a sales hire at a company with an existing sales team; a recruiter post about another company.",
+                    "sourceDescription": "The author's own company announces hiring its first sales leader or is building its first sales team: a first VP Sales, Head of Sales, CRO or founding account executive. Exclude ordinary sales hires at companies that already have a sales team, and recruiter posts about other companies.",
+                    "status": "ready",
+                    "scope": "team",
+                    "attributes": [
+                      "role",
+                      "seniority"
+                    ],
+                    "keywordCount": 7,
+                    "restricted": false,
+                    "monitorId": null,
+                    "compileError": null,
+                    "test": {
+                      "ranAt": "2026-11-10T09:16:40.000Z",
+                      "mode": "global",
+                      "fetched": 140,
+                      "classified": 140,
+                      "matched": 4,
+                      "companiesChecked": 0,
+                      "leads": [
+                        {
+                          "companyName": "Acme",
+                          "companyLinkedinUrl": "https://www.linkedin.com/company/acme",
+                          "headline": "Acme hires its first VP Sales",
+                          "confidence": 0.91,
+                          "sourceUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7515785729281671168",
+                          "author": "Jane Doe",
+                          "evidenceQuotes": [
+                            "Thrilled to welcome our first ever VP of Sales as we build out the go-to-market team."
+                          ],
+                          "attributes": {
+                            "role": "VP Sales",
+                            "seniority": "vp"
+                          },
+                          "postedAt": "2026-11-08T14:02:00.000Z"
+                        }
+                      ]
+                    },
+                    "lastRunAt": null,
+                    "lastRunStats": null,
+                    "activatedAt": null,
+                    "createdAt": "2026-11-10T09:12:04.000Z",
+                    "signals30d": 0,
+                    "signalsTotal": 0,
+                    "lastSignalAt": null,
+                    "nextStep": "Compiled and tested. Review test.leads: if they are the kind of post you want, start the definition (active: true). The leads become its first signals."
+                  },
+                  "meta": {
+                    "endpoint": "customSignals.get",
+                    "creditsUsed": 0
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request — a malformed body, slug or value; the message names the field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "description must be 20 to 1500 characters"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Invalid API key"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden — custom signals need a Pro plan, or the team has no active subscription",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Custom signals are part of the Pro plan."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found — no definition with this slug belongs to your team (global definitions are not managed here), or custom signals are not enabled for your account yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Custom signal not found"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Rate limit exceeded"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Internal server error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a Custom Signal Definition",
+        "description": "Start or pause one of your team's own definitions. `active: true` starts a ready definition (its test leads become its first signals, reported under `seeded`) or resumes a paused one; `active: false` pauses an active one and keeps the definition, its slot and its signals. Starting a definition that is still compiling, testing or failed is a 400. Free (0 credits).",
+        "operationId": "updateCustomSignalDefinition",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DefinitionSlug"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DefinitionUpdateRequest"
+              },
+              "example": {
+                "active": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The definition after the change.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnDefinitionResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "slug": "first_sales_leader_x7k2",
+                    "name": "First sales leader",
+                    "description": "The author's own company announces its first sales leader (VP Sales, Head of Sales, CRO) or founding sales hire. Not: a sales hire at a company with an existing sales team; a recruiter post about another company.",
+                    "sourceDescription": "The author's own company announces hiring its first sales leader or is building its first sales team: a first VP Sales, Head of Sales, CRO or founding account executive. Exclude ordinary sales hires at companies that already have a sales team, and recruiter posts about other companies.",
+                    "status": "active",
+                    "scope": "team",
+                    "attributes": [
+                      "role",
+                      "seniority"
+                    ],
+                    "keywordCount": 7,
+                    "restricted": false,
+                    "monitorId": null,
+                    "compileError": null,
+                    "test": {
+                      "ranAt": "2026-11-10T09:16:40.000Z",
+                      "mode": "global",
+                      "fetched": 140,
+                      "classified": 140,
+                      "matched": 4,
+                      "companiesChecked": 0,
+                      "leads": [
+                        {
+                          "companyName": "Acme",
+                          "companyLinkedinUrl": "https://www.linkedin.com/company/acme",
+                          "headline": "Acme hires its first VP Sales",
+                          "confidence": 0.91,
+                          "sourceUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7515785729281671168",
+                          "author": "Jane Doe",
+                          "evidenceQuotes": [
+                            "Thrilled to welcome our first ever VP of Sales as we build out the go-to-market team."
+                          ],
+                          "attributes": {
+                            "role": "VP Sales",
+                            "seniority": "vp"
+                          },
+                          "postedAt": "2026-11-08T14:02:00.000Z"
+                        }
+                      ]
+                    },
+                    "lastRunAt": null,
+                    "lastRunStats": null,
+                    "activatedAt": "2026-11-10T09:30:11.000Z",
+                    "createdAt": "2026-11-10T09:12:04.000Z",
+                    "signals30d": 4,
+                    "signalsTotal": 4,
+                    "lastSignalAt": "2026-11-10T09:30:11.000Z",
+                    "nextStep": "Running. New matches arrive as custom signals under this slug and alert like any other signal.",
+                    "seeded": {
+                      "ingested": 4,
+                      "skipped": 0
+                    }
+                  },
+                  "meta": {
+                    "endpoint": "customSignals.update",
+                    "creditsUsed": 0
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request — a malformed body, slug or value; the message names the field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Cannot start a definition that is compiling."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Invalid API key"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden — custom signals need a Pro plan, or the team has no active subscription",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Custom signals are part of the Pro plan."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found — no definition with this slug belongs to your team (global definitions are not managed here), or custom signals are not enabled for your account yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Custom signal not found"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Rate limit exceeded"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Internal server error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a Custom Signal Definition",
+        "description": "Remove one of your team's own definitions and free its slot. Signals it already produced stay readable under its slug; its company monitor, if any, is switched off. This cannot be undone — to stop sweeping temporarily, pause it with Update Definition (`active: false`) instead. Free (0 credits).",
+        "operationId": "deleteCustomSignalDefinition",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DefinitionSlug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The definition was removed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefinitionDeleteResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "slug": "first_sales_leader_x7k2",
+                    "deleted": true
+                  },
+                  "meta": {
+                    "endpoint": "customSignals.delete",
+                    "creditsUsed": 0
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request — a malformed body, slug or value; the message names the field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "description must be 20 to 1500 characters"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Invalid API key"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden — custom signals need a Pro plan, or the team has no active subscription",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Custom signals are part of the Pro plan."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found — no definition with this slug belongs to your team (global definitions are not managed here), or custom signals are not enabled for your account yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Custom signal not found"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Rate limit exceeded"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Internal server error"
                 }
               }
             }
@@ -644,7 +1251,7 @@
               "string",
               "null"
             ],
-            "description": "linkedin_post, twitter_post, \u2026"
+            "description": "linkedin_post, twitter_post, …"
           },
           "sourceUrl": {
             "type": "string",
@@ -829,9 +1436,15 @@
           "status": {
             "type": "string",
             "enum": [
+              "compiling",
+              "testing",
+              "ready",
               "active",
-              "disabled"
-            ]
+              "paused",
+              "disabled",
+              "failed"
+            ],
+            "description": "Global definitions are active or disabled. Your own walk compiling → testing → ready → active, and can be paused, disabled or failed."
           },
           "scope": {
             "type": "string",
@@ -903,6 +1516,357 @@
             "type": "string"
           }
         }
+      },
+      "TestLead": {
+        "type": "object",
+        "description": "One post the test run matched. The leads of a ready definition become its first signals when it is started.",
+        "properties": {
+          "companyName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "companyLinkedinUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "headline": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The event, stated as a fact."
+          },
+          "confidence": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 1
+          },
+          "sourceUrl": {
+            "type": "string",
+            "description": "The post."
+          },
+          "author": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "evidenceQuotes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Verbatim from the post."
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "postedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "TestRun": {
+        "type": "object",
+        "description": "The last test run: how many recent posts were fetched and classified, how many matched, and the matches themselves.",
+        "properties": {
+          "ranAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "global",
+              "restricted"
+            ],
+            "description": "restricted when the definition has targets."
+          },
+          "fetched": {
+            "type": "integer"
+          },
+          "classified": {
+            "type": "integer"
+          },
+          "matched": {
+            "type": "integer"
+          },
+          "companiesChecked": {
+            "type": "integer",
+            "description": "Restricted runs only: how many of the targets were checked."
+          },
+          "leads": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TestLead"
+            }
+          }
+        }
+      },
+      "OwnDefinition": {
+        "type": "object",
+        "description": "One of your team's own definitions, as the Custom signals page shows it.",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "description": "Derived from the name and made unique with a short suffix. Pass it as `type` on GET /signals/custom or in a monitor's signal_types."
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "description": "The compiled rule a post must satisfy. Written by the compile step from sourceDescription; empty until compiled."
+          },
+          "sourceDescription": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "What you sent as `description` when creating it."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "compiling",
+              "testing",
+              "ready",
+              "active",
+              "paused",
+              "disabled",
+              "failed"
+            ],
+            "description": "compiling: search phrases and a rule are being derived. testing: a test run is in flight. ready: tested, not started; review test.leads. active: running. paused: kept, not swept. failed: see compileError. disabled: removed."
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "team"
+            ]
+          },
+          "attributes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The definition-specific fields its signals carry (set by the compile step)."
+          },
+          "keywordCount": {
+            "type": "integer",
+            "description": "How many search phrases the compile step produced."
+          },
+          "restricted": {
+            "type": "boolean",
+            "description": "true when the definition only sweeps its targets' posts (through a monitor)."
+          },
+          "monitorId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The monitor that holds the targets of a restricted definition."
+          },
+          "compileError": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "test": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TestRun"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lastRunAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the sweep last ran this definition."
+          },
+          "lastRunStats": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true
+          },
+          "activatedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "signals30d": {
+            "type": "integer"
+          },
+          "signalsTotal": {
+            "type": "integer"
+          },
+          "lastSignalAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "nextStep": {
+            "type": "string",
+            "description": "What to do next, given the status."
+          },
+          "attached": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Create only: how the targets resolved. null when the definition is global.",
+            "properties": {
+              "companies": {
+                "type": "integer"
+              },
+              "invalid": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "seeded": {
+            "type": "object",
+            "description": "Update with active:true, first start only: how many test leads became signals.",
+            "properties": {
+              "ingested": {
+                "type": "integer"
+              },
+              "skipped": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "DefinitionCreateRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "description"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 80,
+            "description": "A short name for the signal, e.g. \"First sales leader\". The slug is derived from it."
+          },
+          "description": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 1500,
+            "description": "What a post must say for it to count, as a plain-English rule about the author's own company: the event, what makes it that event and not a neighbour of it, and anything to exclude. Two or three sentences. Compiled into search phrases and a matching rule — write the rule, not a keyword list."
+          },
+          "targets": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "description": "Company website domains or LinkedIn company URLs. Given, the definition only sweeps posts from these companies (a monitor watching the new slug holds them); omitted, it sweeps every post. `companies` is accepted as an alias."
+          }
+        }
+      },
+      "DefinitionUpdateRequest": {
+        "type": "object",
+        "required": [
+          "active"
+        ],
+        "properties": {
+          "active": {
+            "type": "boolean",
+            "description": "true starts a ready or paused definition (a first start makes its test leads its first signals); false pauses an active one. Other transitions are a 400."
+          }
+        }
+      },
+      "OwnDefinitionResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/OwnDefinition"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        }
+      },
+      "DefinitionDeleteResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "type": "string"
+              },
+              "deleted": {
+                "type": "boolean"
+              }
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        }
+      }
+    },
+    "parameters": {
+      "DefinitionSlug": {
+        "name": "slug",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{2,39}$"
+        },
+        "description": "The definition's slug, as returned when it was created or by the catalogue."
       }
     }
   }

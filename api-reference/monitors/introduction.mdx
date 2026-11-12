@@ -117,6 +117,7 @@ The base URL for all V2 endpoints is `https://www.trysignalbase.com/api/v2`. A k
 | `acquisition` | A monitored company acquires, or is acquired. | `acquisition.created` |
 | `job_change` | Someone joins or leaves a monitored company. | `job_change.created` |
 | `hiring` | A monitored company posts a new job. | `hiring.created` |
+| *custom definition slug* (e.g. `stealth_exit`, `new_office`, `founding_hire`) | A monitored company matches that [custom signal definition](/api-reference/custom-signals/introduction). List slugs with [GET /signals/custom/definitions](/api-reference/custom-signals/endpoint/definitions); an unknown slug is a `400`. | `custom_signal.created` |
 
 "Different signals for different accounts" means different monitors: `signal_types` applies to every target in the monitor.
 

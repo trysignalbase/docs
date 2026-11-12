@@ -79,6 +79,31 @@
         ]
       },
       {
+        "tab": "Custom Signals",
+        "groups": [
+          {
+            "group": "Custom Signals API",
+            "pages": ["api-reference/custom-signals/introduction"]
+          },
+          {
+            "group": "Signals",
+            "pages": [
+              "api-reference/custom-signals/endpoint/get",
+              "api-reference/custom-signals/endpoint/definitions"
+            ]
+          },
+          {
+            "group": "Your definitions",
+            "pages": [
+              "api-reference/custom-signals/endpoint/create",
+              "api-reference/custom-signals/endpoint/retrieve",
+              "api-reference/custom-signals/endpoint/update",
+              "api-reference/custom-signals/endpoint/delete"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "Investors",
         "groups": [
           {

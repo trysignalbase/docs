@@ -526,12 +526,13 @@
     "schemas": {
       "EventType": {
         "type": "string",
-        "description": "Event type a subscription can register for. system.test is accepted but only ever delivered by the Send Test Event endpoint; it never fires automatically.",
+        "description": "Event type a subscription can register for. system.test is accepted but only ever delivered by the Send Test Event endpoint; it never fires automatically. custom_signal.created covers every custom signal definition; the payload's signal.type is the definition slug.",
         "enum": [
           "funding.created",
           "acquisition.created",
           "job_change.created",
           "hiring.created",
+          "custom_signal.created",
           "new_company.created",
           "investor.created",
           "system.test"

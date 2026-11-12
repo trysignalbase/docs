@@ -807,13 +807,9 @@
     "schemas": {
       "SignalType": {
         "type": "string",
-        "enum": [
-          "funding_round",
-          "acquisition",
-          "job_change",
-          "hiring"
-        ],
-        "description": "A signal type a monitor can listen for. funding_round = the company raised a round; acquisition = the company acquired or was acquired; job_change = someone joined or left the company; hiring = the company posted a new job."
+        "pattern": "^[a-z][a-z0-9_]{2,39}$",
+        "examples": ["funding_round", "acquisition", "job_change", "hiring", "stealth_exit", "new_office", "founding_hire"],
+        "description": "A signal type a monitor can listen for: one of the built-in families — funding_round (the company raised a round), acquisition (the company acquired or was acquired), job_change (someone joined or left the company), hiring (the company posted a new job) — or the slug of a custom signal definition (e.g. stealth_exit, new_office, founding_hire; list them with GET /signals/custom/definitions). An unknown slug is rejected with 400."
       },
       "TargetType": {
         "type": "string",

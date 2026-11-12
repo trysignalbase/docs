@@ -1,0 +1,240 @@
+---
+title: 'Introduction'
+description: 'Signals from custom definitions — out of stealth, new office or market entry, first or founding hire, and more'
+---
+
+## Welcome to the Custom Signals API
+
+Beyond the four built-in signal families (funding, acquisitions, job changes, hiring), Signalbase tracks **custom signal definitions**: signal types defined as data. Each definition is a plain-English rule plus the search phrases that find candidate posts; every post that matches becomes a signal with a headline, verbatim evidence quotes and definition-specific attributes.
+
+One endpoint serves every definition. The `type` parameter selects which; the catalogue endpoint tells you what exists. And you can [define your own](#define-your-own-signal): describe the event in two or three sentences, review what the test run finds, and start it.
+
+<CardGroup cols={2}>
+  <Card
+    title="Custom Signals Endpoint"
+    icon="sparkles"
+    href="/api-reference/custom-signals/endpoint/get"
+  >
+    Fetch signals from any definition, filterable by type, confidence, dates and company
+  </Card>
+  <Card
+    title="Definitions Catalogue"
+    icon="list"
+    href="/api-reference/custom-signals/endpoint/definitions"
+  >
+    List the definitions you can filter on — free of charge
+  </Card>
+  <Card
+    title="Create a Definition"
+    icon="plus"
+    href="/api-reference/custom-signals/endpoint/create"
+  >
+    Turn a plain-English rule into a signal type of your own
+  </Card>
+  <Card
+    title="Update a Definition"
+    icon="play"
+    href="/api-reference/custom-signals/endpoint/update"
+  >
+    Start a definition once its test leads look right, or pause it
+  </Card>
+</CardGroup>
+
+<Note>Custom signals are in early access. While your account is not yet enabled, every endpoint on this page answers `404`, and the MCP tools answer `403` with the reason. Ask us to enable it.</Note>
+
+## Definitions
+
+| Slug | Name | A signal fires when… |
+| --- | --- | --- |
+| `stealth_exit` | Out of stealth | A company leaves stealth or launches publicly for the first time. |
+| `new_office` | New office or market entry | A company opens an office, moves HQ, enters a new country or city market, or makes a first local hire. |
+| `founding_hire` | First or founding hire | A company is hiring its first employee in a function or building its founding team. |
+
+New definitions appear in the catalogue as they go live. Each catalogue entry's `description` is the exact rule a post must satisfy, and `attributes` lists the extra fields its signals carry (for example `location` and `kind` for `new_office`, or `role`, `function` and `stage` for `founding_hire`). The catalogue also lists your own team's definitions (`scope: "team"`), which no other team can see.
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/custom/definitions" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+## Define your own signal
+
+A definition of your own is a name plus a rule for what a post about the author's own company must say. Signalbase compiles the rule into search phrases and a matching rule, test-runs it against recent posts, and shows you the leads before anything is swept for real.
+
+```bash
+# 1. Create it. Write the rule, not a keyword list: the event, what makes it that
+#    event and not a neighbour of it, and what to exclude.
+curl -X POST "https://www.trysignalbase.com/api/v2/signals/custom/definitions" \
+  -H "Authorization: Bearer $SB_KEY" -H "Content-Type: application/json" \
+  -d '{
+    "name": "First sales leader",
+    "description": "The author'"'"'s own company announces hiring its first sales leader or is building its first sales team: a first VP Sales, Head of Sales, CRO or founding account executive. Exclude ordinary sales hires at companies that already have a sales team, and recruiter posts about other companies."
+  }'
+# → 201, data.slug = "first_sales_leader_x7k2", data.status = "compiling"
+
+# 2. Poll until it is ready (a few minutes), then read data.test.leads
+curl "https://www.trysignalbase.com/api/v2/signals/custom/definitions/first_sales_leader_x7k2" \
+  -H "Authorization: Bearer $SB_KEY"
+
+# 3. Start it. The test leads become its first signals; new matches arrive from now on.
+curl -X PUT "https://www.trysignalbase.com/api/v2/signals/custom/definitions/first_sales_leader_x7k2" \
+  -H "Authorization: Bearer $SB_KEY" -H "Content-Type: application/json" \
+  -d '{ "active": true }'
+```
+
+| Status | Meaning | What to do |
+| --- | --- | --- |
+| `compiling` | Search phrases and a matching rule are being derived from your description | Read it again in a minute |
+| `testing` | A test run against recent posts is in flight | Read it again shortly |
+| `ready` | Tested; `test.leads` holds what it found. Nothing is swept yet | Review the leads, then `PUT { "active": true }` |
+| `active` | Running. Matches arrive as signals under the slug | Read them with `GET /signals/custom?type=<slug>` |
+| `paused` | Kept, not swept | `PUT { "active": true }` to resume |
+| `failed` | The compile failed; `compileError` says why | Delete it and create it again with a clearer rule |
+
+Every response carries a `nextStep` line that says the same thing for its status.
+
+- **Targets.** Pass `targets` (website domains or LinkedIn company URLs, up to 100) to sweep only those companies' posts; the definition then owns a monitor that watches the new slug, and `restricted` is `true`. Omit `targets` for a global sweep.
+- **Limits.** A team may hold 3 definitions — paused ones count, removed ones do not — and the feature is part of the Pro plan. Managing definitions is free; reading their signals costs the usual 1 credit per page.
+- **Removing.** `DELETE /signals/custom/definitions/{slug}` frees the slot. Signals already produced stay readable; the monitor, if any, is switched off. Pause instead if you may want it back.
+- **Your slug everywhere.** A started definition's slug works wherever a signal type does: `type` on `GET /signals/custom`, a monitor's `signal_types`, the `custom_signal.created` webhook event.
+
+## What a custom signal looks like
+
+```json
+{
+  "signalId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "type": "new_office",
+  "definition": { "slug": "new_office", "name": "New office or market entry" },
+  "occurredAt": "2026-10-14T00:00:00.000Z",
+  "headline": "Acme opened an office in Austin",
+  "summary": "Acme announced its first US office in Austin, Texas, with a local team starting this month.",
+  "confidence": 0.92,
+  "evidenceQuotes": ["Big news: we've opened our new office in Austin, Texas! Our first in the US."],
+  "attributes": { "location": "Austin, Texas, US", "kind": "new_office", "mentions_hiring": "yes" },
+  "sourceUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7515785729281671168",
+  "company": { "id": "…", "name": "Acme", "website": "acme.com", "headquartersCountry": "DE" }
+}
+```
+
+- **`type`** is the definition slug — the same value you pass to filter, and the same value a monitor's `signal_types` accepts.
+- **`occurredAt`** is the event date when the post states one (`occurredOn`), otherwise when the post was published.
+- **`evidenceQuotes`** are copied verbatim from the post. A quote that is not in the post is never shown.
+- **`attributes`** are definition-specific and null when the post did not state them. A new definition never changes the row shape.
+
+<Warning>Custom signals are social-post evidence. Unlike funding rounds they are not corroborated by a second source, so treat `confidence` as a real signal: `min_confidence=0.8` is a sensible default for automated workflows.</Warning>
+
+## Count Mode
+
+Add `count=true` to get the total matching any filter combination **without consuming credits**.
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/custom?count=true&type=stealth_exit&date_preset=last_30d" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+## Authentication
+
+All API endpoints require a Bearer token in the `Authorization` header.
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/custom?type=founding_hire&page=1&limit=20" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+## Query Parameters
+
+<Note>Parameter **names** are validated strictly: an unrecognized query parameter returns a `400` listing the supported names, with a hint for near-misses (`types` → `type`). A malformed slug in `type` is a `400` too; an unknown but well-formed slug simply matches nothing — check the catalogue.</Note>
+
+### Pagination
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `page` | integer | 1 | Page number |
+| `limit` | integer | 20 | Results per page (max: 100) |
+| `include_total` | boolean | true | `false` skips the total count (faster; `totalCount` and `totalPages` come back null) |
+| `count` | boolean | false | Return only the total, free of charge |
+
+### Definition Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `type` | string | Definition slug(s), comma-separated (e.g. `stealth_exit` or `stealth_exit,new_office`). Omitted = every definition |
+| `keyword` | string | The search phrase that found the post (partial match) |
+| `min_confidence` | number | Confidence floor, 0 to 1 |
+| `search` | string | Free-text search across headline, summary and company name |
+
+### Date Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `dateFrom` | string | Filter by `occurredAt` from (ISO-8601) |
+| `dateTo` | string | Filter by `occurredAt` to (ISO-8601) |
+| `date_preset` | string | Relative shorthand — takes precedence over `dateFrom`/`dateTo`. See [Date Presets](/enums#date-presets) |
+
+### Company Filters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `company_domain` | string | **Recommended.** Website domain (single or comma-separated up to 50). Strict match — see [Matching by company URL](/api-reference/hiring-signals/introduction#matching-by-company-url-recommended) |
+| `company_linkedin_url` | string | **Recommended.** LinkedIn company URL. Strict match |
+| `company_name` | string | Exact, case-insensitive company name |
+| `countries` | string | Company HQ allowlist (ISO codes, names or regions) |
+| `exclude_countries` | string | Company HQ denylist |
+| `subcategories` | string | Comma-separated subcategory IDs (e.g. `ai,fintech,saas`) |
+
+### Sorting
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `sort_by` | string | `occurred_at` | `occurred_at`, `discovered_at`, `confidence` |
+| `sort_order` | string | `desc` | `asc` or `desc` |
+
+## Monitors and webhooks
+
+A monitor's `signal_types` accepts a definition slug next to the built-in types, so a watched company's custom signals reach your webhook like any other:
+
+```bash
+curl -X POST "https://www.trysignalbase.com/api/v2/monitors" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "name": "Key accounts", "signal_types": ["funding_round", "stealth_exit", "new_office"], "webhook_url": "https://example.com/hooks/signalbase" }'
+```
+
+Every custom definition fires the one webhook event **`custom_signal.created`**; the payload's `signal.type` says which definition. Subscribe to it directly on a webhook, or let a monitor do it for you. A definition of your own also emails its matches to the person who created it. While custom signals are in early access, each delivery is reviewed by Signalbase before it is sent, so expect a short delay between a match and its email or webhook.
+
+## MCP
+
+The same surface is available to AI agents through the Signalbase MCP connector — the `/v3` URL (or `/v3/monitoring`) on [trysignalbase.com/mcp](https://www.trysignalbase.com/mcp). Five tools mirror the endpoints above:
+
+| Tool | Does | Cost |
+| --- | --- | --- |
+| `list_custom_signal_definitions` | The catalogue plus your own definitions with their status | Free |
+| `search_custom_signals` | `GET /signals/custom` with the same filters (`type` is a list of slugs) | 1 credit per page; `count: true` free |
+| `create_custom_signal` | `POST /signals/custom/definitions` | Free |
+| `get_custom_signal` | `GET /signals/custom/definitions/{slug}` | Free |
+| `update_custom_signal` | `PUT /signals/custom/definitions/{slug}` — start or pause | Free |
+
+The connector's instructions tell the agent to read the catalogue before creating anything, to poll until `ready`, and to show you the test leads before starting a definition. There is no delete tool; removing is done here or on the Custom signals page.
+
+## Example Usage
+
+### Stealth exits in the last 30 days, high confidence
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/custom?type=stealth_exit&date_preset=last_30d&min_confidence=0.8" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### New offices and founding hires at US-headquartered companies
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/custom?type=new_office,founding_hire&countries=US&sort_by=confidence&sort_order=desc" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Everything about one company
+
+```bash
+curl -X GET "https://www.trysignalbase.com/api/v2/signals/custom?company_domain=acme.com&date_preset=last_1y" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```

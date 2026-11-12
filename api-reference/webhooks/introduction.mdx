@@ -128,6 +128,7 @@ Subscribe to these in `event_types` when you create or update a webhook:
 | `acquisition.created` | A tracked company is acquired or makes an acquisition. |
 | `job_change.created` | A monitored person changes jobs. |
 | `hiring.created` | A tracked company opens a relevant role. |
+| `custom_signal.created` | A tracked company matches a [custom signal definition](/api-reference/custom-signals/introduction) (out of stealth, new office, founding hire, …). The payload's `signal.type` is the definition slug. |
 | `new_company.created` | A new company matching your filters is discovered. |
 | `investor.created` | A new investor (VC, angel, PE, …) is discovered. |
 

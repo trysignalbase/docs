@@ -598,7 +598,7 @@ async def webhook(request: Request):
 
 ## Full Lifecycle Over the API
 
-A vendor can onboard end-to-end without opening the dashboard:
+You can set up and run webhooks end to end without opening the dashboard:
 
 ```bash
 # 1. Create (capture the secret from the response — shown only once)
@@ -630,7 +630,7 @@ Everything above is also available without code under **Workspace → Webhooks**
 
 - **Webhooks are editable in place.** To change a URL or event list, use [Update Webhook](/api-reference/webhooks/endpoint/update) (or the dashboard **Edit** button) — you no longer need to delete and recreate. The signing secret is preserved across edits unless you pass `rotate_secret: true`.
 - **Monitor webhooks are managed by their monitor.** A webhook created through a [monitor](/api-reference/monitors/introduction) shows up in List Webhooks and supports test, delivery listing, retry, and `rotate_secret` — but changing its URL, event types, filters, or `active` flag, or deleting it, returns `409 conflict`. Use [Update Monitor](/api-reference/monitors/endpoint/update) instead.
-- **Retrieve existing config:** vendors who configured webhooks through the dashboard can list and manage them immediately via [List Webhooks](/api-reference/webhooks/endpoint/list) — no migration step required. Only `secret_preview` is exposed for pre-existing webhooks; rotate the secret if you need a fresh full value.
+- **Retrieve existing config:** teams who configured webhooks through the dashboard can list and manage them immediately via [List Webhooks](/api-reference/webhooks/endpoint/list), with no migration step required. Only `secret_preview` is exposed for pre-existing webhooks; rotate the secret if you need a fresh full value.
 
 ## Error Handling
 

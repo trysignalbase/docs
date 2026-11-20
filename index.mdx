@@ -1,11 +1,11 @@
 ---
 title: Signalbase API
-description: "Real-time Funding, Acquisition, Job Change Signals & Investor Data API"
+description: "Real-time funding, acquisition, job change, hiring and custom signals API for recruitment agencies and AI agents"
 ---
 
 ## Welcome to Signalbase
 
-Signalbase API provides real-time access to funding signals, acquisition signals, job change signals, and comprehensive investor data. Our platform continuously monitors and aggregates intelligence from across the web, giving you up-to-date information to power your sales, marketing, and research workflows.
+Signalbase detects what just changed at a company: a funding round, an acquisition, a new executive, a new job posting, or a custom signal you define, such as a new office or a first hire in a new market. Each event arrives within minutes with its original source and company context. Recruitment agencies use it to find the companies about to hire before the role is posted, and the same data powers your own tools, workflows and AI agents.
 
 <CardGroup cols={2}>
   <Card
@@ -13,28 +13,56 @@ Signalbase API provides real-time access to funding signals, acquisition signals
     icon="chart-line-up"
     href="/api-reference/funding-signals/introduction"
   >
-    Track real-time funding rounds, amounts, and investor participation across companies worldwide.
+    Funding rounds as they are announced, with round type, amount, investors and the source.
   </Card>
   <Card
     title="Acquisition Signals"
     icon="bullseye-arrow"
     href="/api-reference/acquisition-signals/introduction"
   >
-    Identify companies showing acquisition indicators and potential M&A targets.
+    Completed acquisitions as they are announced, with the acquirer, deal details and the source.
   </Card>
   <Card
     title="Job Change Signals"
     icon="briefcase"
     href="/api-reference/job-change-signals/introduction"
   >
-    Monitor leadership changes and key hires with role, department, and seniority filters.
+    New roles announced on LinkedIn, with role, department and seniority filters.
+  </Card>
+  <Card
+    title="Hiring Signals"
+    icon="user-plus"
+    href="/api-reference/hiring-signals/introduction"
+  >
+    Open job postings with the company attached, filterable by role, seniority, location and team size.
+  </Card>
+  <Card
+    title="Custom Signals"
+    icon="sparkles"
+    href="/api-reference/custom-signals/introduction"
+  >
+    Signals you define in plain English, such as out of stealth, a new office or a founding hire.
+  </Card>
+  <Card
+    title="People"
+    icon="users"
+    href="/api-reference/people/introduction"
+  >
+    Find who to contact at a company, with the signal that explains why now.
+  </Card>
+  <Card
+    title="Companies"
+    icon="building"
+    href="/api-reference/companies/introduction"
+  >
+    Search company profiles by industry, headcount and location.
   </Card>
   <Card
     title="Investors Database"
     icon="hand-holding-dollar"
     href="/api-reference/investors/introduction"
   >
-    Access comprehensive data on VCs, angels, PE firms, and corporate investors.
+    VCs, angels, PE firms and corporate investors built from real funding activity.
   </Card>
   <Card
     title="Account Monitoring"
@@ -50,7 +78,25 @@ Signalbase API provides real-time access to funding signals, acquisition signals
   >
     Receive signed, real-time signal deliveries on your own HTTPS endpoint.
   </Card>
+  <Card
+    title="CSV Enrichment"
+    icon="file-csv"
+    href="/api-reference/csv-enrichment/introduction"
+  >
+    Enrich your own company lists with funding, hiring, job change and acquisition signals.
+  </Card>
 </CardGroup>
+
+## Plans and access
+
+Every API key belongs to a team with an active or trialing Signalbase subscription. See [plans and pricing](https://www.trysignalbase.com/pricing) on trysignalbase.com.
+
+- **Pro**: the API, MCP and webhooks, account monitoring, CSV enrichment and custom signals, for teams of up to 3 seats. Start with a 7-day trial: no card required, 500 credits included.
+- **Custom**: more seats, white-label API and webhook delivery, and the right to redistribute signals to your own users.
+
+<Note>
+Custom signals need a Signalbase subscription. They are not available through marketplace listings such as the Signalbase Actors on Apify, which cover the built-in funding, acquisition, job change, hiring, investor and company data. To use custom signals, [start a plan on trysignalbase.com](https://www.trysignalbase.com/pricing).
+</Note>
 
 ## Getting Started
 
@@ -73,9 +119,13 @@ All V2 API endpoints use the following base URL:
 https://www.trysignalbase.com/api/v2
 ```
 
+### Use it from Claude or another AI agent
+
+Signalbase also runs as an MCP server, so Claude, Cursor and other MCP clients can query signals with your API key. See [Signalbase MCP](https://www.trysignalbase.com/mcp) for the setup.
+
 ## Key Features
 
-- **Real-time Data**: Signals aggregated continuously from web sources
+- **Real-time Data**: Signals detected within minutes from news, press releases, LinkedIn and job boards, each with its source
 - **Advanced Filtering**: Filter by countries, categories, subcategories, date ranges, numeric ranges, and more
 - **Date Presets**: Use relative date shortcuts like `last_30d`, `this_quarter`, or `last_year`
 - **Flexible Sorting**: Sort results by date, amount, employee count, and other fields
